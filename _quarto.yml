@@ -1,10 +1,11 @@
 project:
   type: book
+  output-dir: docs
 
 book:
   title: "rethinking2020"
-  author: "Jane Doe"
-  date: "10/8/2022"
+  author: "François Lefebvre"
+  date: "2022-10-08"
   chapters:
     - index.qmd
     - intro.qmd
