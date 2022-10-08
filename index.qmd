@@ -109,6 +109,5 @@ remotes::install_github("rmcelreath/rethinking")
 ## Session info {.unumbered}
 
 ```{r }
-#| eval: false
 sessioninfo::session_info()
 ```
