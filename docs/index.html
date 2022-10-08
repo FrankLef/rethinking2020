@@ -114,7 +114,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./intro.html" rel="next">
+<link href="./ch01_golem.html" rel="next">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -183,12 +183,7 @@ div.csl-indent {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./intro.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./summary.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Summary</span></a>
+  <a href="./ch01_golem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Golem of Prague</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -205,7 +200,16 @@ div.csl-indent {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a></li>
+  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a>
+  <ul class="collapse">
+  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a>
+  <ul class="collapse">
+  <li><a href="#install-rtools" id="toc-install-rtools" class="nav-link" data-scroll-target="#install-rtools">Install <code>Rtools</code></a></li>
+  <li><a href="#install-rstan" id="toc-install-rstan" class="nav-link" data-scroll-target="#install-rstan">Install <code>rstan</code></a></li>
+  <li><a href="#install-rethinking" id="toc-install-rethinking" class="nav-link" data-scroll-target="#install-rethinking">Install <code>rethinking</code></a></li>
+  </ul></li>
+  <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session info</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -242,12 +246,81 @@ div.csl-indent {
 
 <section id="preface" class="level1 unnumbered">
 <h1 class="unnumbered">Preface</h1>
-<p>This is a study project of Statistical Rethinking, second edition, by Richard McElreath <span class="citation" data-cites="elreath2020">(<a href="references.html#ref-elreath2020" role="doc-biblioref">McElreath 2020</a>)</span>.</p>
+<p>This book is a study project of Statistical Rethinking, second edition, by Richard McElreath <span class="citation" data-cites="elreath2020">(<a href="references.html#ref-elreath2020" role="doc-biblioref">McElreath 2020</a>)</span>.</p>
+<section id="prerequisites" class="level2 unumbered">
+<h2 class="unumbered anchored" data-anchor-id="prerequisites">Prerequisites</h2>
+<p>To install the <code>rstan</code> package the rstan site provides useful guidance at <a href="https://github.com/stan-dev/rstan/wiki/Installing-RStan-on-Windows">rstan site</a>.</p>
+<p>The sequence to follow is</p>
+<ol type="1">
+<li>Ensure <code>Rtools</code> is installed</li>
+<li>Ensure <code>rstan</code> is installed</li>
+<li>Install rethinking only once</li>
+</ol>
+<section id="install-rtools" class="level3 unumbered">
+<h3 class="unumbered anchored" data-anchor-id="install-rtools">Install <code>Rtools</code></h3>
+<p>Make sure <code>Rtools</code> is installed before proceeding further.</p>
+<p>Get the environment path</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">+</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>sys_path <span class="ot">&lt;-</span> <span class="fu">Sys.getenv</span>(<span class="st">"PATH"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sys_path <span class="ot">&lt;-</span> <span class="fu">unlist</span>(stringr<span class="sc">::</span><span class="fu">str_split</span>(<span class="at">string =</span> sys_path, <span class="at">pattern =</span> <span class="st">";"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>then find position of RTools and test if it is installed</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="ot">&lt;-</span> <span class="fu">grepl</span>(<span class="at">pattern =</span> <span class="st">"(Rtools)|(RBuildTools)"</span>, sys_path, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">any</span>(tmp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>and verify that <code>g++</code> can really be called from <code>R</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system</span>(<span class="st">"g++ -v"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">system</span>(<span class="st">"where make"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="install-rstan" class="level3 unumbered">
+<h3 class="unumbered anchored" data-anchor-id="install-rstan">Install <code>rstan</code></h3>
+<p>Install <code>rstan</code> and its tools.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>install rstan and its tools</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"rstan"</span>, <span class="st">"rstantools"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>and verify that tool chain works</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fx <span class="ot">&lt;-</span> inline<span class="sc">::</span><span class="fu">cxxfunction</span>(<span class="fu">signature</span>(<span class="at">x =</span> <span class="st">"integer"</span>, <span class="at">y =</span> <span class="st">"numeric"</span> ) ,</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                           <span class="st">'return ScalarReal( INTEGER(x)[0] * REAL(y)[0] ) ;'</span> )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>and just a final verification to ensure all is correct</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this should return 10</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>fx <span class="ot">&lt;-</span> inline<span class="sc">::</span><span class="fu">cxxfunction</span>(<span class="fu">signature</span>(<span class="at">x =</span> <span class="st">"integer"</span>, <span class="at">y =</span> <span class="st">"numeric"</span> ) ,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                           <span class="st">'return ScalarReal( INTEGER(x)[0] * REAL(y)[0] ) ;'</span> )</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">fx</span>( 2L, <span class="dv">5</span> )</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">fx</span>( 2L, <span class="dv">5</span> ) <span class="sc">==</span> 10L) {</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    msg <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"RStan installed with success. Version"</span>, <span class="fu">packageVersion</span>(<span class="st">"rstan"</span>))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(msg)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">"RStan installation failed."</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="install-rethinking" class="level3 unumbered">
+<h3 class="unumbered anchored" data-anchor-id="install-rethinking">Install <code>rethinking</code></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"coda"</span>, <span class="st">"mvtnorm"</span>, <span class="st">"devtools"</span>))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"rmcelreath/rethinking"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<blockquote class="blockquote">
+<p><strong>Important</strong> <code>rethinking</code> mus be reintalled to work under <code>R 4.0</code>. But it is not on ‘CRAN’ and must be reinstalled locally. Go to <a href="https://github.com/rmcelreath/rethinking/issues/250">solution</a> to solve it. This will show the command on the next lines.</p>
+</blockquote>
+<p>Use the following to install <code>rethinking</code> locally when using <code>R</code> with version &gt;= 4.0.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"rmcelreath/rethinking"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="session-info" class="level2 unumbered">
+<h2 class="unumbered anchored" data-anchor-id="session-info">Session info</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sessioninfo<span class="sc">::</span><span class="fu">session_info</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
@@ -256,6 +329,7 @@ div.csl-indent {
 McElreath, Richard. 2020. <em>Statistical Rethinking: A Bayesian Course with Examples in <span>R</span> and Stan</em>. 2nd ed. Boca Raton, Florida: Chapman; Hall/CRC. <a href="http://www.taylorandfrancis.com">http://www.taylorandfrancis.com</a>.
 </div>
 </div>
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -361,8 +435,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   <div class="nav-page nav-page-previous">
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./intro.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./ch01_golem.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Golem of Prague</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

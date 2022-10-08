@@ -1,8 +1,114 @@
 # Preface {.unnumbered}
 
-This is a study project of Statistical Rethinking, second edition, by
+This book is a study project of Statistical Rethinking, second edition, by
 Richard McElreath [@elreath2020].
 
-```{r}
-1 + 1
+
+
+## Prerequisites {.unumbered}
+
+To install the `rstan` package the rstan site provides useful guidance at
+[rstan site](https://github.com/stan-dev/rstan/wiki/Installing-RStan-on-Windows).
+
+The sequence to follow is
+
+1. Ensure `Rtools` is installed
+2. Ensure `rstan` is installed
+3. Install rethinking only once
+
+### Install `Rtools` {.unumbered}
+
+Make sure `Rtools` is installed before proceeding further.
+
+Get the environment path
+
+```{r }
+#| eval: false
+sys_path <- Sys.getenv("PATH")
+sys_path <- unlist(stringr::str_split(string = sys_path, pattern = ";"))
+```
+
+then find position of RTools and test if it is installed
+
+```{r }
+#| eval: false
+tmp <- grepl(pattern = "(Rtools)|(RBuildTools)", sys_path, ignore.case = TRUE)
+stopifnot(any(tmp))
+```
+
+and verify that `g++` can really be called from `R`
+
+```{r }
+#| eval: false
+system("g++ -v")
+system("where make")
+```
+
+
+### Install `rstan` {.unumbered}
+
+Install `rstan` and its tools.
+
+```{r }
+#| eval: false
+install rstan and its tools
+install.packages(c("rstan", "rstantools"))
+```
+
+
+and verify that tool chain works
+
+```{r }
+#| eval: false
+fx <- inline::cxxfunction(signature(x = "integer", y = "numeric" ) ,
+                           'return ScalarReal( INTEGER(x)[0] * REAL(y)[0] ) ;' )
+```
+
+
+and just a  final verification to ensure all is correct
+
+```{r }
+#| eval: false
+# this should return 10
+fx <- inline::cxxfunction(signature(x = "integer", y = "numeric" ) ,
+                           'return ScalarReal( INTEGER(x)[0] * REAL(y)[0] ) ;' )
+fx( 2L, 5 )
+if(fx( 2L, 5 ) == 10L) {
+    msg <- paste("RStan installed with success. Version", packageVersion("rstan"))
+    message(msg)
+} else {
+    stop("RStan installation failed.")
+}
+```
+
+
+### Install `rethinking` {.unumbered}
+
+
+```{r }
+#| eval: false
+install.packages(c("coda", "mvtnorm", "devtools"))
+library(devtools)
+devtools::install_github("rmcelreath/rethinking")
+```
+
+
+> **Important** `rethinking` mus be reintalled to work under `R 4.0`. 
+  But it is not on 'CRAN' and must be reinstalled locally. Go to 
+  [solution](https://github.com/rmcelreath/rethinking/issues/250) to solve it.
+  This will show the command on the next lines.
+
+Use the following to install `rethinking` locally when using `R` with version >= 4.0.
+
+```{r }
+#| eval: false
+remotes::install_github("rmcelreath/rethinking")
+```
+
+
+## Session info {.unumbered}
+
+```{r }
+#| eval: false
+sessioninfo::session_info()
 ```

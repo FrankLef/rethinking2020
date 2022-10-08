@@ -8,8 +8,7 @@ book:
   date: "2022-10-08"
   chapters:
     - index.qmd
-    - intro.qmd
-    - summary.qmd
+    - ch01_golem.qmd
     - references.qmd
 
 bibliography: references.bib
