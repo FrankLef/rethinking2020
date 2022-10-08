@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "rethinking2020",
     "section": "",
-    "text": "This is a Quarto book.\nTo learn more about Quarto books visit https://quarto.org/docs/books.\n\n1 + 1\n\n[1] 2"
+    "text": "This is a study project of Statistical Rethinking, second edition, by Richard McElreath (McElreath 2020).\n\n1 + 1\n\n[1] 2\n\n\n\n\n\n\nMcElreath, Richard. 2020. Statistical Rethinking: A Bayesian Course with Examples in R and Stan. 2nd ed. Boca Raton, Florida: Chapman; Hall/CRC. http://www.taylorandfrancis.com."
   },
   {
     "objectID": "intro.html",
@@ -25,6 +25,6 @@
     "href": "references.html",
     "title": "References",
     "section": "",
-    "text": "Knuth, Donald E. 1984. “Literate Programming.” Comput.\nJ. 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97."
+    "text": "Knuth, Donald E. 1984. “Literate Programming.” Comput.\nJ. 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.\n\n\nMcElreath, Richard. 2020. Statistical Rethinking: A Bayesian Course\nwith Examples in R and Stan. 2nd ed. Boca Raton,\nFlorida: Chapman; Hall/CRC. http://www.taylorandfrancis.com."
   }
 ]
