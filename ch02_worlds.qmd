@@ -1,0 +1,145 @@
+# Small Worlds and Large Worlds {#worlds}
+
+The foundations of Bayesian statistics.
+
+```{r}
+#| include: false
+library(rethinking)
+library(dplyr)
+library(ggplot2)
+```
+
+
+## Garden of forking data
+
+There are 2 events: Blue marble represented by `B` and white marble represented by `W`
+
+```{r}
+events <- c("B", "W")
+```
+
+The bag has 4 marbles of 2 colors, blue and white each possibilities, 0 to 4 blue marbles, is a conjecture (sample space).
+
+```{r}
+conjectures <- lapply(0:4, 
+                      function(i) c(rep(events[1], times = i), 
+                                    rep(events[2], times = 4 - i))
+                      )
+conjectures <- as.data.frame(do.call(rbind, conjectures))
+conjectures
+```
+
+we draw 3 marbles from the bag which is the data (event)
+
+```{r}
+data <- c("B", "W", "B")
+data
+```
+
+the number of ways each conjecures could have generated the data is
+
+```{r}
+ways <- apply(X = conjectures, MARGIN = 1, 
+              function(x) {
+                  sum(x == data[1]) * sum(x == data[2]) * sum(x == data[3])
+                  })
+ways
+```
+
+So the number of ways depends on the nb of blue marbles in the bag. Therefore we will assign different plausabiltity to the conjectures depending on the proportion of blue balls. This is an assumtpions on the $p$, other values can be warranted.
+
+```{r}
+prior <- apply(X = conjectures, MARGIN = 1, function(x) sum(x == events[1]) / 4)
+prior
+conjectures <- cbind(conjectures, prior, ways)
+conjectures
+```
+
+And the plausability of the prior after getting the new data is the data x the prior divided by the sum of all possible event
+
+```{r}
+# the multiplication of likelyhood and prior
+conjectures$post <- conjectures$ways * conjectures$prior
+# the division by the sum to convert to pct summing up to 1
+conjectures$post <- conjectures$post / sum(conjectures$post)  
+conjectures
+# verify the total of posterior is 1
+stopifnot(sum(conjectures$post) == 1)
+```
+
+:::{.callout-note}
+If you run the above procedure, wou will find that the posterior is not always the same, it varies quite a bit. That's why we run lots of sample and investigate their distribution to decide what is the right value for the parameter.
+:::
+
+## Building a model
+
+The events are that the location on earth is earth represented by $L$ or that the location on earth is water represented by $W$.
+
+```{r}
+events <- c("L", "W")
+```
+
+The conjecture is the amount of water on earth represented by the parameter p which we try to estimate. This time is a continuous value, we will use a grid to approximate the entire set of possibles conjectures
+
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 20)
+```
+
+And , as priors, we assume that every possibilities of p is uniformely distributed.
+
+```{r}
+prior <- rep(1, times = length(p_grid))
+prior
+```
+
+Compute likelihood for each value in the grid
+
+```{r}
+likelihood <- dbinom(x = 6, size = 9, prob = p_grid)
+```
+
+Compute product of likelihood and prior
+
+```{r}
+unstd.posterior <- likelihood * prior
+```
+
+Standardize the posterior so it sum to 1
+
+```{r}
+posterior <- unstd.posterior / sum(unstd.posterior)
+```
+
+## Components of the model
+
+### Likelihood
+
+### Parameters
+
+### Priors
+
+## Making the model go
+
+### Grid approximation
+
+### Quadratic approximation
+
+```{r}
+globe.qa <- rethinking::map(
+    alist(
+        w ~ dbinom(9, p),  # binomial likelihood
+        p ~ dunif(0, 1)  # uniform priors
+    ),
+    data = list(w = 6)
+    )
+
+rethinking::precis(globe.qa)
+```
+
+## Summary
+
+Grid approximation can only be used with the simplest problems although if you understand it, you understand the fundamental method behind Bayesian stats.
+
+Quadratic approximation is a nice trick to remember as, when it can be used, it is very efficient. However I could not find a R package that actually does it.
+
+MCMC is, seemingly, the most used method in practice. It is the method used by the `brms` package

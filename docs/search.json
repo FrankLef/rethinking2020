@@ -14,6 +14,76 @@
     "text": "This chapter is for reading and very interesting. It involves no actual coding, just a critical and open mind."
   },
   {
+    "objectID": "ch02_worlds.html",
+    "href": "ch02_worlds.html",
+    "title": "2  Small Worlds and Large Worlds",
+    "section": "",
+    "text": "The foundations of Bayesian statistics."
+  },
+  {
+    "objectID": "ch02_worlds.html#garden-of-forking-data",
+    "href": "ch02_worlds.html#garden-of-forking-data",
+    "title": "2  Small Worlds and Large Worlds",
+    "section": "2.1 Garden of forking data",
+    "text": "2.1 Garden of forking data\nThere are 2 events: Blue marble represented by B and white marble represented by W\n\nevents <- c(\"B\", \"W\")\n\nThe bag has 4 marbles of 2 colors, blue and white each possibilities, 0 to 4 blue marbles, is a conjecture (sample space).\n\nconjectures <- lapply(0:4, \n                      function(i) c(rep(events[1], times = i), \n                                    rep(events[2], times = 4 - i))\n                      )\nconjectures <- as.data.frame(do.call(rbind, conjectures))\nconjectures\n\n  V1 V2 V3 V4\n1  W  W  W  W\n2  B  W  W  W\n3  B  B  W  W\n4  B  B  B  W\n5  B  B  B  B\n\n\nwe draw 3 marbles from the bag which is the data (event)\n\ndata <- c(\"B\", \"W\", \"B\")\ndata\n\n[1] \"B\" \"W\" \"B\"\n\n\nthe number of ways each conjecures could have generated the data is\n\nways <- apply(X = conjectures, MARGIN = 1, \n              function(x) {\n                  sum(x == data[1]) * sum(x == data[2]) * sum(x == data[3])\n                  })\nways\n\n[1] 0 3 8 9 0\n\n\nSo the number of ways depends on the nb of blue marbles in the bag. Therefore we will assign different plausabiltity to the conjectures depending on the proportion of blue balls. This is an assumtpions on the \\(p\\), other values can be warranted.\n\nprior <- apply(X = conjectures, MARGIN = 1, function(x) sum(x == events[1]) / 4)\nprior\n\n[1] 0.00 0.25 0.50 0.75 1.00\n\nconjectures <- cbind(conjectures, prior, ways)\nconjectures\n\n  V1 V2 V3 V4 prior ways\n1  W  W  W  W  0.00    0\n2  B  W  W  W  0.25    3\n3  B  B  W  W  0.50    8\n4  B  B  B  W  0.75    9\n5  B  B  B  B  1.00    0\n\n\nAnd the plausability of the prior after getting the new data is the data x the prior divided by the sum of all possible event\n\n# the multiplication of likelyhood and prior\nconjectures$post <- conjectures$ways * conjectures$prior\n# the division by the sum to convert to pct summing up to 1\nconjectures$post <- conjectures$post / sum(conjectures$post)  \nconjectures\n\n  V1 V2 V3 V4 prior ways       post\n1  W  W  W  W  0.00    0 0.00000000\n2  B  W  W  W  0.25    3 0.06521739\n3  B  B  W  W  0.50    8 0.34782609\n4  B  B  B  W  0.75    9 0.58695652\n5  B  B  B  B  1.00    0 0.00000000\n\n# verify the total of posterior is 1\nstopifnot(sum(conjectures$post) == 1)\n\n\n\n\n\n\n\nNote\n\n\n\nIf you run the above procedure, wou will find that the posterior is not always the same, it varies quite a bit. That’s why we run lots of sample and investigate their distribution to decide what is the right value for the parameter."
+  },
+  {
+    "objectID": "ch02_worlds.html#building-a-model",
+    "href": "ch02_worlds.html#building-a-model",
+    "title": "2  Small Worlds and Large Worlds",
+    "section": "2.2 Building a model",
+    "text": "2.2 Building a model\nThe events are that the location on earth is earth represented by \\(L\\) or that the location on earth is water represented by \\(W\\).\n\nevents <- c(\"L\", \"W\")\n\nThe conjecture is the amount of water on earth represented by the parameter p which we try to estimate. This time is a continuous value, we will use a grid to approximate the entire set of possibles conjectures\n\np_grid <- seq(from = 0, to = 1, length.out = 20)\n\nAnd , as priors, we assume that every possibilities of p is uniformely distributed.\n\nprior <- rep(1, times = length(p_grid))\nprior\n\n [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1\n\n\nCompute likelihood for each value in the grid\n\nlikelihood <- dbinom(x = 6, size = 9, prob = p_grid)\n\nCompute product of likelihood and prior\n\nunstd.posterior <- likelihood * prior\n\nStandardize the posterior so it sum to 1\n\nposterior <- unstd.posterior / sum(unstd.posterior)"
+  },
+  {
+    "objectID": "ch02_worlds.html#components-of-the-model",
+    "href": "ch02_worlds.html#components-of-the-model",
+    "title": "2  Small Worlds and Large Worlds",
+    "section": "2.3 Components of the model",
+    "text": "2.3 Components of the model\n\n2.3.1 Likelihood\n\n\n2.3.2 Parameters\n\n\n2.3.3 Priors"
+  },
+  {
+    "objectID": "ch02_worlds.html#making-the-model-go",
+    "href": "ch02_worlds.html#making-the-model-go",
+    "title": "2  Small Worlds and Large Worlds",
+    "section": "2.4 Making the model go",
+    "text": "2.4 Making the model go\n\n2.4.1 Grid approximation\n\n\n2.4.2 Quadratic approximation\n\nglobe.qa <- rethinking::map(\n    alist(\n        w ~ dbinom(9, p),  # binomial likelihood\n        p ~ dunif(0, 1)  # uniform priors\n    ),\n    data = list(w = 6)\n    )\n\nrethinking::precis(globe.qa)\n\n       mean        sd      5.5%     94.5%\np 0.6666666 0.1571338 0.4155365 0.9177968"
+  },
+  {
+    "objectID": "ch02_worlds.html#summary",
+    "href": "ch02_worlds.html#summary",
+    "title": "2  Small Worlds and Large Worlds",
+    "section": "2.5 Summary",
+    "text": "2.5 Summary\nGrid approximation can only be used with the simplest problems although if you understand it, you understand the fundamental method behind Bayesian stats.\nQuadratic approximation is a nice trick to remember as, when it can be used, it is very efficient. However I could not find a R package that actually does it.\nMCMC is, seemingly, the most used method in practice. It is the method used by the brms package"
+  },
+  {
+    "objectID": "ch03_sampling.html",
+    "href": "ch03_sampling.html",
+    "title": "3  Sampling the Imaginary",
+    "section": "",
+    "text": "We use the example from chapter 2.\nThe grid of \\(p\\) values has a grid size of \\(grod_size\\).\nThe prior is uniformly distributed and so, as discussed in Overthinking box of section 2.3.3, p. 35, \\(P(p)=\\frac{1}{1-0}=1\\).\n\ngrid_size <- 1000\nd <- tibble(\n p_grid = seq(from = 0, to = 1, length.out = grid_size),\n prior = rep(1, times = grid_size)\n)\n\nand we calculate the posterior using the data. We compute the likelihood using the grid of priors from above, then compute the average likelihood which is the sum of the likelihood.\nThe posterior is defined in detailed in section 2.3.4, p. 37.\n\\[\n\\text{Posterior} =\n\\frac{\\text{Likelihood} \\times \\text{Prior}}\n  {\\text{Average Likelihood}}\n\\]\nNote the code stopifnot(sum(d$posterior) == 1), it is always a good idea to verify this . . . you could be surprised how often you miss the mark.\n\n# the data, see page 28\ndata <- c(\"W\",\"L\",\"W\",\"W\",\"W\",\"L\",\"W\",\"L\",\"W\")\nn_success <- sum(data == \"W\")\nn_trials <- length(data)\n\n# compute the likelihood each value in the grid\nd <- d %>%\n    mutate(\n        likelihood = dbinom(x = n_success, size = n_trials, prob = d$p_grid),\n        posterior = likelihood * prior / sum(likelihood)\n    )\nstr(d)\n\ntibble [1,000 × 4] (S3: tbl_df/tbl/data.frame)\n $ p_grid    : num [1:1000] 0 0.001 0.002 0.003 0.004 ...\n $ prior     : num [1:1000] 1 1 1 1 1 1 1 1 1 1 ...\n $ likelihood: num [1:1000] 0.00 8.43e-17 5.38e-15 6.11e-14 3.42e-13 ...\n $ posterior : num [1:1000] 0.00 8.43e-19 5.38e-17 6.11e-16 3.42e-15 ...\n\n# verify the posterior\nstopifnot(sum(d$posterior) == 1)\n\nwhich gives the estimated posterior probability of \\(p\\) conditional on the data for each point of a grid.\nGenerate and visualize n_samples samples from the grid with the \\(p\\) values with their respective posterior probability \\(p\\) computed above.\n\nNote: We use dplyr::slice_sample because dplyr::sample_n is deprecated.\n\n\n# generate n_sample samples, each sample uses a grid size = grid_size\nn_samples <- 1e4\nset.seed(3)\nthe_samples <- d %>%\n    slice_sample(n = n_samples, weight_by = posterior, replace = TRUE) %>%\n    mutate(id = seq_len(n_samples), .before = p_grid)\nsum(the_samples$posterior)\n\n[1] 20.09125\n\nglimpse(the_samples)\n\nRows: 10,000\nColumns: 5\n$ id         <int> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, …\n$ p_grid     <dbl> 0.5645646, 0.6516517, 0.5475475, 0.5905906, 0.5955956, 0.78…\n$ prior      <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…\n$ likelihood <dbl> 0.22455994, 0.27190272, 0.20966655, 0.24460869, 0.24799092,…\n$ posterior  <dbl> 0.0022478473, 0.0027217490, 0.0020987643, 0.0024485355, 0.0…\n\n\nvisualize the sample of water proportion\n\n# visualize the samples\ncols = paletteer_d(palette=\"Manu::Kotare\")\nthe_samples$p_grid_dev <- abs(mean(the_samples$p_grid) - the_samples$p_grid)\nggplot(data = the_samples, mapping = aes(x = id, y = p_grid, color = p_grid_dev)) +\n  geom_point(size = 0.75, alpha = 0.9) +\n  scale_color_gradientn(colors = cols) +\n  theme_minimal() +\n  theme(legend.position = \"none\") +\n  labs(title = sprintf(\"%d samples\", nrow(the_samples)))\n\n\n\n\nvisualize the density\n\n# show the p density\nggplot(data = the_samples, aes(x = p_grid)) +\n    geom_density(aes(y=..scaled..), color = \"blue\", size = 1, fill = \"lightblue\") +\n    theme_light() +\n    labs(title = sprintf(\"%d samples\", nrow(the_samples)))"
+  },
+  {
+    "objectID": "ch03_sampling.html#sampling-to-summarize",
+    "href": "ch03_sampling.html#sampling-to-summarize",
+    "title": "3  Sampling the Imaginary",
+    "section": "3.2 Sampling to summarize",
+    "text": "3.2 Sampling to summarize\n\n3.2.1 Intervals of defined boundaries\n\nd %>%\n  filter(p_grid < 0.5) %>%\n  summarize(sum = sum(posterior))\n\n# A tibble: 1 × 1\n    sum\n  <dbl>\n1 0.172\n\n\n\n\n3.2.2 Intervals of defined mass\nWe can use `skimr as follows\n\nintrvl_skim <- skimr::skim_with(\n  numeric = skimr::sfl(\n    p10 = ~ quantile(., probs = 0.1),\n    p80 = ~ quantile(., probs = 0.8),\n    p90 = ~ quantile(., probs = 0.9)\n    ), \n  append = FALSE)\n\nintrvl_skim(the_samples, p_grid)\n\n\nData summary\n\n\nName\nthe_samples\n\n\nNumber of rows\n10000\n\n\nNumber of columns\n6\n\n\n_______________________\n\n\n\nColumn type frequency:\n\n\n\nnumeric\n1\n\n\n________________________\n\n\n\nGroup variables\nNone\n\n\n\nVariable type: numeric\n\n\n\nskim_variable\nn_missing\ncomplete_rate\np10\np80\np90\n\n\n\n\np_grid\n0\n1\n0.45\n0.76\n0.81\n\n\n\n\nquantile(the_samples$posterior, probs=0.9)\n\n        90% \n0.002714426 \n\nthe_samples %>%\n  skimr::skim()\n\n\nData summary\n\n\nName\nPiped data\n\n\nNumber of rows\n10000\n\n\nNumber of columns\n6\n\n\n_______________________\n\n\n\nColumn type frequency:\n\n\n\nnumeric\n6\n\n\n________________________\n\n\n\nGroup variables\nNone\n\n\n\nVariable type: numeric\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nskim_variable\nn_missing\ncomplete_rate\nmean\nsd\np0\np25\np50\np75\np100\nhist\n\n\n\n\nid\n0\n1\n5000.50\n2886.90\n1.00\n2500.75\n5000.50\n7500.25\n1.0e+04\n▇▇▇▇▇\n\n\np_grid\n0\n1\n0.64\n0.14\n0.15\n0.55\n0.65\n0.74\n9.7e-01\n▁▂▇▇▂\n\n\nprior\n0\n1\n1.00\n0.00\n1.00\n1.00\n1.00\n1.00\n1.0e+00\n▁▁▇▁▁\n\n\nlikelihood\n0\n1\n0.20\n0.07\n0.00\n0.16\n0.23\n0.26\n2.7e-01\n▁▁▂▃▇\n\n\nposterior\n0\n1\n0.00\n0.00\n0.00\n0.00\n0.00\n0.00\n0.0e+00\n▁▁▂▃▇\n\n\np_grid_dev\n0\n1\n0.11\n0.08\n0.00\n0.05\n0.10\n0.16\n4.9e-01\n▇▆▂▁▁\n\n\n\n\n\nWe can also customize skimr to obtain the HPDI as follows\n\nhi_skim <- skimr::skim_with(\n    base = skimr::sfl(cnt = ~ n(),\n               miss = ~ sum(is.na(.))),\n    numeric = skimr::sfl(hpdi = ~ rethinking::HPDI(., prob = 0.89)\n                         ),\n    append = FALSE\n)\nhi_skim(the_samples, p_grid)\n\n\nData summary\n\n\nName\nthe_samples\n\n\nNumber of rows\n10000\n\n\nNumber of columns\n6\n\n\n_______________________\n\n\n\nColumn type frequency:\n\n\n\nnumeric\n1\n\n\n________________________\n\n\n\nGroup variables\nNone\n\n\n\nVariable type: numeric\n\n\n\nskim_variable\ncnt\nmiss\nhpdi\n\n\n\n\np_grid\n10000\n0\n0.43\n\n\np_grid\n10000\n0\n0.86\n\n\n\n\n\nWe can get the HPDI from rethinking\n\n# the HPDI\nHPDI(the_samples$p_grid, prob = 0.5)\n\n     |0.5      0.5| \n0.5695696 0.7607608 \n\n# the PI\nPI(the_samples$p_grid, prob = 0.5)\n\n      25%       75% \n0.5475475 0.7427427 \n\n\nbut the favorite method is with ggdist which we will use extensively from now on.\n\nggdist::mean_hdi(.data = the_samples, p_grid, .width = 0.5)\n\n# A tibble: 1 × 6\n  p_grid .lower .upper .width .point .interval\n   <dbl>  <dbl>  <dbl>  <dbl> <chr>  <chr>    \n1  0.640  0.570  0.761    0.5 mean   hdi      \n\n\n\nggdist::mean_qi(.data = the_samples, p_grid, .width = 0.5)\n\n# A tibble: 1 × 6\n  p_grid .lower .upper .width .point .interval\n   <dbl>  <dbl>  <dbl>  <dbl> <chr>  <chr>    \n1  0.640  0.548  0.743    0.5 mean   qi       \n\n\nand we can illustrate the intervals with ggdist as follows\n\nqtl <- c(0.5, 0.8, 0.95, 1)\nx_breaks <- ggdist::mean_qi(.data = the_samples$p_grid, .width = qtl) %>%\n  select(y, ymin, ymax) %>%\n  pivot_longer(cols = c(\"y\", \"ymin\", \"ymax\")) %>%\n  distinct(value) %>%\n  arrange(value) %>%\n  round(digits = 2) %>%\n  pull()\nggplot(the_samples, aes(x=p_grid)) +\n         stat_halfeye(aes(fill=stat(cut_cdf_qi(\n           cdf,\n           .width = qtl,\n           labels = scales::percent_format()\n           )))) +\n  scale_x_continuous(breaks = x_breaks) +\n  scale_fill_paletteer_d(palette = \"Manu::Takahe\", direction = -1,\n                         na.translate = FALSE) +\n  theme_ggdist() +\n  theme(legend.position = c(0.1, 0.75)) +\n  labs(title = \"Intervals of defined mass\",\n       x = \"p_grid\", y = \"prob of p_grid\",fill = \"quantiles\")\n\n\n\n\n\n\n3.2.3 Point estimates (loss function)\nThe linex loss function can be very useful in business analysis. This is to be investigated later."
+  },
+  {
+    "objectID": "ch03_sampling.html#sampling-to-simulate-prediction",
+    "href": "ch03_sampling.html#sampling-to-simulate-prediction",
+    "title": "3  Sampling the Imaginary",
+    "section": "3.3 Sampling to simulate prediction",
+    "text": "3.3 Sampling to simulate prediction"
+  },
+  {
+    "objectID": "ch03_sampling.html#summary",
+    "href": "ch03_sampling.html#summary",
+    "title": "3  Sampling the Imaginary",
+    "section": "3.4 Summary",
+    "text": "3.4 Summary"
+  },
+  {
     "objectID": "references.html",
     "href": "references.html",
     "title": "References",

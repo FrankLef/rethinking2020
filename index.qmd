@@ -9,7 +9,6 @@ This book is a study project of Statistical Rethinking, second edition, by
 Richard McElreath [@elreath2020].
 
 
-
 ## Prerequisites {.unumbered}
 
 To install the `rstan` package the rstan site provides useful guidance at

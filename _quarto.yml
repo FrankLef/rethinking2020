@@ -9,6 +9,8 @@ book:
   chapters:
     - index.qmd
     - ch01_golem.qmd
+    - ch02_worlds.qmd
+    - ch03_sampling.qmd
     - references.qmd
 
 bibliography: references.bib
