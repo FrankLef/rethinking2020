@@ -1,3 +1,8 @@
+---
+execute: 
+  eval: false
+---
+
 # Preface {.unnumbered}
 
 This book is a study project of Statistical Rethinking, second edition, by
@@ -23,7 +28,6 @@ Make sure `Rtools` is installed before proceeding further.
 Get the environment path
 
 ```{r }
-#| eval: false
 sys_path <- Sys.getenv("PATH")
 sys_path <- unlist(stringr::str_split(string = sys_path, pattern = ";"))
 ```
@@ -31,7 +35,6 @@ sys_path <- unlist(stringr::str_split(string = sys_path, pattern = ";"))
 then find position of RTools and test if it is installed
 
 ```{r }
-#| eval: false
 tmp <- grepl(pattern = "(Rtools)|(RBuildTools)", sys_path, ignore.case = TRUE)
 stopifnot(any(tmp))
 ```
@@ -39,7 +42,6 @@ stopifnot(any(tmp))
 and verify that `g++` can really be called from `R`
 
 ```{r }
-#| eval: false
 system("g++ -v")
 system("where make")
 ```
@@ -50,8 +52,7 @@ system("where make")
 Install `rstan` and its tools.
 
 ```{r }
-#| eval: false
-install rstan and its tools
+# install rstan and its tools
 install.packages(c("rstan", "rstantools"))
 ```
 
@@ -59,7 +60,6 @@ install.packages(c("rstan", "rstantools"))
 and verify that tool chain works
 
 ```{r }
-#| eval: false
 fx <- inline::cxxfunction(signature(x = "integer", y = "numeric" ) ,
                            'return ScalarReal( INTEGER(x)[0] * REAL(y)[0] ) ;' )
 ```
@@ -68,7 +68,6 @@ fx <- inline::cxxfunction(signature(x = "integer", y = "numeric" ) ,
 and just a  final verification to ensure all is correct
 
 ```{r }
-#| eval: false
 # this should return 10
 fx <- inline::cxxfunction(signature(x = "integer", y = "numeric" ) ,
                            'return ScalarReal( INTEGER(x)[0] * REAL(y)[0] ) ;' )
@@ -86,7 +85,6 @@ if(fx( 2L, 5 ) == 10L) {
 
 
 ```{r }
-#| eval: false
 install.packages(c("coda", "mvtnorm", "devtools"))
 library(devtools)
 devtools::install_github("rmcelreath/rethinking")
@@ -101,7 +99,6 @@ devtools::install_github("rmcelreath/rethinking")
 Use the following to install `rethinking` locally when using `R` with version >= 4.0.
 
 ```{r }
-#| eval: false
 remotes::install_github("rmcelreath/rethinking")
 ```
 
@@ -109,5 +106,6 @@ remotes::install_github("rmcelreath/rethinking")
 ## Session info {.unumbered}
 
 ```{r }
+#| eval: true
 sessioninfo::session_info()
 ```
