@@ -1,0 +1,1262 @@
+# Linear Models {#linear}
+
+```{r }
+#| include: false
+library(rethinking)
+library(brms)
+library(dplyr)
+library(tidyr)
+library(scales)
+library(tidybayes)
+library(ggplot2)
+library(ggdist)
+library(modelr)
+library(patchwork)
+library(paletteer)
+```
+
+## Why normal distributions are normal
+
+Gaussian distribution
+
+$$
+\begin{equation}
+P \left(y \mid \mu, \sigma \right) =
+\frac{1}{\sqrt{2 \pi} \sigma} \exp{\left[-\frac{1}{2}
+ \left(\frac{y-\mu}{\sigma} \right)^2
+ \right]}
+\end{equation}
+$$
+
+gaussian distribution expressed with $precision = \tau$ is $\sigma = \frac{1}{\sqrt{\tau}}$
+
+$$
+\begin{equation}
+P \left(y \mid \mu, \tau \right) =
+\frac{\tau}{\sqrt{2 \pi}} \exp{\left[-\frac{\tau}{2}
+ \left(y-\mu \right)^2
+ \right]}
+\end{equation}
+$$
+
+## A language for describing model
+
+$$
+\begin{align*}
+outcome_i &\sim \mathcal{Normal}(\mu_i, \sigma) \\
+\mu_i &= \beta \times predictor_i \\
+\beta &\sim \mathcal{Normal}(0, 10) \\
+\sigma &\sim \mathcal{HalfCauchy}(0, 1)
+\end{align*}
+$$
+
+## A Gaussian model of height
+
+### The data
+
+```{r}
+data("Howell1")
+d <- Howell1
+rm(Howell1)
+```
+
+which we can visualize using `skimr`
+
+```{r}
+my_skim <- skimr::skim_with(numeric = skimr::sfl(`5.5%` = ~ quantile(., probs = 0.055),
+                                                 `94.5%` = ~ quantile(., probs = 0.945)
+                                                 ), append = TRUE)
+my_skim(d)
+```
+
+select only the adults
+
+```{r}
+d2 <- d[d$age >= 18, ]
+```
+
+### The model
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu, \sigma)\\
+\mu &\sim \mathcal{N}(178, 20) \\
+\sigma &\sim \mathcal{Uniform}(0, 50)
+\end{align*}
+$$
+
+We do the prior predictive simulation with the prior $\mu \sim \mathcal{N}(178, 20)$
+
+```{r}
+prior1 <- data.frame(id=seq_len(1e4)) %>%
+  mutate(mu=rnorm(n=nrow(.), mean=178, sd=20),
+         sigma=runif(n=nrow(.), min=0, max=50),
+         height = rnorm(n=nrow(.), mean=mu, sd=sigma))
+```
+
+and we do the prior predictive simulation with the prior $\mu \sim \mathcal{N}(178, 100)$
+
+```{r}
+prior2 <- data.frame(id=seq_len(1e4)) %>%
+  mutate(mu=rnorm(n=nrow(.), mean=178, sd=100),
+         sigma=runif(n=nrow(.), min=0, max=50),
+         height = rnorm(n=nrow(.), mean=mu, sd=sigma))
+```
+
+and we visualize using `ggplot`
+
+```{r}
+p <- list()
+# NOTE: we use {} with %>% to use nrow in  sprintf
+p$prior1 <- prior1 %>%
+  {
+    ggplot(data=., aes(x=height)) +
+      geom_density(color = "slateblue1", size = 1) +
+      theme_classic() +
+      theme(legend.position = c(0.1, 0.8)) +
+      labs(
+        title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
+        subtitle = sprintf("sample size = %d", nrow(.)),
+        fill = "quantile"
+  )
+  }
+# p$prior1
+```
+
+```{r}
+p$prior2 <- prior2 %>%
+  {
+    ggplot(data=., aes(x = height)) +
+      geom_density(color = "peru", size = 1) +
+      geom_vline(xintercept = 0, linetype = "dotted", color = "navy") +
+      theme_classic() +
+      theme(legend.position = c(0.1, 0.8)) +
+      labs(
+        title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
+        subtitle = sprintf("sample size = %d", nrow(.)),
+        fill = "quantile")
+  }
+# p$prior2
+```
+
+and we generate the 4 plots using `ggdist::stat_dist_interval()` used for analytical distribution
+
+```{r}
+p$normal <- data.frame(mean=178, sd=20) %>%
+  {
+    ggplot(data=.) +
+      geom_function(fun=dnorm, args=list(mean=.$mean, sd=.$sd),
+                    color="olivedrab4", size=1) +
+      scale_x_continuous(limits = c(.$mean - 3 * .$sd, .$mean  + 3 * .$sd),
+                     breaks = scales::breaks_width(width = 25)) +
+  theme_classic() +
+  labs(title = bquote(mu ~ .(sprintf("~ dnorm(%.0f, %.0f)", .$mean, .$sd))), 
+       x = expression(mu), y = "density") 
+  }
+# p$normal
+
+
+p$uniform <- data.frame(min=0, max=50) %>%
+  {
+    ggplot(data=.) +
+      geom_function(fun=dunif, args=list(min=.$min, max=.$max),
+                    color="rosybrown2", size=1) +
+      scale_x_continuous(limits = c(.$min - 2, .$max  + 2),
+                         breaks = scales::breaks_width(width=10)) +
+      theme_classic() +
+      labs(title = bquote(mu ~ .(sprintf("~ dunif(%.0f, %.0f)", .$min, .$max))), 
+           x = expression(sigma), y = "density")
+  }
+# p$uniform
+```
+
+```{r}
+patchwork::wrap_plots(p)
+```
+
+### Grid approximation of posterior distribution
+
+First create the grid. The name `the_grid` is used here instead of `post`, as in the textbook, to emphasize that these are posterior of the grid. They are not the actual posteriors which will be calculated next using a sampling.
+
+```{r}
+# create grid of mu and sigma
+post <- list(n = 200L)
+post$grid <-with(post, {
+  data.frame(
+  mu = seq(from = 140, to = 160, length.out = n),
+  sigma = seq(from = 4, to = 9, length.out = n)) %>%
+  expand(mu, sigma)
+})
+```
+
+Then we calculate the likelihood. Since probabilities are percentage this causes a numerical issue as multiple multiplications of percentages will create very small numbers, so small in fact that they will be miscalculated.
+
+To resolve this problem, we use logarithms.
+
+That is the likelihood function from the model defined in 4.3.2
+
+$$
+P(\mu, \sigma \mid h) = 
+\prod_{i=1}^n \mathcal{N}(y_i \mid \mu, \sigma) \cdot 
+ \mathcal{N}(\mu \mid mean = 0, sd = 10) \cdot 
+ \mathcal{U}(\sigma | min = 0, max = 10)
+$$
+
+is transformed to log.
+
+> **Important**: Read the end note \# 73 on page 449. All the explanations, including the usage of `max(post$prob)` is explained.
+
+$$
+\log{P(\mu, \sigma \mid h)} = 
+\sum_{i=1}^n \left[ \log{\mathcal{N}(y_i \mid \mu, \sigma)} +
+ \log{\mathcal{N}(\mu \mid mean = 0, sd = 10)} +
+ \log{\mathcal{U}(\sigma | min = 0, max = 10)} \right]
+$$ and to compute the posterior distribution we compute the likelihood which is the first element of the addition
+
+$$
+\sum_{i=1}^n \log{\mathcal{N}(y_i \mid \mu, \sigma)}
+$$ as follows
+
+```{r}
+# The likelihood on the log scale
+post$grid <- post$grid %>%
+  mutate(LL=sapply(seq_len(nrow(.)), 
+                   function(i) sum(dnorm(d2$height, 
+                                         mean=post$grid$mu[i], 
+                                         sd=post$grid$sigma[i], 
+                                         log=TRUE))))
+```
+
+then the remaining 2 elements of the summation are the priors
+
+$$
+\sum_{i=1}^n \left[
+ \log{\mathcal{N}(\mu \mid mean = 0, sd = 10)} +
+ \log{\mathcal{U}(\sigma | min = 0, max = 10)} 
+ \right]
+$$ which we add to the likelihood to obtain the posterior distribution on the log scale
+
+```{r}
+# add the the priors to the likelihood  on the log scales to obtain the
+# log of the posterior
+post$grid <- post$grid %>%
+  mutate(prob =
+           LL + 
+           dnorm(x=mu, mean=178, sd=20, log=TRUE) +
+           dunif(x=sigma, min=0, max=50, log=TRUE))
+```
+
+and to convert the posterior back to the natural scale we exponentiate.\
+The usage of `max(the_grid$post)` is explained in endnote 73. It is basically used as an approximation to what would be the denominator of the likelihood.
+
+$$
+\sum_{i=1}^n \left[
+ \log{\mathcal{N}(\mu \mid mean = 0, sd = 10)} +
+ \log{\mathcal{U}(\sigma | min = 0, max = 10)} 
+ \right]
+$$
+
+$$
+\exp{\left[\log{P(\mu, \sigma \mid h)}\right]} = P(\mu, \sigma \mid h)
+$$
+
+```{r}
+# convert back to real scale
+# attention: see endnote 73 on using max(prob)
+post$grid$prob <- with(post$grid, {exp(prob - max(prob))})
+```
+
+plot the results on a heatmap
+
+```{r}
+p <- list()
+p$heat <- ggplot(data = post$grid, aes(x = mu, y = sigma, fill = prob)) +
+  geom_raster() +
+  scale_x_continuous(limits = c(153, 156)) +
+  scale_y_continuous(limits = c(6.5, 9)) +
+  scale_fill_paletteer_c("grDevices::Viridis") +
+  coord_fixed() +
+  theme_minimal() +
+  theme(panel.grid = element_blank()) +
+  labs(title = "The grid's posterior prob.",
+       x=expression(mu), y=expression(sigma))
+p$heat
+```
+
+### Sampling from the grid's posterior
+
+```{r}
+post$samples <- post$grid %>%
+  slice_sample(n=1e4, weight_by = prob, replace = TRUE)
+```
+
+and visualizing the density of $\mu$ and $\sigma$
+
+```{r}
+# plot the density of mu
+p$mu <- ggplot(data = post$samples, mapping = aes(x = mu)) +
+  geom_density(color = "blue", size = 1, fill = "lightblue") +
+  theme_minimal() +
+  labs(title = expression("distribution of" ~ mu), x = expression(mu))
+p$mu
+```
+
+```{r}
+# plot the density of sigma
+p$sigma <- ggplot(data = post$samples, mapping = aes(x = sigma)) +
+  geom_density(color = "darkgreen", size = 1, fill = "lightgreen") +
+  theme_minimal() +
+  labs(title = expression("distribution of" ~ sigma), x = expression(sigma))
+```
+
+```{r}
+p$mu + p$sigma
+```
+
+or, even, mapping them together using `ggExtra`
+
+```{r}
+p$marg <- ggplot(data = post$samples, mapping = aes(x = mu, y = sigma)) +
+  geom_point(color = "mediumorchid", size = 0.8) +
+  geom_jitter(color = "mediumorchid", size = 0.8) +
+  theme_minimal() +
+  labs(title = expression("distribution of" ~ mu ~ sigma),
+       x = expression(mu), y = expression(sigma))
+p$marg <- ggExtra::ggMarginal(p$marg, 
+                    xparams = list(colour = "blue", fill = "lightblue", size = 1),
+                    yparams = list(colour="darkgreen", fill = "lightgreen", size = 1))
+p$marg
+```
+
+```{r}
+# to see the outut from ggMarginal, an extra code chunk is required
+# Source: https://github.com/daattali/ggExtra
+# grid::grid.newpage()
+# grid::grid.draw(p)
+```
+
+### Finding the posterior distribution with `quap` and `brm()`
+
+#### using `rethinking::map`
+
+We now fit the model using `rethinking::quap()`
+
+> See the overthinking box about `list()` vs `alist()` on p. 88 of chapter 4.
+
+The model is
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu, \sigma)\\
+\mu &\sim \mathcal{N}(178, 20) \\
+\sigma &\sim \mathcal{Uniform}(0, 50)
+\end{align*}
+$$
+
+and the fit is
+
+```{r ch04_m04_01}
+# see Overthinking in section 4.3.5 for the difference between alist() and list()
+m4.1_args <-list(
+ flist = alist(
+    height ~ dnorm(mu, sigma),
+    mu ~ dnorm(178, 28),
+    sigma ~ dunif(0, 50)),
+ start = list(
+    mu  = mean(d2$height),
+    sigma = sd(d2$height)
+    ))
+
+m4.1 <- xfun::cache_rds(
+  {rethinking::quap(m4.1_args$flist, data = d2, start = m4.1_args$start)},
+  file = "ch04_m04_01")
+```
+
+which gives us the summary
+
+```{r}
+precis(m4.1)
+```
+
+and the variance covariance matrix is
+
+```{r}
+vcov(m4.1)
+```
+
+and the correlation matrix
+
+```{r}
+cov2cor(vcov(m4.1))
+```
+
+#### Using `brms::brm`
+
+This borrows heavily from @kurtz2020b
+
+As mentioned in chapter 8, it is best to use Half-Cauchy distribution for sigma as the tends to work better when using Half Cauchy for sigma when doing a Hamiltonian MCMC with `brm()`.
+
+Therefore the model is
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu, \sigma)\\
+\mu &\sim \mathcal{N}(178, 20) \\
+\sigma &\sim \mathcal{HalfCauchy}(0, 1)
+\end{align*}
+$$
+
+> See the overthinking box about half Cauchy distribution in chapter 8 on p. 260.
+
+This process takes less than a second. It has been save to the rsd file `b04_01.rds`
+
+```{r ch04_b04_01}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+b4.1 <- xfun::cache_rds({
+  brms::brm(data = d2,
+            formula = height ~ 1,
+            family = gaussian,
+            prior = c(prior(normal(178, 20), class = Intercept),
+                      prior(cauchy(0, 1), class = sigma)),
+            iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+            seed = 4)},
+  file = "ch04_b04_01")
+tictoc::toc()
+```
+
+```{r}
+plot(b4.1)
+```
+
+
+with the summary
+
+```{r}
+summary(b4.1)
+```
+
+which can also be done with tidybayes
+
+```{r}
+b4.1 %>%
+  tidybayes::gather_draws(b_Intercept, sigma) %>%
+  tidybayes::median_qi(.width = 0.89)
+```
+
+and to plot the posteriors we need to know the names of the variables
+
+```{r}
+tidybayes::get_variables(b4.1)
+```
+
+and we spread the data with one column per variable to be able to plot it. The `tidybayes` package is particularly useful for this. We will use it extensively from now on.
+
+In particular, we can use `tidybayes::spread_draws()` to put variables in separate columns or `tidybayes::gather_draws()` to have them in long format\`\`\`
+
+and we can visualize with `ggdist`. it could be done with `tidybayes` but since `tidybayes` only export `ggsidt` we use it directly.
+
+```{r}
+p <- list()
+# quantiles used in the plots
+p$qtl <- c(0.89, 1)
+# plot the posterior dist for b
+p$b <- b4.1 %>%
+  tidybayes::spread_draws(b_Intercept, sigma) %>%
+  ggplot(aes(x = b_Intercept)) +
+  stat_halfeye(aes(fill=stat(cut_cdf_qi(cdf,.width = p$qtl))),
+           point_interval = mean_qi, .width = p$qtl) +
+   scale_fill_paletteer_d(palette = "futurevisions::pso", direction = -1,
+                         na.translate = FALSE) +
+  theme_ggdist() +
+  theme(legend.position = "none",
+        plot.background = element_rect(fill = "palegoldenrod"),
+        panel.background = element_rect(fill = "lightblue")) +
+  labs(title = "Posterior probability of Intercept", y = "density")
+
+# plot the posterior dist for sigma
+p$sigma <- b4.1 %>%
+  tidybayes::spread_draws(b_Intercept, sigma) %>%
+  ggplot(aes(x = sigma)) +
+  stat_halfeye(aes(fill=stat(cut_cdf_qi(cdf, .width = p$qtl))),
+           point_interval = mean_qi, .width = p$qtl) +
+   scale_fill_paletteer_d(palette = "futurevisions::pso",
+                         na.translate = FALSE) +
+  theme_ggdist() +
+  theme(legend.position = "none",
+        plot.background = element_rect(fill = "lightblue"),
+        panel.background = element_rect(fill = "palegoldenrod")) +
+  labs(title = expression("Posterior probability of " ~ sigma), y = "density")
+p$sigma
+
+p$b + p$sigma +
+  plot_annotation(title = "Model 4.1",
+                  theme = theme(title = element_text(color = "midnightblue")))
+```
+
+### Sampling from a fit
+
+#### Using `quap`
+
+Since `map` is a quadratic approximation, how do we simulate 2 variables, $\mu$ and $\sigma$?
+
+Simply `map` gives us the variance covariance. Therefore `map` can be used to simulation the bivariate normal distribution of $\mu$ and $\sigma$
+
+```{r}
+vcov(m4.1)
+```
+
+from which we can obtain the correlation matrix
+
+```{r}
+cov2cor(vcov(m4.1))
+```
+
+so to simulate using `rethinking` we simply use
+
+```{r}
+post <- extract.samples(m4.1, n = 1e4)
+```
+
+which gives us a sample of size 10000 of the posterior distribution which can be summarized with the usual `precis()`
+
+```{r}
+precis(post)
+```
+
+#### Using `brm`
+
+Using `brm` however we are not given the variance covariance, it is only available for the intercept (first-level parameter)
+
+```{r}
+vcov(b4.1)
+```
+
+So you have to calculate the var-cov matrix by using a sample from the posterior distribution
+
+```{r}
+post <- posterior_samples(b4.1)
+glimpse(post, 5)
+# compute the cov
+cor(post[, c("b_Intercept", "sigma")])
+```
+
+> See comment from @kurtz2020b at end of section 4.3.6 to explain that McElreath uses `mvnorm()` from `MASS` to simulate using the varcov whereas with `brms::posterior_samples()` we do it directly.
+
+Also @kurtz2020b has a nice discussion on how to create summary with histogram.
+
+## Linear predictions
+
+### The linear model strategy
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu_i, \sigma)\\
+\mu_i &= \alpha + \beta (x_i - \bar{x}) \\
+\alpha &\sim \mathcal{N}(178, 20) \\
+\beta &\sim \mathcal{N}(0,10) \\
+\sigma &\sim \mathcal{Uniform}(0, 50)
+\end{align*}
+$$
+
+#### Probability of the data
+
+$$
+h_i \sim \mathcal{N}(\mu_i, \sigma)
+$$ \#### Linear model
+
+$$
+\mu_i = \alpha + \beta (x_i - \bar{x})
+$$
+
+#### Priors
+
+$$
+\begin{align*}
+\alpha &\sim \mathcal{N}(178, 20) \\
+\beta &\sim \mathcal{N}(0,10) \\
+\sigma &\sim \mathcal{Uniform}(0, 50)
+\end{align*}
+$$
+
+The goal is to **simulate the heights from the model, using only the prior**.
+
+```{r}
+prior <- list()
+prior$n <- 100L
+set.seed(4)
+prior$sim <- with(prior, {
+  data.frame(
+    id = seq_len(n),
+    a = rnorm(n = n, mean = 178, sd = 20),
+    b = rnorm(n = n, mean = 0, sd = 10)) %>%
+    expand(nesting(id, a, b), weight = range(d2$weight)) %>%
+    mutate(height = a + b * (weight - mean(d2$weight)))
+})
+glimpse(prior$sim)
+```
+
+and we plot if
+
+```{r}
+ggplot(prior$sim, aes(x = weight, y = height, group = id)) +
+  geom_line(alpha = 1/10) +
+  geom_hline(yintercept = c(0, 272), linetype = c(2, 1), size = 1/3) +
+  coord_cartesian(ylim = c(-100, 400)) +
+  theme_classic() +
+  labs(title = "b ~ dnorm(0, 10)")
+```
+
+##### Adjusting the priors
+
+since we know that the effect ($\beta$) of the weight on height, i.e. the relation between the 2 should be positive and very large value unlikely we can use the *log-normal* as a prior on $beta$.
+
+In addition, sigma can also very often be better modeled with the exponential or HalfCauchy distribution. See section 9.5.3 in the text. We will use the exponential distribution for $\sigma$ in this work.
+
+```{r}
+p <- list()
+p$lnorm <- ggplot(data.frame(x = c(0, 5)), aes(x)) +
+  stat_function(geom = "line", fun = dlnorm, args = list(meanlog = 0, sdlog = 1), 
+                color = "slategray", size = 1.5) +
+  stat_function(geom = "area", fun = dlnorm, args = list(meanlog = 0, sdlog = 1), 
+                fill = "slategray1") +
+  theme_classic() +
+  labs(title = "log-normal distribution", x = expression(beta), y = "density")
+p$exp <- ggplot(data.frame(x = c(0, 5)), aes(x)) +
+  stat_function(geom = "line", fun = dexp, args = list(rate = 1), 
+                color = "seagreen", size = 1.5) +
+  stat_function(geom = "area", fun = dexp, args = list(rate = 1), 
+                fill = "seagreen1") +
+  theme_classic() +
+  labs(title = "exponential distribution", x = expression(beta), y = "density")
+wrap_plots(p)
+```
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu_i, \sigma)\\
+\mu_i &= \alpha + \beta (x_i - \bar{x}) \\
+\alpha &\sim \mathcal{N}(178, 20) \\
+\beta &\sim \mathcal{LogNormal}(0,1) \\
+\sigma &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+### Fitting the posterior distribution
+
+As suggested by the discussion of prior just above, we use a log-normal prior for $\beta$
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu_i, \sigma)\\
+\mu_i &= \alpha + \beta (x_i - \bar{x}) \\
+\alpha &\sim \mathcal{N}(178, 20) \\
+\beta &\sim \mathcal{LogNormal}(0,1) \\
+\sigma &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+#### Using `quap`
+
+We add the centralized weight to the data
+
+```{r}
+data("Howell1")
+d <- Howell1
+d2 <- d %>%
+  filter(age >= 18) %>%
+  mutate(weight_c = scale(weight, center = TRUE, scale = FALSE))
+rm(Howell1)
+```
+
+then get the fit using `rethinking::quap`
+
+> Giving start values to `quap` seem to help it significantly and avoiding error, at least when using b \~ dlnorm(0, 1).
+
+```{r}
+m4.3_args <-list(
+ flist = alist(
+    height ~ dnorm(mu, sigma),
+    mu <- a + b * weight_c,
+    a ~ dnorm(178, 20),
+    b ~ dlnorm(0, 1),
+    sigma ~ dunif(0, 50)),
+ start = list(
+    a  = mean(d2$height),
+    sigma = sd(d2$height)
+    ))
+```
+
+```{r ch04_m04_03}
+tictoc::tic()
+m4.3 <- xfun::cache_rds({
+  quap(
+    flist=m4.3_args$flist,
+    data = d2,
+    start=m4.3_args$start
+    )},
+  file = "ch04_m04_03")
+tictoc::toc()
+```
+
+
+
+```{r}
+precis(m4.3)
+```
+
+#### Using `brm`
+
+Again, we use the exponential distribution as a prior of sigma to facilitate the iterations with `brm`. There are 2 equivalent ways to run this model. One uses the log-normal distribution of $\beta$, the other one uses the log transform of $\beta$ with the normal distribution. The two models are mathematically equivalent
+
+#### Using lognormal distribution
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu_i, \sigma)\\
+\mu_i &= \alpha + \beta (x_i - \bar{x}) \\
+\alpha &\sim \mathcal{N}(178, 20) \\
+\beta &\sim \mathcal{LogNormal}(0,1) \\
+\sigma &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+When using lognormal for a parameter of class b, you should specify lb and ub (lower bound and upper bound) to avoid error message and accelerate the computations with `brm`.
+
+```{r ch04_b04_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b4.3 <- xfun::cache_rds({
+  brms::brm(
+    data = d2,
+    family = gaussian,
+    formula = height ~ 1 + weight_c,
+    prior = c(
+      prior(normal(178, 20), class = Intercept),
+      prior(lognormal(0, 1), class = b, lb = 0, ub = 3),
+      prior(exponential(1), class = sigma)),
+    iter = 2000, warmup = 1000, cores = detectCores(), chains = detectCores(),
+    seed = 4)},
+  file = "ch04_b04_03")
+tictoc::toc()
+```
+
+```{r}
+plot(b4.3)
+summary(b4.3)
+```
+
+
+### Using the log tranformation
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu_i, \sigma)\\
+\mu_i &= \alpha + \exp{(log\_b)} (x_i - \bar{x}) \\
+\alpha &\sim \mathcal{N}(178, 20) \\
+log\_b &\sim \mathcal{N}(0,1) \\
+\sigma &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+```{r}
+glimpse(d2)
+```
+
+> TODO: This brm command does not work. It was in kurtz2020b. Section 5.3.2 and 6.2.1 are supposed to have the solution. We will come back.
+
+:::{.callout-tip}
+## TODO
+This `brm` command does not work. It was in @kurtz2020b. Section 5.3.2 and 6.2.1 are supposed to have the solution. We will come back.
+:::
+
+```{r ch04_b04_03b}
+# tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+# b4.3b <- xfun::cache_rds({
+#   brms::brm(
+#   data = d2,
+#   family = gaussian,
+#   formula = bf(height ~ a + exp(lb) * weight_c,
+#                a ~ 1, lb ~ 1, nl = TRUE),
+#   prior = c(
+#     prior(normal(178, 20), class = b, nlpar = a),
+#     prior(normal(0, 1), class = b, nlpar = lb),
+#     prior(exponential(1), class = sigma)),
+#   iter = 2000, warmup = 1000, chains = 4, cores = detectCores(), seed = 4)},
+#   file = "ch04_b04_03b")
+# tictoc::toc()
+```
+
+```{r}
+# summary(b4.3b)
+```
+
+
+### Interpreting the posterior distribution
+
+#### Tables of marginal distributions
+
+Using `rethinking` **Important**, the parameters are correlated here, to avoid this one must do **centering** of variables. The following uses **centered** variables.
+
+```{r}
+precis(m4.3, corr = TRUE)
+```
+
+```{r}
+round(vcov(m4.3), 3)
+```
+
+Using `brm`
+
+Note: `lp__` stands for *unnormalized log posterior density*.
+
+```{r}
+posterior_summary(b4.3, probs = c(0.055, 0.975)) %>%
+  round(digits = 2)
+```
+
+we get the varcov matrix as follows
+
+```{r}
+posterior_samples(b4.3) %>%
+  select(-lp__) %>%
+  cov() %>%
+  round(digits = 3)
+```
+
+and the correlation matrix
+
+```{r}
+posterior_samples(b4.3) %>%
+  select(-lp__) %>%
+  cor() %>%
+  round(digits = 3)
+```
+
+#### Plotting posterior inference against data
+
+With `brms` we use the `ggmcmc` package to illustrate the results from the markov chain
+
+```{r}
+tidybayes::get_variables(b4.3)
+```
+
+```{r}
+post <- list()
+post$long <- b4.3 %>%
+  tidybayes::gather_draws(b_Intercept, b_weight_c, sigma)
+```
+
+with the histogram
+
+```{r}
+p <- list()
+p$hist <- ggplot(post$long, aes(x = .value)) +
+  geom_histogram(aes(fill = .variable)) +
+  scale_fill_paletteer_d(palette = "futurevisions::atomic_orange") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  facet_wrap(. ~ .variable, ncol = 1, scales = "free")
+p$hist
+```
+
+and density plots by chains
+
+```{r}
+p$dens <- ggplot(post$long, aes(x = .value, color = as.factor(.chain))) +
+  geom_density() +
+  scale_color_paletteer_d(palette = "futurevisions::atomic_clock") +
+  theme_minimal() +
+  # theme(legend.position = "none") +
+  labs(x = NULL, color = "chain") +
+  facet_wrap(. ~ .variable, ncol = 1, scales = "free")
+p$dens
+```
+
+and the paired plots with `ggally`
+
+```{r}
+post$wide <- b4.3 %>%
+  tidybayes::spread_draws(b_Intercept, b_weight_c, sigma)
+# glimpse(post$wide)
+```
+
+```{r}
+p$pairs <- GGally::ggscatmat(post$wide, 
+                                columns = c("b_Intercept", "b_weight_c", "sigma"),
+                                color = ".chain", alpha = 0.8) +
+  scale_color_paletteer_d(palette = "futurevisions::atomic_clock") +
+  theme_minimal()
+p$pairs
+```
+
+and the correlation matrix
+
+```{r}
+p$corr <- GGally::ggcorr(post$wide[, c("b_Intercept", "b_weight_c", "sigma")],
+                            color = "darkgreen",
+                            nbreaks = 10, label = TRUE, label_round = 2,
+                            label_color = "midnightblue") +
+  scale_fill_paletteer_d(palette = "futurevisions::venus") +
+  theme(legend.position = "none") +
+  labs(title = "Correlations between parameters")
+p$corr
+```
+
+and for added extra, the trace plot
+
+```{r}
+p$trace <- ggplot(post$long, aes(x = .iteration, y = .value, color = as.factor(.chain))) +
+  geom_line() +
+  scale_color_paletteer_d(palette = "futurevisions::atomic_clock", direction = 1) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = NULL, y = NULL) +
+  facet_wrap(. ~ .variable, ncol = 1, scales = "free")
+p$trace
+```
+
+## Curves from lines
+
+### Polynomial regression
+
+```{r}
+data("Howell1")
+d <- Howell1 %>%
+  mutate(weight_s = scale(as.vector(weight)),
+         weight_s2 = weight_s ^ 2)
+rm(Howell1)
+# str(d)
+
+# A function to inverse transform the data to natural scale
+# will be used in plots below. Normally used with `base::scale()`.
+# If the base::scale function was used originally, the attributes contain 
+# the center and scale values.
+inv.scale <- function(x, 
+                      center = attr(x, which = "scaled:center"),
+                      scale = attr(x, which = "scaled:scale")) {
+  if(!is.finite(center)) center <- 0L
+  if(!is.finite(scale)) scale <- 1L
+  center + x * scale
+}
+```
+
+```{r}
+p <- list()
+
+# add geom after because in later plot we need to keep geom_point() again
+# to keep it on top
+colr <- unclass(paletteer::paletteer_d("futurevisions::titan"))
+# nice trick: we use the pipe with {} to be able to reuse the data within the plot
+p$basic <- d %>% {
+  ggplot(d, aes(x = weight_s, y = height, color = age)) +
+  scale_x_continuous(breaks = scales::breaks_extended(n=7),
+                     labels = function(x) {
+                       x <- inv.scale(x, mean(.$weight), sd(.$weight))
+                       label_number(accuracy = 1)(x)
+                     }) +
+  scale_color_gradientn(colors = colr) +
+  theme_classic() +
+  theme(title = element_text(color = "midnightblue"),
+        legend.position = c(0.1, 0.8)) +
+  labs(title = "Census data for the Dobe area !Kung San",
+       subtitle = sprintf("%d individuals", nrow(.)))
+}
+
+p$basic +
+  geom_point(shape = 20, size = 2, alpha = 2/3)
+```
+
+and the model used is
+
+$$
+\begin{align*}
+h_i &\sim \mathcal{N}(\mu_i, \sigma)\\
+\mu_i &= \alpha + \beta_1 \cdot weight\_s_i + \beta_2 \cdot weight\_s^2_i \\
+\alpha &\sim \mathcal{N}(178, 20) \\
+\beta_1 &\sim \mathcal{LogNormal}(0,1) \\
+\beta_2 &\sim \mathcal{N}(0,1) \\
+\sigma &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+https://discourse.mc-stan.org/t/error-with-gamma-prior/16420
+
+:::{.callout-warning}
+The following code gives a warning about setting lower boundaries. It started
+to show with `R 4.2`. Paul Buerkner advises to ignore it. See
+[advice](https://discourse.mc-stan.org/t/error-with-gamma-prior/16420)
+:::
+
+
+```{r ch04_b04_05}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+b4.5 <- xfun::cache_rds({
+  brm(data = d,
+      family = gaussian,
+      height ~ 1 + weight_s + weight_s2,
+      prior = c(prior(normal(178, 20), class = Intercept),
+                prior(lognormal(0, 1), class = b, coef = "weight_s"),
+                prior(normal(0, 1), class = b, coef = "weight_s2"),
+                prior(exponential(1), class = sigma)),
+      iter = 4000, warmup = 2000, chains = 4, cores = detectCores(),
+      seed = 4)},
+  file = "ch04_b04_05")
+tictoc::toc()
+```
+
+
+```{r}
+summary(b4.5)
+```
+
+
+and to obtain a simplified dataframe we use
+
+```{r}
+brms::fixef(b4.5)
+```
+
+```{r}
+tidybayes::get_variables(b4.5)
+```
+
+```{r}
+p$dens <- 
+  b4.5 %>% tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) %>%
+  ggplot(aes(x = .value, color = as.factor(.chain))) +
+  geom_density() +
+  scale_color_paletteer_d(palette = "futurevisions::mars", direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = NULL, color = "chain") +
+  facet_wrap(. ~ .variable, ncol = 1, scales = "free")
+# p$dens
+```
+
+and
+
+```{r}
+p$trace <- 
+  b4.5 %>% tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) %>%
+  ggplot(aes(x = .iteration, y = .value, color = as.factor(.chain))) +
+  geom_line() +
+  scale_color_paletteer_d(palette = "futurevisions::mars", direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = NULL, y = NULL) +
+  facet_wrap(. ~ .variable, ncol = 1, scales = "free")
+# b4.5_trace
+```
+
+```{r}
+p$dens + p$trace
+```
+
+And we look at the fitted and predicted values to understand and interpret the result.
+
+What is the difference between *fitted* and *predict*? *fitted* A nice explanation is given by [Greg Snow](https://stackoverflow.com/questions/12201439/is-there-a-difference-between-the-r-functions-fitted-and-predict)
+
+> The `fitted` function returns the y-hat values associated with the data used to fit the model. The `predict` function returns predictions for a new set of predictor variables. If you don't specify a new set of predictor variables then it will use the original data by default giving the same results as `fitted` for some models (especially the linear ones), but if you want to predict for a new set of values then you need `predict`. The `predict` function often also has options for which type of prediction to return, the linear predictor, the prediction transformed to the response scale, the most likely category, the contribution of each term in the model, etc.
+
+Therefore, if we give the same data to `fitted` or `predict` will will obtain sensibly the same results, the difference being caused by the random seed. However, in Bayesian stats, `fitted` will only provide $\mu_i$ and its variation whereas `predict` will give $h_i$ which is $h_i \sim \mathcal{N}(\mu_i, \sigma)$
+
+We can see it clearly here as `fitd_quad` gives ans estimate about the same as for `predict` since they both report the same `\mu_i`, but `predict` has a wider interval since it uses $\sigma$
+
+```{r}
+samples <- list()
+# the new data to use for sampling fitted and pedict
+samples$newdata <- data.frame(
+  weight_s=seq_range(d$weight_s, n=30L)) %>%
+  mutate(weight_s2=weight_s^2)
+
+samples$fitted <- with(samples, {
+  fitted(b4.5, newdata = newdata) %>%
+  data.frame() %>%
+  bind_cols(newdata)
+})
+# glimpse(samples$fitted)
+
+samples$predict <- with(samples, {
+  predict(b4.5, newdata = newdata) %>%
+  data.frame() %>%
+  bind_cols(newdata)
+})
+# glimpse(samples$predict)
+```
+
+and we can now create the plot.
+
+```{r}
+p$model <- p$basic +
+  # scale_x_continuous(labels = function(x) fnc_nat(x)) +
+  geom_ribbon(data = samples$predict,
+              aes(x = weight_s, ymin = Q2.5, ymax = Q97.5), inherit.aes = FALSE,
+              fill = "lightcyan", alpha = 1) +
+  geom_smooth(data = samples$fitted,
+              aes(x=weight_s, y = Estimate, ymin = Q2.5, ymax = Q97.5), inherit.aes = FALSE,
+              stat = "identity",
+              fill = "lightcyan3", color = "royalblue", alpha = 1, size = 1/2) +
+  geom_point(shape = 20, size = 2, alpha = 2/3)
+p$model
+```
+
+### Splines
+
+```{r}
+data("cherry_blossoms")
+d <- cherry_blossoms
+rm(cherry_blossoms)
+d %>% skimr::skim()
+# data without NA
+d2 <- d %>%
+  drop_na(doy)
+```
+
+#### Knots, degree and basis functions
+
+The knots used here are based on quantiles, other ways are possible,
+
+```{r}
+knots <- quantile(d2$year, probs = seq(from = 0, to = 1, length.out = 15))
+knots
+```
+
+```{r}
+colr <- unclass(paletteer::paletteer_d("futurevisions::cancri"))
+ggplot(d2, aes(x = year, y = doy, color = temp)) +
+  geom_vline(xintercept = knots, color = "slateblue", alpha = 1/2) +
+  geom_point(shape = 20, size = 2, alpha = 2/3) +
+  scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
+  scale_color_gradientn(colors = colr) +
+  theme_classic() +
+  theme(title = element_text(color = "midnightblue"),
+        legend.position = c(0.05, 0.8),
+        axis.text.x = element_text(size = rel(0.9))) +
+  labs(title = "Cherry Blossom in Japan",
+       subtitle = sprintf("%d observations with %d knots", nrow(d), length(knots)))
+```
+
+the code `knots[-c(1, nknots)]` is required because `bs` places knots at the boundaries by default, so we have to remove them.
+
+```{r}
+library(splines)
+B <- splines::bs(x = d2$year, knots = knots[-c(1, length(knots))], degree = 3, intercept = TRUE)
+# str(B)
+```
+
+and we plot the basis functions
+
+```{r}
+# this data.frame will be reused below with the posteriors
+df_bias <- B %>%
+  as.data.frame() %>%
+  setNames(sprintf("B%02d", seq_len(ncol(.)))) %>%
+  mutate(year = d2$year) %>%
+  pivot_longer(cols = -year, names_to = "bias_func", values_to = "bias")
+# str(df_bias)
+
+clrs <- paletteer::paletteer_c("pals::jet", n = length(unique(df_bias$bias_func)))
+ggplot(df_bias, aes(x = year, y = bias, color = bias_func)) +
+  geom_vline(xintercept = knots, color = "grey60", linestyle = "longdash", alpha = 1/2) +
+  geom_line() +
+  scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
+  scale_color_manual(values = clrs) +
+  ggthemes::theme_tufte() +
+  theme(legend.position = "none") +
+  labs("The bias functions")
+
+```
+
+#### Model and fit
+
+$$
+\begin{align*}
+doy_i &\sim \mathcal{N}(\mu_i, \sigma) \\
+\,u_i &= \alpha + \sum_{k=1}^Kw_kB_{k, i} \\
+\alpha &\sim \mathcal{N}(100, 10) \\
+w_j &\sim \mathcal{N}(0, 10) \\
+\sigma &\sim \mathcal{Exp}(1)
+\end{align*}
+$$
+
+We first create append the matrix to the data in one column. See @kurtz2020b on this data structure.
+
+```{r}
+d3 <- d2 %>%
+  mutate(B = B)
+# the last column is a matrix column, with same nb of rows as the other
+# columns but with a column including 17 subcolumns (!)
+# glimpse(d3)
+```
+
+and the fit
+
+```{r ch04_b04_08}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+b4.8 <- xfun::cache_rds({
+  brm(data = d3,
+      family = gaussian,
+      doy ~ 1 + B,
+      prior = c(prior(normal(100, 10), class = Intercept),
+                prior(normal(0, 10), class = b),
+                prior(exponential(1), class = sigma)),
+      cores = detectCores(), seed = 4)},
+  file = "ch04_b04_08")
+tictoc::toc()
+```
+
+```{r}
+summary(b4.8)
+```
+
+#### Plot
+
+```{r}
+# get_variables(b4.8)
+```
+
+```{r}
+# Source: https://github.com/mjskay/tisdybayes/issues/38
+df <- tidybayes::gather_draws(b4.8, !!sym("^b_B.+"), regex = TRUE) %>%
+  mutate(.variable = as.integer(sub("^b_B", replacement = "", x = .variable)),
+         .variable = sprintf("B%02d", .variable)) %>%
+  rename("bias_func" = .variable) %>%
+  group_by(bias_func) %>%
+  summarise(weight = mean(.value)) %>%
+  full_join(y = df_bias, by = "bias_func")
+# glimpse(df)
+
+clrs <- paletteer::paletteer_c("pals::jet", n = length(unique(df_bias$bias_func)))
+ggplot(df, aes(x = year, y = bias * weight, color = bias_func)) +
+  geom_vline(xintercept = knots, color = "grey60", linestyle = "longdash", alpha = 1/2) +
+  geom_line(size = 1) +
+  scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
+  scale_color_manual(values = clrs) +
+  ggthemes::theme_tufte() +
+  theme(legend.position = "none") +
+  labs(title = "fitted bias functions")
+```
+
+```{r}
+df <- fitted(b4.8) %>%
+  as.data.frame() %>%
+  bind_cols(d2)
+clrs <- unclass(paletteer::paletteer_d("futurevisions::cancri"))
+ggplot(df, aes(x = year, y = doy)) +
+  geom_vline(xintercept = knots[-c(1, length(knots))], color = "slateblue", alpha = 1/2) +
+  geom_point(aes(color = temp)) +
+  geom_lineribbon(aes(x = year, y = Estimate, ymin = Q2.5, ymax = Q97.5),
+                  color = "blueviolet", fill = "cornflowerblue", alpha = 1/2) +
+  scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
+  scale_color_gradientn(colors = clrs) +
+  ggthemes::theme_tufte() +
+  theme(legend.position = "none") +
+  labs(title = "Figure 4.12")
+```
+
+### Smooth functions for a smooth world
+
+See @kurtz2020b for much more details on this topic.
+
+## Summary
+
+This was an important chapter. Most of the plots and basic coding tools are exemplified here. It is an important reference chapter. The `brms` package will be exclusively used from now on.

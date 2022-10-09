@@ -6,8 +6,7 @@ library(rethinking)
 library(brms)
 library(dplyr)
 library(tidyr)
-# ggplot2 is loaded by tidybayes or ggdist
-# library(tidybayes, quietly = TRUE)
+library(ggplot2)
 library(ggdist)
 library(paletteer)
 ```
@@ -17,7 +16,7 @@ library(paletteer)
 
 We use the example from chapter 2.
 
-The grid of $p$ values has a grid size of $grod_size$.
+The grid of $p$ values has a grid size of $grid\_size$.
 
 The prior is uniformly distributed and so, as discussed in Overthinking box of section 2.3.3, p. 35, $P(p)=\frac{1}{1-0}=1$.
 
