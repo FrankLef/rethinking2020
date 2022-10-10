@@ -12,6 +12,7 @@ book:
     - ch02_worlds.qmd
     - ch03_sampling.qmd
     - ch04_linear.qmd
+    - ch05_multivariate.qmd
     - references.qmd
 
 bibliography: references.bib

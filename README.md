@@ -17,7 +17,7 @@ The packages used in this project are as follows.
 ### Modelizations and data processing
 
 | Package                                                                | Comment                                                                                                                                                                                        |
-|----------------------|--------------------------------------------------|
+|------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [rethinking](https://github.com/rmcelreath/rethinking)                 | This R package accompanies a course and book on Bayesian data analysis: McElreath 2020. Statistical Rethinking, 2nd edition.                                                                   |
 | [brms](https://paul-buerkner.github.io/brms/)                          | Used to do pretty much all models and computations.                                                                                                                                            |
 | [loo](http://mc-stan.org/loo/index.html)                               | Used by both `rethinking` and `brms` to compute WAIC and LOO. See section 7.5 in chapter for more details.                                                                                     |
@@ -30,7 +30,7 @@ The packages used in this project are as follows.
 ### Visualizations
 
 | Package                                                 | Comment                                                                                                                                                                    |
-|---------------------|---------------------------------------------------|
+|---------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [ggdist](https://mjskay.github.io/ggdist/)              | `tidybayes` relies heavily on the `ggdist` and reexport very many of it's functions. In addition `ggdist` is useful for both a frequencist as well as a bayesian approach. |
 | [bayesplot](https://mc-stan.org/bayesplot/)             | Used as complement when `ggdist` and `tidybayes` do not provide a satisfactory solution.                                                                                   |
 | [ggplot2](https://ggplot2.tidyverse.org)                | Vizualisations using the grammar of graphics.                                                                                                                              |
@@ -40,5 +40,5 @@ The packages used in this project are as follows.
 ### Miscellaneous
 
 | Package                                                                  | Comment                                                                                                 |
-|---------------------|---------------------------------------------------|
+|--------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
 | [xfun](https://cran.r-project.org/web/packages/xfun/vignettes/xfun.html) | The function `xfun::cache_rds` is used for caching which is used several times in almost every chapter. |
