@@ -1,0 +1,382 @@
+# Structural Causal Models {#SCM}
+
+```{r include=FALSE}
+#| include: false
+library(dplyr)
+library(tidyr)
+library(tidybayes)
+library(rethinking)
+library(brms)
+library(ggplot2)
+library(dagitty)
+library(ggdag)
+library(ggdist)
+library(patchwork)
+library(paletteer)
+```
+
+
+This is a ver y important point, in the intro to chapter 6.
+
+> Regression will not srt it out. Regression is indeed an oracle, but a cruel one. It speaks in riddle and delights in punishing us for asking bad questions. The selection-distortion effect can happen inside of a multiple regression, becase the fact of adding a predictor induces statistical selection within the model, a phenomenon that goes by the unhelpful name of **collider bias**. This can mislead us into believing, for axample, that there is a negative associaiton between newswothiness and trustworthiness in general, ehen in fact it is just a consequence of conditioning on some variable.
+
+## Multicollinearity
+
+Multicollinearity means a very strong association between 2 or more predictor variables.
+
+### Multicollinear legs
+
+Create the data
+
+```{r}
+n <- 100
+set.seed(6)
+
+d <- 
+  tibble(height   = rnorm(n, mean = 10, sd = 2),
+         leg_prop = runif(n, min = 0.4, max = 0.5)) %>% 
+  mutate(leg_left  = leg_prop * height + rnorm(n, mean = 0, sd = 0.02),
+         leg_right = leg_prop * height + rnorm(n, mean = 0, sd = 0.02))
+```
+
+which has the following correlations
+
+```{r}
+GGally::ggcorr(d[, c("leg_left", "leg_right")],
+               color = "darkgreen", nbreaks = 10, label = TRUE, 
+               label_round = 4, label_color = "midnightblue", direction = -1) +
+  theme(legend.position = "none") +
+  labs(title = "Correlations between parameters")
+```
+
+```{r ch06_b06_01}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "110 secs."))
+b6.1 <- xfun::cache_rds({brm(data = d, 
+      family = gaussian,
+      height ~ 1 + leg_left + leg_right,
+      prior = c(prior(normal(10, 100), class = Intercept),
+                prior(normal(2, 10), class = b),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      seed = 6)},
+  file = "ch06_b06_01")
+tictoc::toc()
+```
+
+```{r}
+summary(b6.1)
+```
+
+
+```{r}
+tidybayes::get_variables(b6.1)
+```
+
+```{r}
+tidybayes::gather_draws(b6.1, b_Intercept, b_leg_left, b_leg_right, sigma) %>%
+  mean_hdi(.width = 0.95) %>%
+  ggplot(aes(x = .value, xmin = .lower, xmax = .upper, y = .variable, color = .variable)) +
+  geom_pointinterval() +
+  ggrepel::geom_text_repel(aes(label = round(.value, 2))) +
+  scale_color_paletteer_d("Manu::Kereru") +
+  ggthemes::theme_few() +
+  theme(title = element_text(color = "midnightblue"),
+        legend.position = "none",
+        panel.border = element_blank()) +
+  labs(title = "Leg model",
+       x = "value", y = NULL)
+```
+
+### Multicollinear milk
+
+```{r}
+data(milk)
+d <- milk
+d <- d %>%
+  mutate(K = as.vector(scale(kcal.per.g)),
+         `F` = as.vector(scale(perc.fat)),
+         L = as.vector(scale(perc.lactose)))
+
+```
+
+```{r}
+GGally::ggscatmat(d, columns = c("K", "F", "L")) +
+  # scale_color_paletteer_d(palette = "Manu::Kereru") +
+  theme_minimal()
+```
+
+```{r ch06_b06_03}
+# k regressed on f
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b6.3 <- xfun::cache_rds({brm(data = d, 
+      family = gaussian,
+      K ~ 1 + `F`,
+      prior = c(prior(normal(0, 0.2), class = Intercept),
+                prior(normal(0, 0.5), class = b),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      seed = 6)},
+  file = "ch06_b06_03")
+tictoc::toc()
+```
+
+
+```{r ch06_b06_04}
+# k regressed on l
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "10 secs."))
+b6.4 <- xfun::cache_rds({update(b6.3,
+         newdata = d,
+         formula = K ~ 1 + L, seed = 6)},
+  file = "ch06_b06_04")
+tictoc::toc()
+```
+
+
+and the coefficients are
+
+```{r}
+posterior_summary(b6.3) %>% round(digits = 2)
+```
+
+```{r}
+posterior_summary(b6.4) %>% round(digits = 2)
+```
+
+and the multivariate which shows that each variable has now a much larger variance caused by the colinearity.
+
+```{r ch06_b06_05}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b6.5 <- xfun::cache_rds({brm(data = d,
+      family = gaussian,
+      K ~ 1 + `F` + L,
+      prior = c(prior(normal(0, 0.2), class = Intercept),
+                prior(normal(0, 0.5), class = b),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      seed = 6)},
+  file = "ch06_b06_05")
+tictoc::toc()
+```
+
+```{r}
+posterior_summary(b6.5) %>% round(digits = 2)
+```
+
+
+## Post-treatment bias
+
+```{r}
+# how many plants would you like?
+n <- 100
+set.seed(7)
+d <- 
+  tibble(h0        = rnorm(n, mean = 10, sd = 2), 
+         treatment = rep(0:1, each = n / 2),
+         fungus    = rbinom(n, size = 1, prob = .5 - treatment * 0.4),
+         h1        = h0 + rnorm(n, mean = 5 - 3 * fungus, sd = 1))
+skimr::skim(d)
+```
+
+### A prior is born
+
+> If we center our prior for $p$ on 1, that implies an expectation of no change in height. That is less than we know. But we would allow $p$ to be less than 1, in case the experiment ges wrong. We also want to ensure $p>0$.
+
+Therefore we use $p$ with log-normal distribution
+
+$$
+\begin{align*}
+h_{1,i} &\sim \mathcal{N}(\mu_i, \sigma) \\
+\mu_i &= h_{0,i} \times p \\
+p &\sim \mathcal{LogNormal}(0, 0.25) \\
+\sigma &\sim \mathcal{Exp}(1)
+\end{align*}
+$$
+
+```{r ch06_b06_06}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+b6.6 <- xfun::cache_rds({brm(data = d, 
+      family = gaussian,
+      h1 ~ 0 + h0,
+      prior = c(prior(lognormal(0, 0.25), class = b, lb = 0),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      seed = 6)},
+  file = "ch06_b06_06")
+tictoc::toc()
+b6.6 <- brms::add_criterion(b6.6, criterion = c("waic", "loo"))
+```
+
+```{r}
+brms::posterior_summary(b6.6)
+```
+
+
+So the increase is 1.38 relative to $h_0$.
+
+Now including the treatment and fungus we have
+
+$$
+\begin{align*}
+h_{1,i} &\sim \mathcal{N}(\mu_i, \sigma) \\
+\mu_i &= h_{0,i} \times p \\
+p &\sim \alpha + \beta_1 treatment_i + \beta_2 fungus_i \\
+\alpha &\sim \mathcal{LogNormal}(0, 0.25) \\
+\beta_1 &\sim \mathcal{N}(0, 0.5) \\
+\beta_2 &\sim \mathcal{N}(0, 0.5) \\
+\sigma &\sim \mathcal{Exp}(1)
+\end{align*}
+$$
+
+```{r ch06_b06_07}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+b6.7 <- xfun::cache_rds({brm(data = d, 
+      family = gaussian,
+      bf(h1 ~ h0 * (a + t * treatment + f * fungus),
+         a + t + f ~ 1,
+         nl = TRUE),
+      prior = c(prior(lognormal(0, 0.2), nlpar = a, lb = 0),
+                prior(normal(0, 0.5), nlpar = t),
+                prior(normal(0, 0.5), nlpar = f),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      seed = 6)},
+  file = "ch06_b06_07")
+tictoc::toc()
+b6.7 <- brms::add_criterion(b6.7, criterion = c("waic", "loo"))
+```
+
+```{r}
+brms::posterior_summary(b6.7)
+```
+
+
+Now the effect of the treatment is almost non existent.
+
+### Blocked by consequence
+
+The problem is that the fungus is part of a chain between the treatment and the growth.
+
+```{r}
+dag_coord <- data.frame(
+  name = c("h0", "h1", "F", "T"),
+  x = c(1, 2, 3, 4),
+  y = c(1, 1, 1, 1)
+)
+dag <- ggdag::dagify(h1 ~ h0, h1 ~ `F`, `F` ~ `T`,
+                      coords = dag_coord) %>%
+  ggdag::ggdag(node_size = 8, text_col = "yellow") +
+  ggthemes::theme_solid(fill = "snow2")
+dag
+```
+
+so now we redo the model but without the fungus effect.
+
+$$
+\begin{align*}
+h_{1,i} &\sim \mathcal{N}(\mu_i, \sigma) \\
+\mu_i &= h_{0,i} \times p \\
+p &\sim \alpha + \beta_1 treatment_i \\
+\alpha &\sim \mathcal{LogNormal}(0, 0.25) \\
+\beta_1 &\sim \mathcal{N}(0, 0.5) \\
+\sigma &\sim \mathcal{Exp}(1)
+\end{align*}
+$$
+
+```{r ch06_b06_08}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+b6.8 <- xfun::cache_rds({brm(data = d, 
+      family = gaussian,
+      bf(h1 ~ h0 * (a + t * treatment),
+         a + t ~ 1,
+         nl = TRUE),
+      prior = c(prior(lognormal(0, 0.2), nlpar = a, lb = 0),
+                prior(normal(0, 0.5), nlpar = t),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      seed = 6)},
+  file = "ch06_b06_08")
+tictoc::toc()
+b6.8 <- brms::add_criterion(b6.8, criterion = c("waic", "loo"))
+```
+
+```{r}
+summary(b6.8)
+```
+
+
+and we now see more treatment effect.
+
+## Collider bias
+
+### Collider of false sorrow
+
+```{r}
+d <- rethinking::sim_happiness(seed = 1977, N_years = 1000)
+# select age > 17 and rescale to [0, 1] and create indexed factor
+# creating factor makes it easer with brms
+d2 <- d %>%
+  filter(age > 17) %>%
+  mutate(A = scales::rescale(age, to = c(0, 1)),
+         mid = factor(married + 1, labels = c("single", "married")))
+glimpse(d2)
+```
+
+```{r ch06_b06_09}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+b6.9 <- xfun::cache_rds({brm(data = d2, 
+      family = gaussian,
+      happiness ~ 0 + mid + A,
+      prior = c(prior(normal(0, 1), class = b, coef = midmarried),
+                prior(normal(0, 1), class = b, coef = midsingle),
+                prior(normal(0, 2), class = b, coef = A),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      seed = 6)},
+  file = "ch06_b06_09")
+tictoc::toc()
+b6.9 <- brms::add_criterion(b6.9, criterion = c("waic", "loo"))
+```
+
+
+```{r}
+brms::posterior_summary(b6.9)
+```
+
+
+The fit finds that the effect of age on happiness is negative
+
+now lets do it without the marriage factor
+
+```{r ch06_b06_10}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+b6.10 <- xfun::cache_rds({brm(data = d2,
+      family = gaussian,
+      happiness ~ 1 + A,
+      prior = c(prior(normal(0, 1), class = Intercept),
+                prior(normal(0, 2), class = b),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      seed = 6)},
+  file = "ch06_b06_10")
+tictoc::toc()
+b6.10 <- brms::add_criterion(b6.10, criterion = c("waic", "loo"))
+```
+
+```{r}
+brms::posterior_summary(b6.10)
+```
+
+
+Now the age has no effect on happiness! When we include marriage, we include a spurious association.
+
+### The haunted DAG
+
+## Confronting counfounding
+
+See Overthinking box in section 6.4.3. Confounding occurs when
+
+$$
+Pr(Y \mid X) \neq Pr(Y \mid do(X))
+$$
+
+## Summary

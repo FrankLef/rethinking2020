@@ -13,6 +13,7 @@ book:
     - ch03_sampling.qmd
     - ch04_linear.qmd
     - ch05_multivariate.qmd
+    - ch06_scm.qmd
     - references.qmd
 
 bibliography: references.bib

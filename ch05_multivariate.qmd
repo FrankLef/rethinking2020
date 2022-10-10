@@ -1,4 +1,7 @@
-```{r include=FALSE}
+# Multivariate Linear Models {#multivariate}
+
+```{r}
+#| include: false
 library(dplyr)
 library(tidyr)
 library(tidybayes)
@@ -13,8 +16,6 @@ library(ggdist)
 library(patchwork)
 library(paletteer)
 ```
-
-# Multivariate Linear Models {#multivariate}
 
 As mentioned in the summary of chapter 4, from hereon, the `brms` package will be used instead of `rethinking`. In addition, we might change the `exponential(1)` prior for the `cauchy(0, 1)` when it improves the performance of the fit.
 
