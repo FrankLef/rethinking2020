@@ -193,17 +193,21 @@ p &\sim \mathcal{LogNormal}(0, 0.25) \\
 $$
 
 ```{r ch06_b06_06}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b6.6 <- xfun::cache_rds({brm(data = d, 
-      family = gaussian,
-      h1 ~ 0 + h0,
-      prior = c(prior(lognormal(0, 0.25), class = b, lb = 0),
-                prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      seed = 6)},
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b6.6 <- xfun::cache_rds({
+  out <- brm(
+    data = d, 
+    family = gaussian,
+    h1 ~ 0 + h0,
+    prior = c(prior(lognormal(0, 0.25), class = b, lb = 0),
+              prior(exponential(1), class = sigma)),
+    iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+    seed = 6)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
+  out
+  },
   file = "ch06_b06_06")
 tictoc::toc()
-b6.6 <- brms::add_criterion(b6.6, criterion = c("waic", "loo"))
 ```
 
 ```{r}
@@ -228,21 +232,23 @@ p &\sim \alpha + \beta_1 treatment_i + \beta_2 fungus_i \\
 $$
 
 ```{r ch06_b06_07}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b6.7 <- xfun::cache_rds({brm(data = d, 
-      family = gaussian,
-      bf(h1 ~ h0 * (a + t * treatment + f * fungus),
-         a + t + f ~ 1,
-         nl = TRUE),
-      prior = c(prior(lognormal(0, 0.2), nlpar = a, lb = 0),
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+b6.7 <- xfun::cache_rds({
+  out <- brm(
+    data = d, 
+    family = gaussian,
+    bf(h1 ~ h0 * (a + t * treatment + f * fungus),
+       a + t + f ~ 1, 
+       nl = TRUE),
+    prior = c(prior(lognormal(0, 0.2), nlpar = a, lb = 0),
                 prior(normal(0, 0.5), nlpar = t),
                 prior(normal(0, 0.5), nlpar = f),
                 prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      seed = 6)},
+    iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+    seed = 6)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch06_b06_07")
 tictoc::toc()
-b6.7 <- brms::add_criterion(b6.7, criterion = c("waic", "loo"))
 ```
 
 ```{r}
@@ -283,20 +289,21 @@ p &\sim \alpha + \beta_1 treatment_i \\
 $$
 
 ```{r ch06_b06_08}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b6.8 <- xfun::cache_rds({brm(data = d, 
-      family = gaussian,
-      bf(h1 ~ h0 * (a + t * treatment),
-         a + t ~ 1,
-         nl = TRUE),
-      prior = c(prior(lognormal(0, 0.2), nlpar = a, lb = 0),
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+b6.8 <- xfun::cache_rds({
+  out <- brm(
+    data = d, 
+    family = gaussian,
+    bf(h1 ~ h0 * (a + t * treatment),
+      a + t ~ 1, nl = TRUE),
+    prior = c(prior(lognormal(0, 0.2), nlpar = a, lb = 0),
                 prior(normal(0, 0.5), nlpar = t),
                 prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      seed = 6)},
+    iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+    seed = 6)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch06_b06_08")
 tictoc::toc()
-b6.8 <- brms::add_criterion(b6.8, criterion = c("waic", "loo"))
 ```
 
 ```{r}
@@ -322,19 +329,21 @@ glimpse(d2)
 ```
 
 ```{r ch06_b06_09}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b6.9 <- xfun::cache_rds({brm(data = d2, 
-      family = gaussian,
-      happiness ~ 0 + mid + A,
-      prior = c(prior(normal(0, 1), class = b, coef = midmarried),
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+b6.9 <- xfun::cache_rds({
+  out <- brm(
+    data = d2, 
+    family = gaussian,
+    happiness ~ 0 + mid + A,
+    prior = c(prior(normal(0, 1), class = b, coef = midmarried),
                 prior(normal(0, 1), class = b, coef = midsingle),
                 prior(normal(0, 2), class = b, coef = A),
                 prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      seed = 6)},
+    iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+    seed = 6)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch06_b06_09")
 tictoc::toc()
-b6.9 <- brms::add_criterion(b6.9, criterion = c("waic", "loo"))
 ```
 
 
@@ -349,17 +358,19 @@ now lets do it without the marriage factor
 
 ```{r ch06_b06_10}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b6.10 <- xfun::cache_rds({brm(data = d2,
-      family = gaussian,
-      happiness ~ 1 + A,
-      prior = c(prior(normal(0, 1), class = Intercept),
+b6.10 <- xfun::cache_rds({
+  out <- brm(
+    data = d2,
+    family = gaussian,
+    happiness ~ 1 + A,
+    prior = c(prior(normal(0, 1), class = Intercept),
                 prior(normal(0, 2), class = b),
                 prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      seed = 6)},
+    iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+    seed = 6)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch06_b06_10")
 tictoc::toc()
-b6.10 <- brms::add_criterion(b6.10, criterion = c("waic", "loo"))
 ```
 
 ```{r}

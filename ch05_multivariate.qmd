@@ -86,18 +86,6 @@ inv.scale <- function(x,
   if(!is.finite(scale)) scale <- 1L
   center + x * scale
 }
-
-
-# Function used to reverse the scale function
-# rev_scale <- function(x, d) {
-#   center <- attr(d, which = "scaled:center")
-#   scale <- attr(d, which = "scaled:scale")
-#   stopifnot(is.finite(center), is.finite(scale))
-#   center + x * scale
-# }
-# test it
-# t <- rev_scale(x = d$A, d = d$A)
-# near(mean(t), attr(d$A, which = "scaled:center"), tol = 1e-5)
 ```
 
 The model for regressing the divorce rate $D$ on the median age $A$ is
@@ -115,19 +103,20 @@ $$
 and the fit, **take note of the argument `sample_prior = TRUE`** which is important for the rest of the exercise
 
 ```{r ch05_b05_01}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
-b5.1 <- xfun::cache_rds({brm(
-  data = d,
-  formula = D ~ 1 + A,
-  family = gaussian,
-  prior = c(
-    prior(normal(0, 0.02), class = Intercept),
-    prior(normal(0, 0.5), class = b),
-    prior(exponential(1), class = sigma)
-  ),
-  iter = 2000, warmup = 1000, chains = 4,
-  sample_prior = TRUE,
-  core = detectCores(), seed = 5)
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b5.1 <- xfun::cache_rds({
+  out <- brm(
+    data = d,
+    formula = D ~ 1 + A,
+    family = gaussian,
+    prior = c(
+      prior(normal(0, 0.02), class = Intercept),
+      prior(normal(0, 0.5), class = b),
+      prior(exponential(1), class = sigma)),
+    iter = 2000, warmup = 1000, chains = 4,
+    sample_prior = TRUE,
+    core = detectCores(), seed = 5)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   },
   file = "ch05_b05_01")
 tictoc::toc()
@@ -201,18 +190,19 @@ $$
 
 ```{r ch05_b05_02}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
-b5.2 <- xfun::cache_rds({brm(
-  data = d,
-  formula = D ~ 1 + M,
-  family = gaussian,
-  prior = c(
-    prior(normal(0, 0.02), class = Intercept),
-    prior(normal(0, 0.5), class = b),
-    prior(exponential(1), class = sigma)),
-  iter = 2000, warmup = 1000, chains = 4,
-  sample_prior = TRUE,
-  core = detectCores(), seed = 5
-  )
+b5.2 <- xfun::cache_rds({
+  out <- brm(
+    data = d,
+    formula = D ~ 1 + M,
+    family = gaussian,
+    prior = c(
+      prior(normal(0, 0.02), class = Intercept),
+      prior(normal(0, 0.5), class = b),
+      prior(exponential(1), class = sigma)),
+    iter = 2000, warmup = 1000, chains = 4,
+    sample_prior = TRUE,
+    core = detectCores(), seed = 5)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   },
   file = "ch05_b05_02")
 tictoc::toc()
@@ -349,18 +339,20 @@ $$
 ### Approximating the posterior
 
 ```{r ch05_b05_03}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b5.3 <- xfun::cache_rds({brm(
-  data = d,
-  formula = D ~ 1 + M + A,
-  family = gaussian,
-  prior = c(
-    prior(normal(0, 0.2), class = Intercept),
-    prior(normal(0, 0.5), class = b, coef = "M"),
-    prior(normal(0, 0.5), class = b, coef = "A"),
-    prior(exponential(1), class = sigma)),
-  iter = 2000, warmup = 1000, chains = detectCores(),
-  core = detectCores(), seed = 5)
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+b5.3 <- xfun::cache_rds({
+  out <- brm(
+    data = d,
+    formula = D ~ 1 + M + A,
+    family = gaussian,
+    prior = c(
+      prior(normal(0, 0.2), class = Intercept),
+      prior(normal(0, 0.5), class = b, coef = "M"),
+      prior(normal(0, 0.5), class = b, coef = "A"),
+      prior(exponential(1), class = sigma)),
+    iter = 2000, warmup = 1000, chains = detectCores(),
+    core = detectCores(), seed = 5)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   },
   file = "ch05_b05_03")
 tictoc::toc()
