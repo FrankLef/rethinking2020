@@ -5,12 +5,12 @@
 library(rethinking)
 library(brms)
 library(dplyr)
+library(assertthat)
 library(tidyr)
 library(ggplot2)
 library(ggdist)
 library(paletteer)
 ```
-
 
 ## Sampling from grid-approximation posterior
 
@@ -21,12 +21,9 @@ The grid of $p$ values has a grid size of $grid\_size$.
 The prior is uniformly distributed and so, as discussed in Overthinking box of section 2.3.3, p. 35, $P(p)=\frac{1}{1-0}=1$.
 
 ```{r}
-grid_size <- 1000
-d <- tibble(
- p_grid = seq(from = 0, to = 1, length.out = grid_size),
- prior = rep(1, times = grid_size)
-)
-
+the_grid <- data.frame(
+ prob = seq(from = 0, to = 1, length.out = 1000),
+ prior = 1)
 ```
 
 and we calculate the posterior using the data. We compute the likelihood using the grid of priors from above, then compute the average likelihood which is the sum of the likelihood.
@@ -48,42 +45,39 @@ n_success <- sum(data == "W")
 n_trials <- length(data)
 
 # compute the likelihood each value in the grid
-d <- d %>%
+the_grid <- the_grid |>
     mutate(
-        likelihood = dbinom(x = n_success, size = n_trials, prob = d$p_grid),
-        posterior = likelihood * prior / sum(likelihood)
-    )
-str(d)
-# verify the posterior
-stopifnot(sum(d$posterior) == 1)
+        likelihood = dbinom(x = n_success, size = n_trials, prob = prob),
+        posterior = likelihood * prior / sum(likelihood))
+assert_that(sum(the_grid$posterior) == 1,
+            msg = "The total posterior prob. must equal 1.")
 ```
 
-which gives the estimated posterior probability **of** $p$ conditional on the data for each point of a grid.
+which gives the estimated posterior probability $p$ conditional on the data for each point of a grid.
 
 Generate and visualize `n_samples` samples from the grid with the $p$ values with their respective posterior probability $p$ computed above.
 
 > Note: We use `dplyr::slice_sample` because `dplyr::sample_n` is deprecated.
 
+
+
+
 ```{r}
-# generate n_sample samples, each sample uses a grid size = grid_size
-n_samples <- 1e4
-set.seed(3)
-the_samples <- d %>%
-    slice_sample(n = n_samples, weight_by = posterior, replace = TRUE) %>%
-    mutate(id = seq_len(n_samples), .before = p_grid)
-sum(the_samples$posterior)
-glimpse(the_samples)
+set.seed(1223)
+the_samples <- the_grid |>
+  slice_sample(n = 1e4, weight_by = posterior, replace = TRUE) |>
+  # this distance from the mean is used for coloring
+  mutate(dist = abs(prob - mean(prob)))
+the_samples$id <- seq_len(nrow(the_samples))
+# str(the_samples)
 ```
 
 visualize the sample of water proportion
 
 ```{r}
-# visualize the samples
-cols = paletteer_d(palette="Manu::Kotare")
-the_samples$p_grid_dev <- abs(mean(the_samples$p_grid) - the_samples$p_grid)
-ggplot(data = the_samples, mapping = aes(x = id, y = p_grid, color = p_grid_dev)) +
+ggplot(data = the_samples, mapping = aes(x = id, y = prob, color = dist)) +
   geom_point(size = 0.75, alpha = 0.9) +
-  scale_color_gradientn(colors = cols) +
+  scale_color_gradientn(colors = paletteer_d(palette="Manu::Kotare")) +
   theme_minimal() +
   theme(legend.position = "none") +
   labs(title = sprintf("%d samples", nrow(the_samples)))
@@ -93,7 +87,7 @@ visualize the density
 
 ```{r}
 # show the p density
-ggplot(data = the_samples, aes(x = p_grid)) +
+ggplot(data = the_samples, aes(x = prob)) +
     geom_density(aes(y=..scaled..), color = "blue", size = 1, fill = "lightblue") +
     theme_light() +
     labs(title = sprintf("%d samples", nrow(the_samples)))
@@ -104,74 +98,85 @@ ggplot(data = the_samples, aes(x = p_grid)) +
 ### Intervals of defined boundaries
 
 ```{r}
-d %>%
-  filter(p_grid < 0.5) %>%
+the_grid |>
+  filter(prob < 0.5) |>
   summarize(sum = sum(posterior))
 ```
 
+and you can obtain the same result using the sampling data by counting the rows
+
+```{r}
+the_samples |>
+  filter(prob < 0.5) |>
+  count() |>
+  mutate(pct = n / nrow(the_samples)) |>
+  identity()
+```
+
+
+
 ### Intervals of defined mass
 
-We can use \``skimr` as follows
+Beside the base R `quantile` function, the `mean_qi` function from the
+package `ggdist` will be used extensively in this project. The benefits of
+using this package in conjonction with `posterior`, `tidybayes` etc. will
+become obvious in later chapters.
 
 ```{r}
-intrvl_skim <- skimr::skim_with(
-  numeric = skimr::sfl(
-    p10 = ~ quantile(., probs = 0.1),
-    p80 = ~ quantile(., probs = 0.8),
-    p90 = ~ quantile(., probs = 0.9)
-    ), 
-  append = FALSE)
-
-intrvl_skim(the_samples, p_grid)
-quantile(the_samples$posterior, probs=0.9)
-the_samples %>%
-  skimr::skim()
+the_samples |>
+  ggdist::mean_qi(prob, .width = 0.8)
 ```
 
-We can also customize `skimr` to obtain the `HPDI` as follows
+And if we redo the sampling with observing 3 $W$ in 3 tosses we have the grid
 
 ```{r}
-hi_skim <- skimr::skim_with(
-    base = skimr::sfl(cnt = ~ n(),
-               miss = ~ sum(is.na(.))),
-    numeric = skimr::sfl(hpdi = ~ rethinking::HPDI(., prob = 0.89)
-                         ),
-    append = FALSE
-)
-hi_skim(the_samples, p_grid)
+the_grid <- data.frame(
+  prob = seq(from = 0, to = 1, length.out = 1000),
+  prior = 1) |>
+  mutate(
+    likelihood = dbinom(x = 3, size = 3, prob = prob),
+    posterior = likelihood * prior / sum(likelihood))
+assert_that(sum(the_grid$posterior) == 1,
+            msg = "The total posterior prob. must equal 1.")
+
 ```
 
-We can get the `HPDI` from rethinking
+and we use it to resample
 
 ```{r}
-# the HPDI
-HPDI(the_samples$p_grid, prob = 0.5)
-# the PI
-PI(the_samples$p_grid, prob = 0.5)
+set.seed(1223)
+the_samples <- the_grid |>
+  slice_sample(n = 1e4, weight_by = posterior, replace = TRUE) |>
+  # this distance from the mean is used for coloring
+  mutate(dist = abs(prob - mean(prob)))
+the_samples$id <- seq_len(nrow(the_samples))
 ```
 
-but the favorite method is with `ggdist` which we will use extensively from now on.
 
 ```{r}
-ggdist::mean_hdi(.data = the_samples, p_grid, .width = 0.5)
+the_samples |>
+  ggdist::mean_qi(prob, .width = 0.5)
 ```
 
+
 ```{r}
-ggdist::mean_qi(.data = the_samples, p_grid, .width = 0.5)
+the_samples |>
+  ggdist::mean_hdi(prob, .width = 0.5)
 ```
 
 and we can illustrate the intervals with `ggdist` as follows
 
 ```{r}
 qtl <- c(0.5, 0.8, 0.95, 1)
-x_breaks <- ggdist::mean_qi(.data = the_samples$p_grid, .width = qtl) %>%
-  select(y, ymin, ymax) %>%
-  pivot_longer(cols = c("y", "ymin", "ymax")) %>%
-  distinct(value) %>%
-  arrange(value) %>%
-  round(digits = 2) %>%
+x_breaks <- ggdist::mean_qi(.data = the_samples$prob, 
+                            .width = qtl) |>
+  select(y, ymin, ymax) |>
+  pivot_longer(cols = c("y", "ymin", "ymax")) |>
+  distinct(value) |>
+  arrange(value) |>
+  round(digits = 2) |>
   pull()
-ggplot(the_samples, aes(x=p_grid)) +
+ggplot(the_samples, aes(x=prob)) +
          stat_halfeye(aes(fill=stat(cut_cdf_qi(
            cdf,
            .width = qtl,

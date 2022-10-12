@@ -9,7 +9,6 @@ library(dplyr)
 library(ggplot2)
 ```
 
-
 ## Garden of forking data
 
 There are 2 events: Blue marble represented by `B` and white marble represented by `W`
@@ -67,7 +66,7 @@ conjectures
 stopifnot(sum(conjectures$post) == 1)
 ```
 
-:::{.callout-note}
+::: callout-note
 If you run the above procedure, wou will find that the posterior is not always the same, it varies quite a bit. That's why we run lots of sample and investigate their distribution to decide what is the right value for the parameter.
 :::
 

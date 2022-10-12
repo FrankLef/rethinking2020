@@ -275,13 +275,13 @@ PSIS and WAIC perform very similarly in the context of prdinary linear models.
 ## Model comparison
 
 ```{r}
-fn <- list.files(path='.\\cache', pattern="ch06_b06_06_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch06_b06_06_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b6.6 <- readRDS(here::here("cache", fn))
-fn <- list.files(path='.\\cache', pattern="ch06_b06_07_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch06_b06_07_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b6.7 <- readRDS(here::here("cache", fn))
-fn <- list.files(path='.\\cache', pattern="ch06_b06_08_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch06_b06_08_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b6.8 <- readRDS(here::here("cache", fn))
 ```
@@ -362,20 +362,17 @@ d <- WaffleDivorce %>%
     mutate(D = scale(as.vector(Divorce)),
            M = scale(as.vector(Marriage)),
            A = scale(as.vector(MedianAgeMarriage)))
-# b5.1 <- readRDS(here::here("fits", "b05_01.rds"))
-# b5.2 <- readRDS(here::here("fits", "b05_02.rds"))
-# b5.3 <- readRDS(here::here("fits", "b05_03.rds"))
 ```
 
 
 ```{r}
-fn <- list.files(path='.\\cache', pattern="ch05_b05_01_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch05_b05_01_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b5.1 <- readRDS(here::here("cache", fn))
-fn <- list.files(path='.\\cache', pattern="ch05_b05_02_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch05_b05_02_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b5.2 <- readRDS(here::here("cache", fn))
-fn <- list.files(path='.\\cache', pattern="ch05_b05_03_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch05_b05_03_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b5.3 <- readRDS(here::here("cache", fn))
 ```
