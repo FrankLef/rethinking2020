@@ -34,7 +34,7 @@ set.seed(6)
 
 d <- 
   tibble(height   = rnorm(n, mean = 10, sd = 2),
-         leg_prop = runif(n, min = 0.4, max = 0.5)) %>% 
+         leg_prop = runif(n, min = 0.4, max = 0.5)) |> 
   mutate(leg_left  = leg_prop * height + rnorm(n, mean = 0, sd = 0.02),
          leg_right = leg_prop * height + rnorm(n, mean = 0, sd = 0.02))
 ```
@@ -73,8 +73,8 @@ tidybayes::get_variables(b6.1)
 ```
 
 ```{r}
-tidybayes::gather_draws(b6.1, b_Intercept, b_leg_left, b_leg_right, sigma) %>%
-  mean_hdi(.width = 0.95) %>%
+tidybayes::gather_draws(b6.1, b_Intercept, b_leg_left, b_leg_right, sigma) |>
+  mean_hdi(.width = 0.95) |>
   ggplot(aes(x = .value, xmin = .lower, xmax = .upper, y = .variable, color = .variable)) +
   geom_pointinterval() +
   ggrepel::geom_text_repel(aes(label = round(.value, 2))) +
@@ -92,7 +92,7 @@ tidybayes::gather_draws(b6.1, b_Intercept, b_leg_left, b_leg_right, sigma) %>%
 ```{r}
 data(milk)
 d <- milk
-d <- d %>%
+d <- d |>
   mutate(K = as.vector(scale(kcal.per.g)),
          `F` = as.vector(scale(perc.fat)),
          L = as.vector(scale(perc.lactose)))
@@ -135,11 +135,11 @@ tictoc::toc()
 and the coefficients are
 
 ```{r}
-posterior_summary(b6.3) %>% round(digits = 2)
+posterior_summary(b6.3) |> round(digits = 2)
 ```
 
 ```{r}
-posterior_summary(b6.4) %>% round(digits = 2)
+posterior_summary(b6.4) |> round(digits = 2)
 ```
 
 and the multivariate which shows that each variable has now a much larger variance caused by the colinearity.
@@ -159,7 +159,7 @@ tictoc::toc()
 ```
 
 ```{r}
-posterior_summary(b6.5) %>% round(digits = 2)
+posterior_summary(b6.5) |> round(digits = 2)
 ```
 
 
@@ -269,7 +269,7 @@ dag_coord <- data.frame(
   y = c(1, 1, 1, 1)
 )
 dag <- ggdag::dagify(h1 ~ h0, h1 ~ `F`, `F` ~ `T`,
-                      coords = dag_coord) %>%
+                      coords = dag_coord) |>
   ggdag::ggdag(node_size = 8, text_col = "yellow") +
   ggthemes::theme_solid(fill = "snow2")
 dag
@@ -321,8 +321,8 @@ and we now see more treatment effect.
 d <- rethinking::sim_happiness(seed = 1977, N_years = 1000)
 # select age > 17 and rescale to [0, 1] and create indexed factor
 # creating factor makes it easer with brms
-d2 <- d %>%
-  filter(age > 17) %>%
+d2 <- d |>
+  filter(age > 17) |>
   mutate(A = scales::rescale(age, to = c(0, 1)),
          mid = factor(married + 1, labels = c("single", "married")))
 glimpse(d2)
