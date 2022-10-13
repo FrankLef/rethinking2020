@@ -16,8 +16,6 @@ library(patchwork)
 library(paletteer)
 ```
 
-
-
 An important point to remember is mentioned in @elreath2020, introduction of chapter 7.
 
 > ... Whatever you think about null hypothesis significance testing in general, using it to select among structurally diferent models is a mistake. *p-value* are not designed to help you navigate between underfitting and overfitting.
@@ -43,7 +41,7 @@ d <- tibble(
     species = c("afarensis", "africanus", "habilis", "boisei",
                 "rudolfensis", "ergaster", "sapiens"),
     brain = c(438, 452, 612, 521, 752, 871, 1350),
-    mass = c(37.0, 35.5, 34.5, 41.5, 55.5, 61.0, 53.5)) %>%
+    mass = c(37.0, 35.5, 34.5, 41.5, 55.5, 61.0, 53.5)) |>
     mutate(brain_r = scales::rescale(brain),
            mass_s = scale(as.vector(mass)))
 ```
@@ -93,12 +91,12 @@ weather <- data.frame(
     day = 1:10,
     predicted = rep(c(1, 0.6), times = c(3, 7)),
     observed = rep(c(rain, sun), times = c(3, 7))
-    ) %>%
-    t() %>%
-    as.data.frame() %>%
+    ) |>
+    t() |>
+    as.data.frame() |>
     tibble::rownames_to_column()
 
-weather %>% gt::gt(rowname_col = "rowname") %>%
+weather |> gt::gt(rowname_col = "rowname") |>
     gt::tab_options(column_labels.hidden = TRUE)
 ```
 
@@ -109,12 +107,12 @@ weather_new <- data.frame(
     day = 1:10,
     predicted = 0,
     observed = rep(c(rain, sun), times = c(3, 7))
-    ) %>%
-    t() %>%
-    as.data.frame() %>%
+    ) |>
+    t() |>
+    as.data.frame() |>
     tibble::rownames_to_column()
 
-weather_new %>% gt::gt(rowname_col = "rowname") %>%
+weather_new |> gt::gt(rowname_col = "rowname") |>
     gt::tab_options(column_labels.hidden = TRUE)
 ```
 
@@ -286,7 +284,6 @@ stopifnot(length(fn) == 1)
 b6.8 <- readRDS(here::here("cache", fn))
 ```
 
-
 ### Model mis-selection
 
 ```{r}
@@ -330,9 +327,9 @@ print(l, simplify = FALSE)
 ```
 
 ```{r}
-w <- loo::loo_compare(b6.6, b6.7, b6.8, criterion = "waic") %>% 
-    data.frame() %>%
-    tibble::rownames_to_column("model_name") %>%
+w <- loo::loo_compare(b6.6, b6.7, b6.8, criterion = "waic") |> 
+    data.frame() |>
+    tibble::rownames_to_column("model_name") |>
     mutate(model_name = forcats::fct_reorder(model_name, waic, .desc = TRUE))
 ggplot(w, aes(x = waic, y = model_name, xmin = waic - se_waic, xmax = waic + se_waic)) +
     geom_pointrange(shape = 19, size = 0.75, color = "mediumseagreen") +
@@ -350,7 +347,7 @@ w_i = \frac{exp(-0.5 \Delta_i)}{\sum_j exp(-0.5 \Delta_j)}
 $$ which can be obtained with `brms::model_weights`
 
 ```{r}
-brms::model_weights(b6.6, b6.7, b6.8) %>%
+brms::model_weights(b6.6, b6.7, b6.8) |>
     round(digits = 4)
 ```
 
@@ -358,12 +355,11 @@ brms::model_weights(b6.6, b6.7, b6.8) %>%
 
 ```{r}
 data("WaffleDivorce")
-d <- WaffleDivorce %>%
+d <- WaffleDivorce |>
     mutate(D = scale(as.vector(Divorce)),
            M = scale(as.vector(Marriage)),
            A = scale(as.vector(MedianAgeMarriage)))
 ```
-
 
 ```{r}
 fn <- list.files(path=here::here("cache"), pattern="ch05_b05_01_.*[.]rds$")
@@ -376,10 +372,6 @@ fn <- list.files(path=here::here("cache"), pattern="ch05_b05_03_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b5.3 <- readRDS(here::here("cache", fn))
 ```
-
-
-
-
 
 ```{r}
 l <- loo::loo_compare(b5.1, b5.2, b5.3, criterion = "loo")
@@ -431,7 +423,6 @@ tictoc::toc()
 ```{r}
 summary(b5.3t)
 ```
-
 
 and now we have a more robust results, i.e. where the influence from ID and ME is lessened.
 

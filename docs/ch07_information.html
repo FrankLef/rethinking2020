@@ -300,7 +300,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">species =</span> <span class="fu">c</span>(<span class="st">"afarensis"</span>, <span class="st">"africanus"</span>, <span class="st">"habilis"</span>, <span class="st">"boisei"</span>,</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rudolfensis"</span>, <span class="st">"ergaster"</span>, <span class="st">"sapiens"</span>),</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">brain =</span> <span class="fu">c</span>(<span class="dv">438</span>, <span class="dv">452</span>, <span class="dv">612</span>, <span class="dv">521</span>, <span class="dv">752</span>, <span class="dv">871</span>, <span class="dv">1350</span>),</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">mass =</span> <span class="fu">c</span>(<span class="fl">37.0</span>, <span class="fl">35.5</span>, <span class="fl">34.5</span>, <span class="fl">41.5</span>, <span class="fl">55.5</span>, <span class="fl">61.0</span>, <span class="fl">53.5</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">mass =</span> <span class="fu">c</span>(<span class="fl">37.0</span>, <span class="fl">35.5</span>, <span class="fl">34.5</span>, <span class="fl">41.5</span>, <span class="fl">55.5</span>, <span class="fl">61.0</span>, <span class="fl">53.5</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">brain_r =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(brain),</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">mass_s =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(mass)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -348,21 +348,21 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">day =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">predicted =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.6</span>), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>)),</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">rep</span>(<span class="fu">c</span>(rain, sun), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>))</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">|&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>()</span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>weather <span class="sc">%&gt;%</span> gt<span class="sc">::</span><span class="fu">gt</span>(<span class="at">rowname_col =</span> <span class="st">"rowname"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>weather <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>(<span class="at">rowname_col =</span> <span class="st">"rowname"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    gt<span class="sc">::</span><span class="fu">tab_options</span>(<span class="at">column_labels.hidden =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 
-<div id="vodbpgukwg" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="wgddcdtizb" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-:where(#vodbpgukwg) .gt_table {
+:where(#wgddcdtizb) .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -387,7 +387,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-left-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_heading {
+:where(#wgddcdtizb) .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -399,7 +399,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_title {
+:where(#wgddcdtizb) .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -411,7 +411,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-width: 0;
 }
 
-:where(#vodbpgukwg) .gt_subtitle {
+:where(#wgddcdtizb) .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -423,13 +423,13 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-width: 0;
 }
 
-:where(#vodbpgukwg) .gt_bottom_border {
+:where(#wgddcdtizb) .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_col_headings {
+:where(#wgddcdtizb) .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -444,7 +444,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_col_heading {
+:where(#wgddcdtizb) .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -464,7 +464,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#vodbpgukwg) .gt_column_spanner_outer {
+:where(#wgddcdtizb) .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -476,15 +476,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 4px;
 }
 
-:where(#vodbpgukwg) .gt_column_spanner_outer:first-child {
+:where(#wgddcdtizb) .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-:where(#vodbpgukwg) .gt_column_spanner_outer:last-child {
+:where(#wgddcdtizb) .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-:where(#vodbpgukwg) .gt_column_spanner {
+:where(#wgddcdtizb) .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -496,7 +496,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   width: 100%;
 }
 
-:where(#vodbpgukwg) .gt_group_heading {
+:where(#wgddcdtizb) .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -521,7 +521,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#vodbpgukwg) .gt_empty_group_heading {
+:where(#wgddcdtizb) .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -536,15 +536,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#vodbpgukwg) .gt_from_md > :first-child {
+:where(#wgddcdtizb) .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-:where(#vodbpgukwg) .gt_from_md > :last-child {
+:where(#wgddcdtizb) .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-:where(#vodbpgukwg) .gt_row {
+:where(#wgddcdtizb) .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -563,7 +563,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#vodbpgukwg) .gt_stub {
+:where(#wgddcdtizb) .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -576,7 +576,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#vodbpgukwg) .gt_stub_row_group {
+:where(#wgddcdtizb) .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -590,11 +590,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: top;
 }
 
-:where(#vodbpgukwg) .gt_row_group_first td {
+:where(#wgddcdtizb) .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-:where(#vodbpgukwg) .gt_summary_row {
+:where(#wgddcdtizb) .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -604,16 +604,16 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#vodbpgukwg) .gt_first_summary_row {
+:where(#wgddcdtizb) .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_first_summary_row.thick {
+:where(#wgddcdtizb) .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-:where(#vodbpgukwg) .gt_last_summary_row {
+:where(#wgddcdtizb) .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -623,7 +623,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_grand_summary_row {
+:where(#wgddcdtizb) .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -633,7 +633,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#vodbpgukwg) .gt_first_grand_summary_row {
+:where(#wgddcdtizb) .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -643,11 +643,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_striped {
+:where(#wgddcdtizb) .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-:where(#vodbpgukwg) .gt_table_body {
+:where(#wgddcdtizb) .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -656,7 +656,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_footnotes {
+:where(#wgddcdtizb) .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -670,7 +670,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_footnote {
+:where(#wgddcdtizb) .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -679,7 +679,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#vodbpgukwg) .gt_sourcenotes {
+:where(#wgddcdtizb) .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -693,7 +693,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#vodbpgukwg) .gt_sourcenote {
+:where(#wgddcdtizb) .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -701,36 +701,36 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#vodbpgukwg) .gt_left {
+:where(#wgddcdtizb) .gt_left {
   text-align: left;
 }
 
-:where(#vodbpgukwg) .gt_center {
+:where(#wgddcdtizb) .gt_center {
   text-align: center;
 }
 
-:where(#vodbpgukwg) .gt_right {
+:where(#wgddcdtizb) .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-:where(#vodbpgukwg) .gt_font_normal {
+:where(#wgddcdtizb) .gt_font_normal {
   font-weight: normal;
 }
 
-:where(#vodbpgukwg) .gt_font_bold {
+:where(#wgddcdtizb) .gt_font_bold {
   font-weight: bold;
 }
 
-:where(#vodbpgukwg) .gt_font_italic {
+:where(#wgddcdtizb) .gt_font_italic {
   font-style: italic;
 }
 
-:where(#vodbpgukwg) .gt_super {
+:where(#wgddcdtizb) .gt_super {
   font-size: 65%;
 }
 
-:where(#vodbpgukwg) .gt_two_val_uncert {
+:where(#wgddcdtizb) .gt_two_val_uncert {
   display: inline-block;
   line-height: 1em;
   text-align: right;
@@ -739,31 +739,31 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   margin-left: 0.1em;
 }
 
-:where(#vodbpgukwg) .gt_footnote_marks {
+:where(#wgddcdtizb) .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-:where(#vodbpgukwg) .gt_asterisk {
+:where(#wgddcdtizb) .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-:where(#vodbpgukwg) .gt_slash_mark {
+:where(#wgddcdtizb) .gt_slash_mark {
   font-size: 0.7em;
   line-height: 0.7em;
   vertical-align: 0.15em;
 }
 
-:where(#vodbpgukwg) .gt_fraction_numerator {
+:where(#wgddcdtizb) .gt_fraction_numerator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: 0.45em;
 }
 
-:where(#vodbpgukwg) .gt_fraction_denominator {
+:where(#wgddcdtizb) .gt_fraction_denominator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: -0.05em;
@@ -819,21 +819,21 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">day =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">predicted =</span> <span class="dv">0</span>,</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">rep</span>(<span class="fu">c</span>(rain, sun), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>))</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">|&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>()</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>weather_new <span class="sc">%&gt;%</span> gt<span class="sc">::</span><span class="fu">gt</span>(<span class="at">rowname_col =</span> <span class="st">"rowname"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>weather_new <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>(<span class="at">rowname_col =</span> <span class="st">"rowname"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    gt<span class="sc">::</span><span class="fu">tab_options</span>(<span class="at">column_labels.hidden =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 
-<div id="ptjnjqwwgs" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="nqwrcgyofh" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-:where(#ptjnjqwwgs) .gt_table {
+:where(#nqwrcgyofh) .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -858,7 +858,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-left-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_heading {
+:where(#nqwrcgyofh) .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -870,7 +870,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_title {
+:where(#nqwrcgyofh) .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -882,7 +882,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-width: 0;
 }
 
-:where(#ptjnjqwwgs) .gt_subtitle {
+:where(#nqwrcgyofh) .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -894,13 +894,13 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-width: 0;
 }
 
-:where(#ptjnjqwwgs) .gt_bottom_border {
+:where(#nqwrcgyofh) .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_col_headings {
+:where(#nqwrcgyofh) .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -915,7 +915,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_col_heading {
+:where(#nqwrcgyofh) .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -935,7 +935,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#ptjnjqwwgs) .gt_column_spanner_outer {
+:where(#nqwrcgyofh) .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -947,15 +947,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 4px;
 }
 
-:where(#ptjnjqwwgs) .gt_column_spanner_outer:first-child {
+:where(#nqwrcgyofh) .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-:where(#ptjnjqwwgs) .gt_column_spanner_outer:last-child {
+:where(#nqwrcgyofh) .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-:where(#ptjnjqwwgs) .gt_column_spanner {
+:where(#nqwrcgyofh) .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -967,7 +967,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   width: 100%;
 }
 
-:where(#ptjnjqwwgs) .gt_group_heading {
+:where(#nqwrcgyofh) .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -992,7 +992,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#ptjnjqwwgs) .gt_empty_group_heading {
+:where(#nqwrcgyofh) .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1007,15 +1007,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#ptjnjqwwgs) .gt_from_md > :first-child {
+:where(#nqwrcgyofh) .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-:where(#ptjnjqwwgs) .gt_from_md > :last-child {
+:where(#nqwrcgyofh) .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-:where(#ptjnjqwwgs) .gt_row {
+:where(#nqwrcgyofh) .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1034,7 +1034,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#ptjnjqwwgs) .gt_stub {
+:where(#nqwrcgyofh) .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1047,7 +1047,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#ptjnjqwwgs) .gt_stub_row_group {
+:where(#nqwrcgyofh) .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1061,11 +1061,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: top;
 }
 
-:where(#ptjnjqwwgs) .gt_row_group_first td {
+:where(#nqwrcgyofh) .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-:where(#ptjnjqwwgs) .gt_summary_row {
+:where(#nqwrcgyofh) .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1075,16 +1075,16 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#ptjnjqwwgs) .gt_first_summary_row {
+:where(#nqwrcgyofh) .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_first_summary_row.thick {
+:where(#nqwrcgyofh) .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-:where(#ptjnjqwwgs) .gt_last_summary_row {
+:where(#nqwrcgyofh) .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1094,7 +1094,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_grand_summary_row {
+:where(#nqwrcgyofh) .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1104,7 +1104,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#ptjnjqwwgs) .gt_first_grand_summary_row {
+:where(#nqwrcgyofh) .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1114,11 +1114,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_striped {
+:where(#nqwrcgyofh) .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-:where(#ptjnjqwwgs) .gt_table_body {
+:where(#nqwrcgyofh) .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1127,7 +1127,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_footnotes {
+:where(#nqwrcgyofh) .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1141,7 +1141,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_footnote {
+:where(#nqwrcgyofh) .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -1150,7 +1150,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#ptjnjqwwgs) .gt_sourcenotes {
+:where(#nqwrcgyofh) .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1164,7 +1164,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#ptjnjqwwgs) .gt_sourcenote {
+:where(#nqwrcgyofh) .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1172,36 +1172,36 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#ptjnjqwwgs) .gt_left {
+:where(#nqwrcgyofh) .gt_left {
   text-align: left;
 }
 
-:where(#ptjnjqwwgs) .gt_center {
+:where(#nqwrcgyofh) .gt_center {
   text-align: center;
 }
 
-:where(#ptjnjqwwgs) .gt_right {
+:where(#nqwrcgyofh) .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-:where(#ptjnjqwwgs) .gt_font_normal {
+:where(#nqwrcgyofh) .gt_font_normal {
   font-weight: normal;
 }
 
-:where(#ptjnjqwwgs) .gt_font_bold {
+:where(#nqwrcgyofh) .gt_font_bold {
   font-weight: bold;
 }
 
-:where(#ptjnjqwwgs) .gt_font_italic {
+:where(#nqwrcgyofh) .gt_font_italic {
   font-style: italic;
 }
 
-:where(#ptjnjqwwgs) .gt_super {
+:where(#nqwrcgyofh) .gt_super {
   font-size: 65%;
 }
 
-:where(#ptjnjqwwgs) .gt_two_val_uncert {
+:where(#nqwrcgyofh) .gt_two_val_uncert {
   display: inline-block;
   line-height: 1em;
   text-align: right;
@@ -1210,31 +1210,31 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   margin-left: 0.1em;
 }
 
-:where(#ptjnjqwwgs) .gt_footnote_marks {
+:where(#nqwrcgyofh) .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-:where(#ptjnjqwwgs) .gt_asterisk {
+:where(#nqwrcgyofh) .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-:where(#ptjnjqwwgs) .gt_slash_mark {
+:where(#nqwrcgyofh) .gt_slash_mark {
   font-size: 0.7em;
   line-height: 0.7em;
   vertical-align: 0.15em;
 }
 
-:where(#ptjnjqwwgs) .gt_fraction_numerator {
+:where(#nqwrcgyofh) .gt_fraction_numerator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: 0.45em;
 }
 
-:where(#ptjnjqwwgs) .gt_fraction_denominator {
+:where(#nqwrcgyofh) .gt_fraction_denominator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: -0.05em;
@@ -1510,9 +1510,9 @@ b6.6  -25.8       6.3  -198.4      5.5         1.6    0.3    396.8   11.1  </cod
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>, <span class="at">criterion =</span> <span class="st">"waic"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>(<span class="st">"model_name"</span>) <span class="sc">%&gt;%</span></span>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>, <span class="at">criterion =</span> <span class="st">"waic"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>(<span class="st">"model_name"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model_name =</span> forcats<span class="sc">::</span><span class="fu">fct_reorder</span>(model_name, waic, <span class="at">.desc =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(w, <span class="fu">aes</span>(<span class="at">x =</span> waic, <span class="at">y =</span> model_name, <span class="at">xmin =</span> waic <span class="sc">-</span> se_waic, <span class="at">xmax =</span> waic <span class="sc">+</span> se_waic)) <span class="sc">+</span></span>
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>(<span class="at">shape =</span> <span class="dv">19</span>, <span class="at">size =</span> <span class="fl">0.75</span>, <span class="at">color =</span> <span class="st">"mediumseagreen"</span>) <span class="sc">+</span></span>
@@ -1530,7 +1530,7 @@ b6.6  -25.8       6.3  -198.4      5.5         1.6    0.3    396.8   11.1  </cod
 w_i = \frac{exp(-0.5 \Delta_i)}{\sum_j exp(-0.5 \Delta_j)}
 \]</span> which can be obtained with <code>brms::model_weights</code></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>brms<span class="sc">::</span><span class="fu">model_weights</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>) <span class="sc">%&gt;%</span></span>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>brms<span class="sc">::</span><span class="fu">model_weights</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>) <span class="sc">|&gt;</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="at">digits =</span> <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  b6.6   b6.7   b6.8 
@@ -1542,7 +1542,7 @@ w_i = \frac{exp(-0.5 \Delta_i)}{\sum_j exp(-0.5 \Delta_j)}
 <h3 data-number="7.5.2" class="anchored" data-anchor-id="outliers-and-other-illusions"><span class="header-section-number">7.5.2</span> Outliers and other illusions</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"WaffleDivorce"</span>)</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> WaffleDivorce <span class="sc">%&gt;%</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> WaffleDivorce <span class="sc">|&gt;</span></span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">D =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(Divorce)),</span>
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">M =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(Marriage)),</span>
 <span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">A =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(MedianAgeMarriage)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1608,7 +1608,7 @@ b5.2  -6.6       4.7   -68.9      4.9         2.2   0.8    137.7   9.9   </code>
 <span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch07_b05_03t"</span>)</span>
 <span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.16 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.15 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
