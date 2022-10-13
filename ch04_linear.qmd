@@ -2,6 +2,7 @@
 
 ```{r }
 #| include: false
+library(assertthat)
 library(rethinking)
 library(brms)
 library(dplyr)
@@ -63,10 +64,8 @@ rm(Howell1)
 which we can visualize using `skimr`
 
 ```{r}
-my_skim <- skimr::skim_with(numeric = skimr::sfl(`5.5%` = ~ quantile(., probs = 0.055),
-                                                 `94.5%` = ~ quantile(., probs = 0.945)
-                                                 ), append = TRUE)
-my_skim(d)
+skimr::skim(d) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 select only the adults
@@ -107,7 +106,7 @@ and we visualize using `ggplot`
 
 ```{r}
 p <- list()
-# NOTE: we use {} with %>% to use nrow in  sprintf
+# NOTE: we use {} with |> to use nrow in  sprintf
 p$prior1 <- prior1 %>%
   {
     ggplot(data=., aes(x=height)) +
@@ -184,7 +183,7 @@ post <- list(n = 200L)
 post$grid <-with(post, {
   data.frame(
   mu = seq(from = 140, to = 160, length.out = n),
-  sigma = seq(from = 4, to = 9, length.out = n)) %>%
+  sigma = seq(from = 4, to = 9, length.out = n)) |>
   expand(mu, sigma)
 })
 ```
@@ -239,7 +238,7 @@ $$ which we add to the likelihood to obtain the posterior distribution on the lo
 ```{r}
 # add the the priors to the likelihood  on the log scales to obtain the
 # log of the posterior
-post$grid <- post$grid %>%
+post$grid <- post$grid |>
   mutate(prob =
            LL + 
            dnorm(x=mu, mean=178, sd=20, log=TRUE) +
@@ -286,7 +285,7 @@ p$heat
 ### Sampling from the grid's posterior
 
 ```{r}
-post$samples <- post$grid %>%
+post$samples <- post$grid |>
   slice_sample(n=1e4, weight_by = prob, replace = TRUE)
 ```
 
@@ -428,7 +427,6 @@ tictoc::toc()
 plot(b4.1)
 ```
 
-
 with the summary
 
 ```{r}
@@ -438,8 +436,8 @@ summary(b4.1)
 which can also be done with tidybayes
 
 ```{r}
-b4.1 %>%
-  tidybayes::gather_draws(b_Intercept, sigma) %>%
+b4.1 |>
+  tidybayes::gather_draws(b_Intercept, sigma) |>
   tidybayes::median_qi(.width = 0.89)
 ```
 
@@ -460,8 +458,8 @@ p <- list()
 # quantiles used in the plots
 p$qtl <- c(0.89, 1)
 # plot the posterior dist for b
-p$b <- b4.1 %>%
-  tidybayes::spread_draws(b_Intercept, sigma) %>%
+p$b <- b4.1 |>
+  tidybayes::spread_draws(b_Intercept, sigma) |>
   ggplot(aes(x = b_Intercept)) +
   stat_halfeye(aes(fill=stat(cut_cdf_qi(cdf,.width = p$qtl))),
            point_interval = mean_qi, .width = p$qtl) +
@@ -474,8 +472,8 @@ p$b <- b4.1 %>%
   labs(title = "Posterior probability of Intercept", y = "density")
 
 # plot the posterior dist for sigma
-p$sigma <- b4.1 %>%
-  tidybayes::spread_draws(b_Intercept, sigma) %>%
+p$sigma <- b4.1 |>
+  tidybayes::spread_draws(b_Intercept, sigma) |>
   ggplot(aes(x = sigma)) +
   stat_halfeye(aes(fill=stat(cut_cdf_qi(cdf, .width = p$qtl))),
            point_interval = mean_qi, .width = p$qtl) +
@@ -588,8 +586,8 @@ prior$sim <- with(prior, {
   data.frame(
     id = seq_len(n),
     a = rnorm(n = n, mean = 178, sd = 20),
-    b = rnorm(n = n, mean = 0, sd = 10)) %>%
-    expand(nesting(id, a, b), weight = range(d2$weight)) %>%
+    b = rnorm(n = n, mean = 0, sd = 10)) |>
+    expand(nesting(id, a, b), weight = range(d2$weight)) |>
     mutate(height = a + b * (weight - mean(d2$weight)))
 })
 glimpse(prior$sim)
@@ -662,8 +660,8 @@ We add the centralized weight to the data
 ```{r}
 data("Howell1")
 d <- Howell1
-d2 <- d %>%
-  filter(age >= 18) %>%
+d2 <- d |>
+  filter(age >= 18) |>
   mutate(weight_c = scale(weight, center = TRUE, scale = FALSE))
 rm(Howell1)
 ```
@@ -697,8 +695,6 @@ m4.3 <- xfun::cache_rds({
   file = "ch04_m04_03")
 tictoc::toc()
 ```
-
-
 
 ```{r}
 precis(m4.3)
@@ -744,7 +740,6 @@ plot(b4.3)
 summary(b4.3)
 ```
 
-
 ### Using the log tranformation
 
 $$
@@ -763,8 +758,9 @@ glimpse(d2)
 
 > TODO: This brm command does not work. It was in kurtz2020b. Section 5.3.2 and 6.2.1 are supposed to have the solution. We will come back.
 
-:::{.callout-tip}
+::: callout-tip
 ## TODO
+
 This `brm` command does not work. It was in @kurtz2020b. Section 5.3.2 and 6.2.1 are supposed to have the solution. We will come back.
 :::
 
@@ -789,7 +785,6 @@ This `brm` command does not work. It was in @kurtz2020b. Section 5.3.2 and 6.2.1
 # summary(b4.3b)
 ```
 
-
 ### Interpreting the posterior distribution
 
 #### Tables of marginal distributions
@@ -809,25 +804,25 @@ Using `brm`
 Note: `lp__` stands for *unnormalized log posterior density*.
 
 ```{r}
-posterior_summary(b4.3, probs = c(0.055, 0.975)) %>%
+posterior_summary(b4.3, probs = c(0.055, 0.975)) |>
   round(digits = 2)
 ```
 
 we get the varcov matrix as follows
 
 ```{r}
-posterior_samples(b4.3) %>%
-  select(-lp__) %>%
-  cov() %>%
+posterior_samples(b4.3) |>
+  select(-lp__) |>
+  cov() |>
   round(digits = 3)
 ```
 
 and the correlation matrix
 
 ```{r}
-posterior_samples(b4.3) %>%
-  select(-lp__) %>%
-  cor() %>%
+posterior_samples(b4.3) |>
+  select(-lp__) |>
+  cor() |>
   round(digits = 3)
 ```
 
@@ -841,7 +836,7 @@ tidybayes::get_variables(b4.3)
 
 ```{r}
 post <- list()
-post$long <- b4.3 %>%
+post$long <- b4.3 |>
   tidybayes::gather_draws(b_Intercept, b_weight_c, sigma)
 ```
 
@@ -874,7 +869,7 @@ p$dens
 and the paired plots with `ggally`
 
 ```{r}
-post$wide <- b4.3 %>%
+post$wide <- b4.3 |>
   tidybayes::spread_draws(b_Intercept, b_weight_c, sigma)
 # glimpse(post$wide)
 ```
@@ -920,7 +915,7 @@ p$trace
 
 ```{r}
 data("Howell1")
-d <- Howell1 %>%
+d <- Howell1 |>
   mutate(weight_s = scale(as.vector(weight)),
          weight_s2 = weight_s ^ 2)
 rm(Howell1)
@@ -980,12 +975,9 @@ $$
 
 https://discourse.mc-stan.org/t/error-with-gamma-prior/16420
 
-:::{.callout-warning}
-The following code gives a warning about setting lower boundaries. It started
-to show with `R 4.2`. Paul Buerkner advises to ignore it. See
-[advice](https://discourse.mc-stan.org/t/error-with-gamma-prior/16420)
+::: callout-warning
+The following code gives a warning about setting lower boundaries. It started to show with `R 4.2`. Paul Buerkner advises to ignore it. See [advice](https://discourse.mc-stan.org/t/error-with-gamma-prior/16420)
 :::
-
 
 ```{r ch04_b04_05}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
@@ -1003,11 +995,9 @@ b4.5 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r}
 summary(b4.5)
 ```
-
 
 and to obtain a simplified dataframe we use
 
@@ -1021,7 +1011,7 @@ tidybayes::get_variables(b4.5)
 
 ```{r}
 p$dens <- 
-  b4.5 %>% tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) %>%
+  b4.5 |> tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) |>
   ggplot(aes(x = .value, color = as.factor(.chain))) +
   geom_density() +
   scale_color_paletteer_d(palette = "futurevisions::mars", direction = -1) +
@@ -1036,7 +1026,7 @@ and
 
 ```{r}
 p$trace <- 
-  b4.5 %>% tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) %>%
+  b4.5 |> tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) |>
   ggplot(aes(x = .iteration, y = .value, color = as.factor(.chain))) +
   geom_line() +
   scale_color_paletteer_d(palette = "futurevisions::mars", direction = -1) +
@@ -1065,19 +1055,19 @@ We can see it clearly here as `fitd_quad` gives ans estimate about the same as f
 samples <- list()
 # the new data to use for sampling fitted and pedict
 samples$newdata <- data.frame(
-  weight_s=seq_range(d$weight_s, n=30L)) %>%
+  weight_s=seq_range(d$weight_s, n=30L)) |>
   mutate(weight_s2=weight_s^2)
 
 samples$fitted <- with(samples, {
-  fitted(b4.5, newdata = newdata) %>%
-  data.frame() %>%
+  fitted(b4.5, newdata = newdata) |>
+  data.frame() |>
   bind_cols(newdata)
 })
 # glimpse(samples$fitted)
 
 samples$predict <- with(samples, {
-  predict(b4.5, newdata = newdata) %>%
-  data.frame() %>%
+  predict(b4.5, newdata = newdata) |>
+  data.frame() |>
   bind_cols(newdata)
 })
 # glimpse(samples$predict)
@@ -1105,9 +1095,9 @@ p$model
 data("cherry_blossoms")
 d <- cherry_blossoms
 rm(cherry_blossoms)
-d %>% skimr::skim()
+d |> skimr::skim()
 # data without NA
-d2 <- d %>%
+d2 <- d |>
   drop_na(doy)
 ```
 
@@ -1147,10 +1137,10 @@ and we plot the basis functions
 
 ```{r}
 # this data.frame will be reused below with the posteriors
-df_bias <- B %>%
+df_bias <- B |>
   as.data.frame() %>%
-  setNames(sprintf("B%02d", seq_len(ncol(.)))) %>%
-  mutate(year = d2$year) %>%
+  setNames(sprintf("B%02d", seq_len(ncol(.)))) |>
+  mutate(year = d2$year) |>
   pivot_longer(cols = -year, names_to = "bias_func", values_to = "bias")
 # str(df_bias)
 
@@ -1181,7 +1171,7 @@ $$
 We first create append the matrix to the data in one column. See @kurtz2020b on this data structure.
 
 ```{r}
-d3 <- d2 %>%
+d3 <- d2 |>
   mutate(B = B)
 # the last column is a matrix column, with same nb of rows as the other
 # columns but with a column including 17 subcolumns (!)
@@ -1216,12 +1206,12 @@ summary(b4.8)
 
 ```{r}
 # Source: https://github.com/mjskay/tisdybayes/issues/38
-df <- tidybayes::gather_draws(b4.8, !!sym("^b_B.+"), regex = TRUE) %>%
+df <- tidybayes::gather_draws(b4.8, !!sym("^b_B.+"), regex = TRUE) |>
   mutate(.variable = as.integer(sub("^b_B", replacement = "", x = .variable)),
-         .variable = sprintf("B%02d", .variable)) %>%
-  rename("bias_func" = .variable) %>%
-  group_by(bias_func) %>%
-  summarise(weight = mean(.value)) %>%
+         .variable = sprintf("B%02d", .variable)) |>
+  rename("bias_func" = .variable) |>
+  group_by(bias_func) |>
+  summarise(weight = mean(.value)) |>
   full_join(y = df_bias, by = "bias_func")
 # glimpse(df)
 
@@ -1237,8 +1227,8 @@ ggplot(df, aes(x = year, y = bias * weight, color = bias_func)) +
 ```
 
 ```{r}
-df <- fitted(b4.8) %>%
-  as.data.frame() %>%
+df <- fitted(b4.8) |>
+  as.data.frame() |>
   bind_cols(d2)
 clrs <- unclass(paletteer::paletteer_d("futurevisions::cancri"))
 ggplot(df, aes(x = year, y = doy)) +

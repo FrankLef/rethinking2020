@@ -282,7 +282,7 @@ div.csl-indent {
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"WaffleDivorce"</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> WaffleDivorce</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># standardize the variables</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">A =</span> <span class="fu">round</span>(<span class="fu">scale</span>(MedianAgeMarriage), <span class="dv">4</span>),</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">M =</span> <span class="fu">round</span>(<span class="fu">scale</span>(Marriage), <span class="dv">4</span>),</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">D =</span> <span class="fu">round</span>(<span class="fu">scale</span>(Divorce), <span class="dv">4</span>))</span>
@@ -703,7 +703,7 @@ D_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_b05_01"</span>)</span>
 <span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.15 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.16 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we can investigate the priors as follows</p>
@@ -725,8 +725,8 @@ $ sigma     &lt;dbl&gt; 0.15096080, 1.60456102, 0.45126734, 5.91524548, 0.598065
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">A =</span> <span class="fu">seq_range</span>(d<span class="sc">$</span>A, <span class="at">n =</span> <span class="dv">30</span>, <span class="at">pretty =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>data <span class="ot">&lt;-</span> fitted<span class="sc">$</span>newdata <span class="sc">%&gt;%</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.1</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.1</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(fitted<span class="sc">$</span>newdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and plot them</p>
@@ -790,7 +790,7 @@ D_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_b05_02"</span>)</span>
 <span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.2 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -823,8 +823,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">M =</span> <span class="fu">seq_range</span>(d<span class="sc">$</span>M, <span class="at">n =</span> <span class="dv">30</span>, <span class="at">pretty =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>data <span class="ot">&lt;-</span> fitted<span class="sc">$</span>newdata <span class="sc">%&gt;%</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.2</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.2</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
 <span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(fitted<span class="sc">$</span>newdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and plot them</p>
@@ -876,7 +876,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>p<span class="sc">$</span>dag1 <span class="ot">&lt;-</span> ggdag<span class="sc">::</span><span class="fu">dagify</span>(M <span class="sc">~</span> A,</span>
 <span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>                      D <span class="sc">~</span> A <span class="sc">+</span> M,</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                      <span class="at">coords =</span> p<span class="sc">$</span>coord) <span class="sc">%&gt;%</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                      <span class="at">coords =</span> p<span class="sc">$</span>coord) <span class="sc">|&gt;</span></span>
 <span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  ggdag<span class="sc">::</span><span class="fu">ggdag</span>(<span class="at">node_size =</span> <span class="dv">8</span>) <span class="sc">+</span></span>
 <span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">theme_solid</span>(<span class="at">fill =</span> <span class="st">"snow2"</span>)</span>
 <span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>p<span class="sc">$</span>plot1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(p<span class="sc">$</span>dag1<span class="sc">$</span>data, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">xend =</span> xend, <span class="at">yend =</span> yend)) <span class="sc">+</span></span>
@@ -891,7 +891,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>p<span class="sc">$</span>dag2 <span class="ot">&lt;-</span> ggdag<span class="sc">::</span><span class="fu">dagify</span>(M <span class="sc">~</span> A,</span>
 <span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>                      D <span class="sc">~</span> A,</span>
-<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>                      <span class="at">coords =</span> p<span class="sc">$</span>coord) <span class="sc">%&gt;%</span></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>                      <span class="at">coords =</span> p<span class="sc">$</span>coord) <span class="sc">|&gt;</span></span>
 <span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>  ggdag<span class="sc">::</span><span class="fu">ggdag</span>(<span class="at">node_size =</span> <span class="dv">8</span>) <span class="sc">+</span></span>
 <span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">theme_solid</span>(<span class="at">fill =</span> <span class="st">"snow2"</span>)</span>
 <span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>p<span class="sc">$</span>plot2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(p<span class="sc">$</span>dag2<span class="sc">$</span>data, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">xend =</span> xend, <span class="at">yend =</span> yend)) <span class="sc">+</span></span>
@@ -914,7 +914,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h3 data-number="5.1.2" class="anchored" data-anchor-id="testable-implications"><span class="header-section-number">5.1.2</span> Testable implications</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>dag <span class="ot">&lt;-</span> <span class="st">"dag{ D &lt;- A -&gt; M }"</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>dagitty<span class="sc">::</span><span class="fu">dagitty</span>(dag) <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>dagitty<span class="sc">::</span><span class="fu">dagitty</span>(dag) <span class="sc">|&gt;</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  dagitty<span class="sc">::</span><span class="fu">impliedConditionalIndependencies</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>D _||_ M | A</code></pre>
@@ -922,7 +922,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>dag <span class="ot">&lt;-</span> <span class="st">"dag{ D &lt;- A -&gt; M -&gt; D }"</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>dagitty<span class="sc">::</span><span class="fu">dagitty</span>(dag) <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>dagitty<span class="sc">::</span><span class="fu">dagitty</span>(dag) <span class="sc">|&gt;</span></span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  dagitty<span class="sc">::</span><span class="fu">impliedConditionalIndependencies</span>()</span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"This returns NULL because there are no conditional independencies"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -968,7 +968,7 @@ D_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_b05_03"</span>)</span>
 <span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.18 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1005,8 +1005,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.3</span> <span class="sc">%&gt;%</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gather_draws</span>(b_Intercept, b_M, b_A) <span class="sc">%&gt;%</span></span>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.3</span> <span class="sc">|&gt;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gather_draws</span>(b_Intercept, b_M, b_A) <span class="sc">|&gt;</span></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> .value, <span class="at">y =</span> .variable)) <span class="sc">+</span></span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_pointinterval</span>(<span class="at">point_interval =</span> mean_qi,</span>
 <span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">.width =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.055</span>, <span class="fl">0.945</span>, <span class="dv">1</span>),</span>
@@ -1037,7 +1037,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"WaffleDivorce"</span>)</span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> WaffleDivorce</span>
 <span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># standardize the variables</span></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span></span>
 <span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">A =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(MedianAgeMarriage)),</span>
 <span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">M =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(Marriage)),</span>
 <span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">D =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(Divorce)))</span>
@@ -1071,7 +1071,7 @@ M_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_b05_04"</span>)</span>
 <span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.2 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1103,9 +1103,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get the fit on the original data and</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co"># add columns to original data to prepare for the plot</span></span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>fitted <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>data <span class="ot">&lt;-</span> <span class="fu">fitted</span>(b5<span class="fl">.4</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(d[, <span class="fu">c</span>(<span class="st">"D"</span>, <span class="st">"A"</span>, <span class="st">"M"</span>)]) <span class="sc">%&gt;%</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>data <span class="ot">&lt;-</span> <span class="fu">fitted</span>(b5<span class="fl">.4</span>) <span class="sc">|&gt;</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(d[, <span class="fu">c</span>(<span class="st">"D"</span>, <span class="st">"A"</span>, <span class="st">"M"</span>)]) <span class="sc">|&gt;</span></span>
 <span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">resid =</span> M <span class="sc">-</span> Estimate)</span>
 <span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a><span class="co"># str(fitted$data)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1162,8 +1162,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>The textbook mentions posterior predictions but the plot in figure 5.5 sems to have the intervals of the <em>fitted</em> values.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>predict <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>predict<span class="sc">$</span>data <span class="ot">&lt;-</span> <span class="fu">predict</span>(b5<span class="fl">.3</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>predict<span class="sc">$</span>data <span class="ot">&lt;-</span> <span class="fu">predict</span>(b5<span class="fl">.3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
 <span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">D =</span> d<span class="sc">$</span>D)</span>
 <span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co"># str(predict$data)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1194,7 +1194,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>p<span class="sc">$</span>dag <span class="ot">&lt;-</span> ggdag<span class="sc">::</span><span class="fu">dagify</span>(M <span class="sc">~</span> A,</span>
 <span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>                       D <span class="sc">~</span> A <span class="sc">+</span> M,</span>
-<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>                      <span class="at">coords =</span> p<span class="sc">$</span>coord) <span class="sc">%&gt;%</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>                      <span class="at">coords =</span> p<span class="sc">$</span>coord) <span class="sc">|&gt;</span></span>
 <span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>  ggdag<span class="sc">::</span><span class="fu">ggdag</span>(<span class="at">node_size =</span> <span class="dv">8</span>) <span class="sc">+</span></span>
 <span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">theme_solid</span>(<span class="at">fill =</span> <span class="st">"snow2"</span>)</span>
 <span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(p<span class="sc">$</span>dag<span class="sc">$</span>data, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">xend =</span> xend, <span class="at">yend =</span> yend)) <span class="sc">+</span></span>
@@ -1274,8 +1274,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">A =</span> <span class="fu">seq_range</span>(d<span class="sc">$</span>A, <span class="at">n =</span> 30L, <span class="at">pretty =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">M =</span> <span class="dv">0</span>)</span>
 <span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">NOTE</span><span class="co">: the argument resp = "D" is important to select the right model</span></span>
-<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>predict<span class="sc">$</span>data <span class="ot">&lt;-</span> <span class="fu">predict</span>(b5<span class="fl">.3</span>a, <span class="at">resp =</span> <span class="st">"D"</span>, <span class="at">newdata =</span> predict<span class="sc">$</span>newdata) <span class="sc">%&gt;%</span></span>
-<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>predict<span class="sc">$</span>data <span class="ot">&lt;-</span> <span class="fu">predict</span>(b5<span class="fl">.3</span>a, <span class="at">resp =</span> <span class="st">"D"</span>, <span class="at">newdata =</span> predict<span class="sc">$</span>newdata) <span class="sc">|&gt;</span></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">|&gt;</span></span>
 <span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(predict<span class="sc">$</span>newdata)</span>
 <span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a><span class="co"># str(predict$data)</span></span>
 <span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
@@ -1296,8 +1296,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>predict <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>predict<span class="sc">$</span>newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">A =</span> <span class="fu">seq_range</span>(d<span class="sc">$</span>A, <span class="at">n =</span> 30L, <span class="at">pretty =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>predict<span class="sc">$</span>data <span class="ot">&lt;-</span> <span class="fu">predict</span>(b5<span class="fl">.3</span>a, <span class="at">resp =</span> <span class="st">"M"</span>, <span class="at">newdata =</span> predict<span class="sc">$</span>newdata) <span class="sc">%&gt;%</span></span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>predict<span class="sc">$</span>data <span class="ot">&lt;-</span> <span class="fu">predict</span>(b5<span class="fl">.3</span>a, <span class="at">resp =</span> <span class="st">"M"</span>, <span class="at">newdata =</span> predict<span class="sc">$</span>newdata) <span class="sc">|&gt;</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">|&gt;</span></span>
 <span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(predict<span class="sc">$</span>newdata)</span>
 <span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>p<span class="sc">$</span>M <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(predict<span class="sc">$</span>data, <span class="fu">aes</span>(<span class="at">x =</span> A, <span class="at">y =</span> Estimate, <span class="at">ymin =</span> Q2<span class="fl">.5</span>, <span class="at">ymax =</span> Q97<span class="fl">.5</span>)) <span class="sc">+</span></span>
 <span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"khaki"</span>, <span class="at">color =</span> <span class="st">"khaki4"</span>) <span class="sc">+</span></span>
@@ -1321,9 +1321,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>But first, as mentioned on p.&nbsp;136, we need to remove missing values which cause problems when plotting and in modeling.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(milk)</span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> milk <span class="sc">%&gt;%</span></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">drop_na</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> milk <span class="sc">|&gt;</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">drop_na</span>() <span class="sc">|&gt;</span></span>
 <span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">K =</span> <span class="fu">as.vector</span>(<span class="fu">scale</span>(kcal.per.g)),</span>
 <span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">N =</span> <span class="fu">as.vector</span>(<span class="fu">scale</span>(neocortex.perc)),</span>
 <span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">M =</span> <span class="fu">as.vector</span>(<span class="fu">scale</span>(<span class="fu">log</span>(mass))))</span>
@@ -1600,7 +1600,7 @@ K &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_b05_05"</span>)</span>
 <span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.2 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.22 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1638,7 +1638,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>post<span class="sc">$</span>long <span class="ot">&lt;-</span> b5<span class="fl">.5</span> <span class="sc">%&gt;%</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>post<span class="sc">$</span>long <span class="ot">&lt;-</span> b5<span class="fl">.5</span> <span class="sc">|&gt;</span></span>
 <span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  tidybayes<span class="sc">::</span><span class="fu">gather_draws</span>(b_Intercept, b_N, sigma)</span>
 <span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(post<span class="sc">$</span>long, <span class="fu">aes</span>(<span class="at">x =</span> .value)) <span class="sc">+</span></span>
 <span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_halfeye</span>(<span class="fu">aes</span>(<span class="at">fill =</span> .variable), <span class="at">point_interval =</span> mean_hdi, <span class="at">.width =</span> <span class="fl">0.89</span>) <span class="sc">+</span></span>
@@ -1656,8 +1656,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>fitted <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">N =</span> <span class="fu">seq_range</span>(d<span class="sc">$</span>N, <span class="at">n =</span> 30L, <span class="at">pretty =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>data <span class="ot">&lt;-</span> fitted<span class="sc">$</span>newdata <span class="sc">%&gt;%</span></span>
-<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.5</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>, <span class="fl">0.25</span>, <span class="fl">0.75</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.5</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>, <span class="fl">0.25</span>, <span class="fl">0.75</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
 <span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(fitted<span class="sc">$</span>newdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and plot the fits with different variables and counterfactuals. We use this plotting function</p>
@@ -1713,7 +1713,7 @@ K &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb69-12"><a href="#cb69-12" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_b05_06"</span>)</span>
 <span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.21 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.29 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1753,8 +1753,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>fitted <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">M =</span> <span class="fu">seq_range</span>(d<span class="sc">$</span>M, <span class="at">n =</span> 30L, <span class="at">pretty =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>data <span class="ot">&lt;-</span> fitted<span class="sc">$</span>newdata <span class="sc">%&gt;%</span></span>
-<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.6</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>, <span class="fl">0.25</span>, <span class="fl">0.75</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.6</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>, <span class="fl">0.25</span>, <span class="fl">0.75</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
 <span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(fitted<span class="sc">$</span>newdata)</span>
 <span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>p<span class="sc">$</span>M <span class="ot">&lt;-</span> <span class="fu">plot_milk</span>(<span class="at">original =</span> b5<span class="fl">.6</span><span class="sc">$</span>data, <span class="at">fitted =</span> fitted<span class="sc">$</span>data, <span class="at">x_var =</span> <span class="st">"M"</span>,</span>
@@ -1794,7 +1794,7 @@ K_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb76-13"><a href="#cb76-13" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_b05_07"</span>)</span>
 <span id="cb76-14"><a href="#cb76-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.22 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.23 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1830,8 +1830,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">M =</span> <span class="dv">0</span></span>
 <span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>data <span class="ot">&lt;-</span> fitted<span class="sc">$</span>newdata <span class="sc">%&gt;%</span></span>
-<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.7</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>, <span class="fl">0.25</span>, <span class="fl">0.75</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.7</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>, <span class="fl">0.25</span>, <span class="fl">0.75</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
 <span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(fitted<span class="sc">$</span>newdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and the plot</p>
@@ -1851,8 +1851,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">N =</span> <span class="dv">0</span></span>
 <span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>fitted<span class="sc">$</span>data <span class="ot">&lt;-</span> fitted<span class="sc">$</span>newdata <span class="sc">%&gt;%</span></span>
-<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.7</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>, <span class="fl">0.25</span>, <span class="fl">0.75</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>(<span class="at">object =</span> b5<span class="fl">.7</span>, <span class="at">newdata =</span> ., <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>, <span class="fl">0.25</span>, <span class="fl">0.75</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
 <span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(fitted<span class="sc">$</span>newdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and the plot</p>
@@ -1878,7 +1878,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>Load data</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"Howell1"</span>)</span>
-<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> Howell1 <span class="sc">%&gt;%</span></span>
+<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> Howell1 <span class="sc">|&gt;</span></span>
 <span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="fu">factor</span>(male))</span>
 <span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(d)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -1915,7 +1915,7 @@ h_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb87-11"><a href="#cb87-11" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_b05_08"</span>)</span>
 <span id="cb87-12"><a href="#cb87-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.22 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.29 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1954,7 +1954,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>Load data, standardize and make sure <em>clade</em> is a factor. &gt; With <code>brms</code> there is no need to create the contrasts. We simply make sure that <code>*clade* is a factor.</code>brms` will create the contrasts by itself.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"milk"</span>)</span>
-<span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> milk <span class="sc">%&gt;%</span> </span>
+<span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> milk <span class="sc">|&gt;</span> </span>
 <span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">K =</span> <span class="fu">as.vector</span>(<span class="fu">scale</span>(kcal.per.g)))</span>
 <span id="cb91-4"><a href="#cb91-4" aria-hidden="true" tabindex="-1"></a><span class="co"># skimr::skim(d)</span></span>
 <span id="cb91-5"><a href="#cb91-5" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">is.factor</span>(d<span class="sc">$</span>clade))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1982,7 +1982,7 @@ K_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb92-11"><a href="#cb92-11" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_b05_09"</span>)</span>
 <span id="cb92-12"><a href="#cb92-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.26 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.33 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2024,8 +2024,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>and plot the result</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb98"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a>tidybayes<span class="sc">::</span><span class="fu">gather_draws</span>(b5<span class="fl">.9</span>, b_cladeApe, b_cladeNewWorldMonkey, </span>
-<span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>                        b_cladeOldWorldMonkey, b_cladeStrepsirrhine) <span class="sc">%&gt;%</span></span>
-<span id="cb98-3"><a href="#cb98-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean_hdi</span>(<span class="at">.width =</span> <span class="fl">0.89</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>                        b_cladeOldWorldMonkey, b_cladeStrepsirrhine) <span class="sc">|&gt;</span></span>
+<span id="cb98-3"><a href="#cb98-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean_hdi</span>(<span class="at">.width =</span> <span class="fl">0.89</span>) <span class="sc">|&gt;</span></span>
 <span id="cb98-4"><a href="#cb98-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> .value, <span class="at">xmin =</span> .lower, <span class="at">xmax =</span> .upper, <span class="at">y =</span> .variable)) <span class="sc">+</span></span>
 <span id="cb98-5"><a href="#cb98-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"darkgoldenrod"</span>) <span class="sc">+</span></span>
 <span id="cb98-6"><a href="#cb98-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointinterval</span>(<span class="at">fatten_point =</span> <span class="fl">2.5</span>, <span class="at">color =</span> <span class="st">"yellowgreen"</span>, <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span></span>

@@ -2,10 +2,10 @@
 
 ```{r }
 #| include: false
+library(assertthat)
 library(rethinking)
 library(brms)
 library(dplyr)
-library(assertthat)
 library(tidyr)
 library(ggplot2)
 library(ggdist)

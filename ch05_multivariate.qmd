@@ -28,7 +28,7 @@ Get the data and standardize the variables
 data("WaffleDivorce")
 d <- WaffleDivorce
 # standardize the variables
-d <- d %>%
+d <- d |>
   mutate(A = round(scale(MedianAgeMarriage), 4),
          M = round(scale(Marriage), 4),
          D = round(scale(Divorce), 4))
@@ -137,8 +137,8 @@ fitted$newdata <- data.frame(
   A = seq_range(d$A, n = 30, pretty = TRUE)
 )
 fitted$data <- fitted$newdata %>%
-  fitted(object = b5.1, newdata = ., probs = c(0.055, 0.945)) %>%
-  as_tibble() %>%
+  fitted(object = b5.1, newdata = ., probs = c(0.055, 0.945)) |>
+  as_tibble() |>
   bind_cols(fitted$newdata)
 ```
 
@@ -219,8 +219,8 @@ fitted$newdata <- data.frame(
   M = seq_range(d$M, n = 30, pretty = TRUE)
 )
 fitted$data <- fitted$newdata %>%
-  fitted(object = b5.2, newdata = ., probs = c(0.055, 0.945)) %>%
-  as_tibble() %>%
+  fitted(object = b5.2, newdata = ., probs = c(0.055, 0.945)) |>
+  as_tibble() |>
   bind_cols(fitted$newdata)
 ```
 
@@ -273,7 +273,7 @@ p$coord <- data.frame(
 )
 p$dag1 <- ggdag::dagify(M ~ A,
                       D ~ A + M,
-                      coords = p$coord) %>%
+                      coords = p$coord) |>
   ggdag::ggdag(node_size = 8) +
   ggthemes::theme_solid(fill = "snow2")
 p$plot1 <- ggplot(p$dag1$data, aes(x = x, y = y, xend = xend, yend = yend)) +
@@ -288,7 +288,7 @@ p$plot1 <- ggplot(p$dag1$data, aes(x = x, y = y, xend = xend, yend = yend)) +
 
 p$dag2 <- ggdag::dagify(M ~ A,
                       D ~ A,
-                      coords = p$coord) %>%
+                      coords = p$coord) |>
   ggdag::ggdag(node_size = 8) +
   ggthemes::theme_solid(fill = "snow2")
 p$plot2 <- ggplot(p$dag2$data, aes(x = x, y = y, xend = xend, yend = yend)) +
@@ -308,13 +308,13 @@ p$plot1 | p$plot2
 
 ```{r}
 dag <- "dag{ D <- A -> M }"
-dagitty::dagitty(dag) %>%
+dagitty::dagitty(dag) |>
   dagitty::impliedConditionalIndependencies()
 ```
 
 ```{r}
 dag <- "dag{ D <- A -> M -> D }"
-dagitty::dagitty(dag) %>%
+dagitty::dagitty(dag) |>
   dagitty::impliedConditionalIndependencies()
 message("This returns NULL because there are no conditional independencies")
 ```
@@ -368,8 +368,8 @@ tidybayes::get_variables(b5.3)
 ```
 
 ```{r}
-b5.3 %>%
-  gather_draws(b_Intercept, b_M, b_A) %>%
+b5.3 |>
+  gather_draws(b_Intercept, b_M, b_A) |>
   ggplot(aes(x = .value, y = .variable)) +
   stat_pointinterval(point_interval = mean_qi,
                      .width = c(0, 0.055, 0.945, 1),
@@ -397,7 +397,7 @@ b5.3 %>%
 data("WaffleDivorce")
 d <- WaffleDivorce
 # standardize the variables
-d <- d %>%
+d <- d |>
   mutate(A = scale(as.vector(MedianAgeMarriage)),
          M = scale(as.vector(Marriage)),
          D = scale(as.vector(Divorce)))
@@ -447,9 +447,9 @@ and again we get the fitted $\mu_i$ to plot them
 # get the fit on the original data and
 # add columns to original data to prepare for the plot
 fitted <- list()
-fitted$data <- fitted(b5.4) %>%
-  as.data.frame() %>%
-  bind_cols(d[, c("D", "A", "M")]) %>%
+fitted$data <- fitted(b5.4) |>
+  as.data.frame() |>
+  bind_cols(d[, c("D", "A", "M")]) |>
   mutate(resid = M - Estimate)
 # str(fitted$data)
 ```
@@ -508,8 +508,8 @@ The textbook mentions posterior predictions but the plot in figure 5.5 sems to h
 
 ```{r}
 predict <- list()
-predict$data <- predict(b5.3) %>%
-  as.data.frame() %>%
+predict$data <- predict(b5.3) |>
+  as.data.frame() |>
   mutate(D = d$D)
 # str(predict$data)
 ```
@@ -539,7 +539,7 @@ p$coord <- data.frame(
 )
 p$dag <- ggdag::dagify(M ~ A,
                        D ~ A + M,
-                      coords = p$coord) %>%
+                      coords = p$coord) |>
   ggdag::ggdag(node_size = 8) +
   ggthemes::theme_solid(fill = "snow2")
 ggplot(p$dag$data, aes(x = x, y = y, xend = xend, yend = yend)) +
@@ -595,8 +595,8 @@ predict$newdata <- data.frame(
   A = seq_range(d$A, n = 30L, pretty = TRUE),
   M = 0)
 # NOTE: the argument resp = "D" is important to select the right model
-predict$data <- predict(b5.3a, resp = "D", newdata = predict$newdata) %>%
-  data.frame() %>%
+predict$data <- predict(b5.3a, resp = "D", newdata = predict$newdata) |>
+  data.frame() |>
   bind_cols(predict$newdata)
 # str(predict$data)
 p <- list()
@@ -616,8 +616,8 @@ To estimate the influence of $A$ on $M$ we only need to regress $A$ on $M$ as th
 ```{r}
 predict <- list()
 predict$newdata <- data.frame(A = seq_range(d$A, n = 30L, pretty = TRUE))
-predict$data <- predict(b5.3a, resp = "M", newdata = predict$newdata) %>%
-  data.frame() %>%
+predict$data <- predict(b5.3a, resp = "M", newdata = predict$newdata) |>
+  data.frame() |>
   bind_cols(predict$newdata)
 p$M <- ggplot(predict$data, aes(x = A, y = Estimate, ymin = Q2.5, ymax = Q97.5)) +
   geom_smooth(stat = "identity", fill = "khaki", color = "khaki4") +
@@ -639,9 +639,9 @@ But first, as mentioned on p. 136, we need to remove missing values which cause 
 
 ```{r}
 data(milk)
-d <- milk %>%
-  as.data.frame() %>%
-  tidyr::drop_na() %>%
+d <- milk |>
+  as.data.frame() |>
+  tidyr::drop_na() |>
   mutate(K = as.vector(scale(kcal.per.g)),
          N = as.vector(scale(neocortex.perc)),
          M = as.vector(scale(log(mass))))
@@ -702,7 +702,7 @@ tidybayes::get_variables(b5.5)
 
 ```{r}
 post <- list()
-post$long <- b5.5 %>%
+post$long <- b5.5 |>
   tidybayes::gather_draws(b_Intercept, b_N, sigma)
 ggplot(post$long, aes(x = .value)) +
   stat_halfeye(aes(fill = .variable), point_interval = mean_hdi, .width = 0.89) +
@@ -719,8 +719,8 @@ fit for different confidence intervals
 fitted <- list()
 fitted$newdata <- data.frame(N = seq_range(d$N, n = 30L, pretty = TRUE))
 fitted$data <- fitted$newdata %>%
-  fitted(object = b5.5, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) %>%
-  as_tibble() %>%
+  fitted(object = b5.5, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) |>
+  as_tibble() |>
   bind_cols(fitted$newdata)
 ```
 
@@ -797,8 +797,8 @@ tidybayes::get_variables(b5.6)
 fitted <- list()
 fitted$newdata <- data.frame(M = seq_range(d$M, n = 30L, pretty = TRUE))
 fitted$data <- fitted$newdata %>%
-  fitted(object = b5.6, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) %>%
-  as_tibble() %>%
+  fitted(object = b5.6, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) |>
+  as_tibble() |>
   bind_cols(fitted$newdata)
 
 p$M <- plot_milk(original = b5.6$data, fitted = fitted$data, x_var = "M",
@@ -856,8 +856,8 @@ fitted$newdata <- data.frame(
   M = 0
 )
 fitted$data <- fitted$newdata %>%
-  fitted(object = b5.7, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) %>%
-  as_tibble() %>%
+  fitted(object = b5.7, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) |>
+  as_tibble() |>
   bind_cols(fitted$newdata)
 ```
 
@@ -881,8 +881,8 @@ fitted$newdata <- data.frame(
   N = 0
 )
 fitted$data <- fitted$newdata %>%
-  fitted(object = b5.7, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) %>%
-  as_tibble() %>%
+  fitted(object = b5.7, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) |>
+  as_tibble() |>
   bind_cols(fitted$newdata)
 ```
 
@@ -908,7 +908,7 @@ Load data
 
 ```{r}
 data("Howell1")
-d <- Howell1 %>%
+d <- Howell1 |>
   mutate(sex = factor(male))
 glimpse(d)
 ```
@@ -958,7 +958,7 @@ Load data, standardize and make sure *clade* is a factor. \> With `brms` there i
 
 ```{r}
 data("milk")
-d <- milk %>% 
+d <- milk |> 
   mutate(K = as.vector(scale(kcal.per.g)))
 # skimr::skim(d)
 stopifnot(is.factor(d$clade))
@@ -1003,8 +1003,8 @@ and plot the result
 
 ```{r}
 tidybayes::gather_draws(b5.9, b_cladeApe, b_cladeNewWorldMonkey, 
-                        b_cladeOldWorldMonkey, b_cladeStrepsirrhine) %>%
-  mean_hdi(.width = 0.89) %>%
+                        b_cladeOldWorldMonkey, b_cladeStrepsirrhine) |>
+  mean_hdi(.width = 0.89) |>
   ggplot(aes(x = .value, xmin = .lower, xmax = .upper, y = .variable)) +
   geom_vline(xintercept = 0, colour = "darkgoldenrod") +
   geom_pointinterval(fatten_point = 2.5, color = "yellowgreen", size = 5) +
