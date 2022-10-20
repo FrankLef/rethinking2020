@@ -16,6 +16,8 @@ book:
     - ch06_scm.qmd
     - ch07_information.qmd
     - ch08_interactions.qmd
+    - ch09_mcmc.qmd
+    - ch10_glm.qmd
     - references.qmd
 
 bibliography: references.bib

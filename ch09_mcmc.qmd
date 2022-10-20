@@ -1,0 +1,874 @@
+# Markov Chain Monte Carlo {#MCMC}
+
+```{r }
+#| include: false
+library(dplyr, quietly = TRUE)
+library(tidyr, quietly = TRUE)
+library(tidybayes, quietly = TRUE)
+library(rethinking)
+library(brms)
+library(loo)
+library(dagitty, quietly = TRUE)
+library(ggdag, quietly = TRUE)
+library(ggdist, quietly = TRUE)
+library(ggmcmc, quietly = TRUE)
+library(bayesplot, quietly = TRUE)
+library(patchwork, quietly = TRUE)
+library(paletteer, quietly = TRUE)
+```
+
+
+## Good King Markov
+
+We define the algorithm to simulate the King's journey.
+
+```{r}
+positions <- integer(1e4)
+current <- 10
+for (i in seq_len(length(positions))) {
+  
+  # Step 0: record current position
+  positions[i] <- current
+  
+  # step 1: flip a coin
+  set.seed(10 * i)
+  coin <- sample(x = c(-1, 1), size = 1)
+  # step 2: nominate the proposal island
+  #         we use modulo arithmetic to simulate a clock
+  #         constant 1 substracted and added to obtain 10 instead of 0
+  proposal <- (positions[i] + coin - 1) %% 10 + 1
+  # step 3: count shells and stones
+  #         count of shells = proposal, count of stone = current
+  # step 4: prob of moving
+  prob_move <- proposal / positions[i]
+  current <- ifelse(runif(1) < prob_move, proposal, current)
+}
+
+
+# the itinerary dataframe
+itinerary <- data.frame(
+  week = seq_along(positions),
+  island = factor(positions, levels = 1:10, ordered = TRUE)
+)
+```
+
+and we plot the trajectory for a sample of 100 weeks
+
+```{r}
+set.seed(9)
+dp <- itinerary %>%
+  arrange(week) %>%
+  slice_head(n = 250)
+p1 <- ggplot(data = dp, aes(x = week, y = island)) +
+  geom_point(aes(color = island), size = 1) +
+  scale_color_paletteer_d(palette = "ggsci::category10_d3") +
+  # scale_color_manual(values = colr) +
+  ggthemes::theme_igray() +
+  theme(legend.position = "none") +
+  labs(subtitle = sprintf("Itinerary for the first %d weeks", nrow(dp)),
+       x = "week #", y = "island")
+
+```
+
+and the frequency of visits to each island
+
+```{r}
+p2 <- ggplot(data = itinerary, aes(x = island)) +
+  geom_bar(aes(fill = island), stat = "count") +
+  scale_fill_paletteer_d(palette = "ggsci::category10_d3") +
+  # scale_color_manual(values = colr) +
+  ggthemes::theme_igray() +
+  theme(legend.position = "none") +
+  labs(subtitle = sprintf("%d weeks", nrow(itinerary)),
+       x = "island", y = "nb of weeks")
+```
+
+which gives figure 9.2
+
+```{r}
+p1 + p2 + 
+  plot_annotation(title = "Figure 9.2", subtitle = "Metropolis algorithm")
+```
+
+## Metropolis algorithms
+
+### Gibbs sampling
+
+It is a variant of the Metropolis-Hasting algorithm that is more efficient and uses pairs of conjugate prior and likelihood distributions..
+
+It is the basis for the sofware `BUGS` (Bayesian inference using Gibbs Sampling) and `JAGS` (Just Another Gibbs Sampler)
+
+### High-dimensional problems
+
+The code for this section comes straight from the same section in @kurtz2020b. Many thnaks to Solomon Kurtz for this wonderful gift.
+
+The core issue with high-demensional problems is that parameters will end up having high-correllations which causes the algorithm to get stuck.
+
+McElreath explains it by fire explaining the problem of high correlations itself then how high-demnsionality leads unavoidebly to high corrrelations.
+
+#### The problem of high correlations
+
+To illustrate a bivariate distribution with strong negative autocorrelaiton of -0.9 is used
+
+$$
+\begin{align*}
+\begin{bmatrix}
+a_1 \\
+a_2
+\end{bmatrix}
+&\sim
+\mathcal{MVNormal}(
+\begin{bmatrix}
+0 \\
+0
+\end{bmatrix},
+\Sigma
+) \\
+\Sigma &= \mathbf{SRS} \\
+\mathbf{S} &= 
+\begin{bmatrix}
+0.22 & 0 \\
+0 & 0.22
+\end{bmatrix} \\
+\mathbf{R} &= 
+\begin{bmatrix}
+1 & -0.9 \\
+-0.9 & 1
+\end{bmatrix}
+\end{align*}
+$$ we create the contour of $x$ and $y$ values and their bivariate density. See https://stackoverflow.com/questions/36221596/plot-multivariate-gaussian-contours-with-ggplot2 for reference.
+
+```{r}
+# Create the Multivariate distribution matrix
+mu <- c(0, 0)
+sd_a1 <- 0.22
+sd_a2 <- 0.22
+rho <- -0.9
+S <- matrix(c(sd_a1, 0, 0, sd_a2), nrow = 2, byrow = TRUE)
+R <- matrix(c(1, rho, rho, 1), nrow = 2, byrow = TRUE)
+Sigma <- S %*% R %*% S
+```
+
+then create the basic contour map
+
+```{r}
+x_domain <- seq(from = -1.6, to = 1.6, length.out = 200)
+y_domain <- seq(from = -1.6, to = 1.6, length.out = 200)
+df <- tidyr::expand_grid(a1 = x_domain, a2 = y_domain)
+df <- df %>%
+  mutate(prob = mvtnorm::dmvnorm(x = as.matrix(df), mean = mu, sigma = Sigma))
+pcontour <- ggplot(df, aes(x = a1, y = a2, z = prob)) + 
+  geom_contour(aes(color = ..level..),breaks = 9^(-(10 * 1:25))) +
+  scale_color_paletteer_c("grDevices::Emrld", direction = -1) +
+  theme_minimal()
+pcontour
+```
+
+Define a funciton to implement the Metropolis algorithm. This is a copy from the same section in kurtz2020b.
+
+```{r}
+metropolis <- function(mu, Sigma, num_proposals,
+                       step_size,
+                       starting_point) {
+  
+  # Initialize vectors where we will keep track of relevant
+  candidate_x_history <- rep(-Inf, num_proposals)
+  candidate_y_history <- rep(-Inf, num_proposals)
+  did_move_history <- rep(FALSE, num_proposals)
+  
+  # Prepare to begin the algorithm...
+  current_point <- starting_point
+  
+  for(i in 1:num_proposals) {
+    
+    # "Proposals are generated by adding random Gaussian noise
+    # to each parameter"
+    
+    noise <- rnorm(n = 2, mean = 0, sd = step_size)
+    candidate_point <- current_point + noise
+    
+    # store coordinates of the proposal point
+    candidate_x_history[i] <- candidate_point[1]
+    candidate_y_history[i] <- candidate_point[2]
+    
+    # evaluate the density of our posterior at the proposal point
+    candidate_prob <- mvtnorm::dmvnorm(candidate_point, mean = mu, sigma = Sigma)
+    
+    # evaluate the density of our posterior at the current point
+    current_prob <- mvtnorm::dmvnorm(current_point, mean = mu, sigma = Sigma)
+    
+    # Decide whether or not we should move to the candidate point
+    acceptance_ratio <- candidate_prob / current_prob
+    should_move <- ifelse(runif(n = 1) < acceptance_ratio, TRUE, FALSE)
+    
+    # Keep track of the decision
+    did_move_history[i] <- should_move
+    
+    # Move if necessary
+    if(should_move) {
+      current_point <- candidate_point
+    }
+  }
+  
+  # once the loop is complete, store the relevant results in a tibble
+  results <- tibble::tibble(
+    candidate_x = candidate_x_history,
+    candidate_y = candidate_y_history,
+    accept = did_move_history
+  )
+  
+  # compute the "acceptance rate" by dividing the total number of "moves"
+  # by the total number of proposals
+  
+  number_of_moves <- results %>% dplyr::pull(accept) %>% sum(.)
+  acceptance_rate <- number_of_moves/num_proposals
+  
+  return(list(results = results, acceptance_rate = acceptance_rate))
+  
+}
+```
+
+and run the algorithm with step size = 0.1
+
+```{r}
+set.seed(9)
+round_1 <- metropolis(mu = mu, Sigma = Sigma, num_proposals = 50,
+                      step_size = 0.1,
+                      starting_point = c(-1,1))
+# glimpse(round_1)
+```
+
+```{r}
+p1 <-
+  pcontour + 
+  geom_point(data = round_1$results,
+             aes(x = candidate_x, y = candidate_y, shape = accept, 
+                 fill = accept), 
+             inherit.aes = FALSE) +
+  scale_shape_manual(values = c(21, 21)) +
+  scale_fill_manual(values = c("FALSE" = "red", "TRUE" = "green")) +
+  theme(legend.position = "none") + 
+  labs(title = "Round # 1",
+       subtitle = paste("step size 0.1, accept rate", round_1$acceptance_rate),
+       x = "a1",
+       y = "a2")
+# p1
+```
+
+and for round \# 2
+
+```{r}
+set.seed(9)
+round_2 <- metropolis(mu = mu, Sigma = Sigma, num_proposals = 50,
+                      step_size = 0.25,
+                      starting_point = c(-1,1))
+# glimpse(round_2)
+```
+
+```{r}
+p2 <-
+  pcontour + 
+  geom_point(data = round_2$results,
+             aes(x = candidate_x, y = candidate_y, shape = accept, 
+                 fill = accept), 
+             inherit.aes = FALSE) +
+  scale_shape_manual(values = c(21, 21)) +
+  scale_fill_manual(values = c("FALSE" = "red", "TRUE" = "green")) +
+  theme(legend.position = "none") + 
+  labs(title = "Round # 2",
+       subtitle = paste("step size 0.25, accept rate", round_2$acceptance_rate),
+       x = "a1",
+       y = "a2")
+# p2
+```
+
+```{r}
+p1 + p2 + 
+  plot_annotation("Metropolis chain under high correlation")
+```
+
+#### Concentration of measure
+
+To do on a rainy day
+
+## Hamiltonian Monte Carlo
+
+To do. Not critical to do the rest of the book.
+
+## Easy HMC: `ulam` with `brms::brm()`
+
+Same data as in chapter 8.
+
+```{r}
+data(rugged)
+d <- rugged %>%
+  filter(complete.cases(rgdppc_2000)) %>%
+  mutate(log_gdp = log(rgdppc_2000),
+         is_africa = if_else(cont_africa == 1, "Africa", "Not Africa"),
+         is_africa = as.factor(is_africa))
+rm(rugged)
+dd <- d %>%
+  drop_na(rgdppc_2000) %>%
+  mutate(log_gdp_s = log_gdp / mean(log_gdp),
+         rugged_s = scales::rescale(rugged),
+         # rugged_s = rugged / max(rugged),
+         rugged_sc = as.vector(scale(rugged_s, center = TRUE, scale = FALSE)),
+         cid = as.factor(if_else(cont_africa == 1, "1", "2")))
+# skimr::skim(dd)
+```
+
+### Preparation
+
+```{r}
+dat_slim <- dd %>%
+  select(log_gdp_s, rugged_s, rugged_sc, cid) %>%
+  list()
+str(dat_slim)
+```
+
+### Sampling from the posterior
+
+This is easy with `tidybayes`. The model is
+
+$$
+\begin{align*}
+log\_gdp\_s_i &\sim \mathcal{N}(\mu_i, \sigma) \\
+\mu &= \alpha_{cid[i]} + \beta_{cid[i]} \cdot rugged\_sc \\
+\alpha_{cid[i]} &\sim \mathcal{N}(1, 0.1) \\
+\beta_{cid[i]} &\sim \mathcal{N}(1, 0.3) \\
+\sigma &\sim \mathcal{Exp}(1)
+\end{align*}
+$$
+
+```{r ch09_b09_01}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+b9.1 <- xfun::cache_rds({
+  brms::brm(
+    data = dd,
+    family = gaussian,
+    formula = bf(log_gdp_s ~ 0 + a + b*(rugged_sc),
+                 a ~ 0 + cid,
+                 b ~ 0 + cid,
+                 nl = TRUE),
+    prior = c(prior(normal(1, 0.1), class = b, coef = cid1, nlpar = a),
+              prior(normal(1, 0.1), class = b, coef = cid2, nlpar = a),
+              prior(normal(0, 0.3), class = b, coef = cid1, nlpar = b),
+              prior(normal(0, 0.3), class = b, coef = cid2, nlpar = b),
+              prior(exponential(1), class = sigma)),
+    chains = 1, cores = 1, seed = 9)},
+  file = "ch09_b09_01")
+tictoc::toc()
+```
+
+```{r}
+print(b9.1)
+```
+
+
+```{r}
+tidybayes::get_variables(b9.1)
+```
+
+Note that we use `mean_hdi()` but there are many more of these functions in `ggdist()` (which are actually carried forward in `tidybayes`).
+
+```{r}
+b9.1_post <- tidybayes::gather_draws(model = b9.1,
+                                     b_a_cid1, b_a_cid2, b_b_cid1, b_b_cid2,
+                                     sigma) %>%
+  ggdist::mean_hdi(.value, .width = 0.89)
+b9.1_post
+```
+
+### Sampling again, in parallel
+
+```{r ch09_b09_01b}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "20 secs."))
+b9.1b <- xfun::cache_rds({
+  update(b9.1, chains = 4, cores = 4, seed = 9)},
+  file = "ch09_b09_01b")
+tictoc::toc()
+```
+
+```{r}
+print(b9.1b)
+```
+
+
+and we can see the formula
+
+```{r}
+b9.1b$formula
+# and we can deparse it when plotting
+deparse1(b9.1b$formula$formula)
+```
+
+and obtain informaiton on the model priors
+
+```{r}
+b9.1b$prior
+```
+
+or using the function provided for this purpose
+
+```{r}
+prior_summary(b9.1b)
+```
+
+### Visualization
+
+We use `GGally`. It can also be done using the `ggmcmc` package with `ggs_pairs`. The `bayesplot` package also has many different plots. It is more sophisticated than `ggmcmc` with some vignettes explaining how to diagnose the chains.
+
+For this we choose to used `ggmcmc` which has trank plot and provides the wartmup.
+
+Also note that Solomon Kurtz @kurtz2020b has a lot more options and recipes about all of these plots. It is worthwhile reading before losing time finding solutions on the web.
+
+```{r}
+b9.1b_postwide <- tidybayes::spread_draws(model = b9.1b, b_a_cid1, b_a_cid2, b_b_cid1, b_b_cid2,
+                        sigma) %>%
+  select(.chain, b_a_cid1, b_a_cid2, b_b_cid1, b_b_cid2, sigma)
+# glimpse(b9.1b_postwide)
+# p <- GGally::ggpairs(b9.1b_post, columns = c("b_a_cid1", "b_a_cid2", "b_b_cid1", "b_b_cid2", "sigma"), 
+#                 aes(colour = as.factor(.chain)))
+# p
+b9.1b_pairs <- GGally::ggscatmat(b9.1b_postwide,
+                  columns = c("b_a_cid1", "b_a_cid2", "b_b_cid1", "b_b_cid2", "sigma"),
+                  color = ".chain") + 
+  scale_color_paletteer_d("lisa::LeeKrasner") +
+  theme_minimal() +
+  labs(title = "Model b9.1b")
+b9.1b_pairs
+```
+
+and the crosscorrelations which could also be done with `ggmcmc` but are a little mode flexible to use with `GGally`, in particular we can get in lower triable format
+
+```{r}
+b9.1b_corr <- GGally::ggcorr(b9.1b_postwide[, c("b_a_cid1", "b_a_cid2", "b_b_cid1", "b_b_cid2", "sigma")],
+                            color = "darkgreen",
+                            nbreaks = 13, label = TRUE, label_round = 2,
+                            label_color = "midnightblue") +
+  scale_fill_paletteer_d(palette = "ggthemr::dust") +
+  theme(legend.position = c(0.1, 0.8),
+        legend.title = element_blank(),
+        title = element_text(color = "midnightblue")) +
+  labs(title = "Correlations between parameters",
+       subtitle = "Model b9.1b")
+b9.1b_corr
+```
+
+### Checking the chain
+
+The `ggmcmc` package always starts with the `ggs()` function which extract the posterior draws and organize them in a tibble. The `ggmcmc` is very useful with family of parametrs. i.e.e parameter which are indexed. See the `family` argument in the `ggs` functions.
+
+See more info on `ggmcmc` at [ggmcmc](https://cran.r-project.org/web/packages/ggmcmc/vignettes/using_ggmcmc.html)
+
+```{r}
+b9.1b_ggs <- ggmcmc::ggs(b9.1b)
+str(b9.1b_ggs)
+```
+
+#### Trace plot
+
+```{r}
+ggs_traceplot(b9.1b_ggs) +
+  scale_color_paletteer_d("lisa::LeeKrasner") +
+  theme_minimal() +
+  # ggthemes::theme_clean() +
+  labs(title = "Trace plot",
+       subtitle = "Model b9.1b", color = "chain")
+```
+
+#### Trank plot
+
+This is a special case, only done with `bayesplot`. See how it is done in section 9.4.5 of @kurtz2020b.
+
+You have to read section 9.5.3, Figure 9.9, to understand how to read a trank plot.
+
+```{r}
+b9.1b_post <- posterior_samples(b9.1b, add_chain = TRUE)
+b9.1b_post %>% 
+  bayesplot::mcmc_rank_overlay(pars = vars(b_a_cid1:sigma)) +
+  scale_color_paletteer_d("lisa::LeeKrasner") +
+  coord_cartesian(ylim = c(25, NA)) +
+  theme(legend.position = c(.95, .20)) +
+  labs(title = "Trank plot",
+       subtitle = "Model b9.1b", color = "chain")
+```
+
+#### Running means
+
+```{r}
+ggs_running(b9.1b_ggs) +
+  scale_color_paletteer_d("lisa::LeeKrasner") +
+  theme_minimal() +
+  labs(title = "Running means",
+       subtitle = "Model b9.1b", color = "chain")
+```
+
+### Crosscorrelations
+
+I prefer the crosscorrelaion plot as done with `GGally` above, with lower triangle
+
+```{r}
+ggs_crosscorrelation(b9.1b_ggs) +
+  scale_fill_paletteer_c("grDevices::Emrld", direction = -1) +
+  theme_minimal() +
+  labs(title = "Crosscorrelations",
+       subtitle = "Model b9.1b", color = "chain")
+```
+
+#### Autocorrelations
+
+```{r}
+ggs_autocorrelation(b9.1b_ggs) +
+  scale_fill_paletteer_d("lisa::LeeKrasner") +
+  scale_color_paletteer_d("lisa::LeeKrasner", guide = "none") +
+  theme_minimal() + 
+  labs(title = "Autocorrelations",
+       subtitle = "Model b9.1b", color = NULL, fill = "chain")
+```
+
+#### Overthinking: Raw Stan model code
+
+We can use the `brms::stancode()` function to get the stan code from the `brmsfit` object
+
+```{r}
+brms::stancode(b9.1b)
+```
+
+## Care and feeding of your Markov chain
+
+The `brms` defaults are `iter = 2000` and `warmup = 1000`.
+
+### How many samples do you need
+
+In `brms` the `n_eff` mentioned by McElreath is `bulk_ESS`. The *tail ESS* discussed by McElreath is the `tail_ESS` value in `brms`.
+
+### How many chains do you need
+
+For more information on convergence statistics $\mathcal{\widehat{R}}$ see section 9.5.2.1 in @kurtz2020b.
+
+### Taming a wild chain
+
+The `start` argument in `rethinking` is replaced by `inits` in `brms`. The simple example of a wild chain is as follows. Note that `brms` can take data in the form of a list.
+
+I find much easier to understand the issues by looking at the autocorrelation and the mean plots created with `ggmcmc::ggs_running()` and `ggmcmc::ggs_autocorrelation()`. They will be used often in this work to visualize the Markov chain.
+
+#### Divergent transitions
+
+We create a model that has poor priors
+
+$$
+\begin{align*}
+y_i &\sim \mathcal{N}(\mu, \sigma) \\
+\mu &= \alpha \\
+\alpha &\sim \mathcal{N}(1, 1000) \\
+\sigma &\sim \mathcal{Exp}(0.0001)
+\end{align*}
+$$
+
+```{r ch09_b09_02}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+b9.2 <- xfun::cache_rds({
+  out <- brm(data = list(y = c(-1, 1)), 
+             family = gaussian,
+             y ~ 1,
+      prior = c(prior(normal(0, 1000), class = Intercept),
+                prior(exponential(0.0001), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 3, seed = 9)},
+  file = "ch09_b09_02")
+tictoc::toc()
+```
+
+
+```{r}
+summary(b9.2)
+```
+
+
+The results are pretty bad, just like McElreath wanted them. The `brms::nuts_params()` provide much diagnostic informations. The type of information is in the `Parameter` column.
+
+```{r}
+nuts_params(b9.2) %>% 
+  distinct(Parameter)
+```
+
+In the current case, the divergent transitions are the issue. For this we look at `Parameter == "divergent__"`.
+
+```{r}
+nuts_params(b9.2) %>%
+  filter(Parameter == "divergent__") %>%
+  count(Value)
+```
+
+and plotting the trace and trank
+
+```{r}
+b9.2_ggs <- ggmcmc::ggs(b9.2)
+p1 <- ggs_traceplot(b9.2_ggs) +
+  scale_color_paletteer_d("lisa::Pierre_AugusteRenoir") +
+  theme_minimal()
+# p1
+
+p2 <- posterior_samples(b9.2, add_chain = TRUE) %>%
+  bayesplot::mcmc_rank_overlay(pars = vars(b_Intercept:sigma)) +
+  scale_color_paletteer_d("lisa::Pierre_AugusteRenoir")
+# p2
+
+# we use patchwork
+(
+  (p1 / p2) &
+    theme(legend.position = "none")
+) +
+  plot_annotation(title = "These chains are not healthy",
+                  subtitle = "Model b9.2")
+```
+
+we can also see that the parameter's mean has a very hard time reaching a solution with different behaviors between the chains, i.e. the chains behave erratically.
+
+```{r}
+ggs_running(b9.2_ggs) +
+  scale_color_paletteer_d("lisa::Pierre_AugusteRenoir") +
+  theme_minimal() +
+  labs(title = "Running means",
+       subtitle = "Model b9.2", color = "chain")
+```
+
+and the autocorrelations are not as well behave as we normally see
+
+```{r}
+ggs_autocorrelation(b9.2_ggs) +
+  scale_fill_paletteer_d("lisa::Pierre_AugusteRenoir") +
+  scale_color_paletteer_d("lisa::Pierre_AugusteRenoir", guide = FALSE) +
+  theme_minimal() + 
+  labs(title = "Autocorrelations",
+       subtitle = "Model b9.2", color = NULL, fill = "chain")
+```
+
+#### Convergent transitions
+
+Now lets give it little better priors to solve the issue. The model is as follows
+
+$$
+\begin{align*}
+y_i &\sim \mathcal{N}(\mu, \sigma) \\
+\mu &= \alpha \\
+\alpha &\sim \mathcal{N}(1, 10) \\
+\sigma &\sim \mathcal{Exp}(1)
+\end{align*}
+$$
+
+```{r ch09_b09_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+b9.3 <- xfun::cache_rds({
+  brm(data = list(y = c(-1, 1)),
+      family = gaussian,
+      y ~ 1,
+      prior = c(prior(normal(1, 10), class = Intercept),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 3, seed = 9)},
+  file = "ch09_b09_03")
+tictoc::toc()
+```
+
+```{r}
+summary(b9.3)
+```
+
+
+and the results are more convincing
+
+```{r}
+b9.3_ggs <- ggmcmc::ggs(b9.3)
+p1 <- ggs_traceplot(b9.3_ggs) +
+  scale_color_paletteer_d("lisa::Pierre_AugusteRenoir") +
+  theme_minimal()
+# p1
+
+p2 <- posterior_samples(b9.3, add_chain = TRUE) %>%
+  bayesplot::mcmc_rank_overlay(pars = vars(b_Intercept:sigma)) +
+  scale_color_paletteer_d("lisa::Pierre_AugusteRenoir")
+# p2
+
+# we use patchwork
+(
+  (p1 / p2) &
+    theme(legend.position = "none")
+) +
+  plot_annotation(title = "Better results even with weakly informative priors",
+                  subtitle = "Model b9.3")
+```
+
+and we can see the parameter's mean behaving similarly.
+
+```{r}
+ggs_running(b9.3_ggs) +
+  scale_color_paletteer_d("lisa::Pierre_AugusteRenoir") +
+  theme_minimal() +
+  labs(title = "Running means",
+       subtitle = "Model b9.3", color = "chain")
+```
+
+and the autocorrelations have certainly improved
+
+```{r}
+ggs_autocorrelation(b9.3_ggs) +
+  scale_fill_paletteer_d("lisa::Pierre_AugusteRenoir") +
+  scale_color_paletteer_d("lisa::Pierre_AugusteRenoir", guide = FALSE) +
+  theme_minimal() + 
+  labs(title = "Autocorrelations",
+       subtitle = "Model b9.3", color = NULL, fill = "chain")
+```
+
+### Non-identifiable parameters
+
+The data and model is not exactly what McElreath did but it illustrate the same thing. See @kurtz2020b for more details.
+
+```{r}
+set.seed(9)
+y <- rnorm(100, mean = 0, sd = 1)
+```
+
+#### Non-identifiable parameters with very wide priors
+
+the model with unreasonable priors
+
+```{r ch09_b09_04}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+b9.4 <- xfun::cache_rds({
+  brm(data = list(y  = y,
+                  a1 = 1,
+                  a2 = 1),
+      family = gaussian,
+      y ~ 0 + a1 + a2,
+      prior = c(prior(normal(0, 1000), class = b),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 3, seed = 9)},
+  file = "ch09_b09_04")
+tictoc::toc()
+```
+
+```{r}
+summary(b9.4)
+```
+
+
+```{r}
+get_variables(b9.4)
+```
+
+```{r}
+b9.4_ggs <- ggmcmc::ggs(b9.4)
+p1 <- ggs_traceplot(b9.4_ggs) +
+  scale_color_paletteer_d("lisa::JanvanEyck") +
+  theme_minimal()
+# p1
+
+p2 <- posterior_samples(b9.4, add_chain = TRUE) %>%
+  bayesplot::mcmc_rank_overlay(pars = vars(b_a1:sigma)) +
+  scale_color_paletteer_d("lisa::JanvanEyck")
+# p2
+
+# we use patchwork
+(
+  (p1 / p2) &
+    theme(legend.position = "none")
+) +
+  plot_annotation(title = "Non-identifiable parameters with uninformative priors",
+                  subtitle = "Model b9.4")
+```
+
+where we can see that the autocorrelations are a major cause of problems!
+
+```{r}
+ggs_autocorrelation(b9.4_ggs) +
+  scale_fill_paletteer_d("lisa::JanvanEyck") +
+  scale_color_paletteer_d("lisa::JanvanEyck", guide = FALSE) +
+  theme_minimal() + 
+  labs(title = "Autocorrelations",
+       subtitle = "Model b9.4", color = NULL, fill = "chain")
+```
+
+which causes the means the be all over the place
+
+```{r}
+ggs_running(b9.4_ggs) +
+  scale_color_paletteer_d("lisa::JanvanEyck") +
+  theme_minimal() +
+  labs(title = "Running means",
+       subtitle = "Model b9.4", color = "chain")
+```
+
+#### Non-identifiable parameters with weakly informative priors
+
+and the model with weakly informative priors
+
+```{r ch09_b09_05}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+b9.5 <- xfun::cache_rds({
+  brm(data = list(y  = y,
+                  a1 = 1,
+                  a2 = 1),
+      family = gaussian,
+      y ~ 0 + a1 + a2,
+      prior = c(prior(normal(0, 10), class = b),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 3, seed = 9)},
+  file = "ch09_b09_05")
+tictoc::toc()
+```
+
+
+```{r}
+summary(b9.5)
+```
+
+
+now the plots make more sense
+
+```{r}
+b9.5_ggs <- ggmcmc::ggs(b9.5)
+p1 <- ggs_traceplot(b9.5_ggs) +
+  scale_color_paletteer_d("lisa::JanvanEyck") +
+  theme_minimal()
+# p1
+
+p2 <- posterior_samples(b9.5, add_chain = TRUE) %>%
+  bayesplot::mcmc_rank_overlay(pars = vars(b_a1:sigma)) +
+  scale_color_paletteer_d("lisa::JanvanEyck")
+# p2
+
+# we use patchwork
+(
+  (p1 / p2) &
+    theme(legend.position = "none")
+) +
+  plot_annotation(title = "Non-identifiable parameters withw eakly informative priors",
+                  subtitle = "Model b9.5")
+```
+
+where we can see that the autocorrelations are better now
+
+```{r}
+ggs_autocorrelation(b9.5_ggs) +
+  scale_fill_paletteer_d("lisa::JanvanEyck") +
+  scale_color_paletteer_d("lisa::JanvanEyck", guide = FALSE) +
+  theme_minimal() + 
+  labs(title = "Autocorrelations",
+       subtitle = "Model b9.5", color = NULL, fill = "chain")
+```
+
+and the means are also much improved, actually we might even take a smaller sample size.
+
+```{r}
+ggs_running(b9.5_ggs) +
+  scale_color_paletteer_d("lisa::JanvanEyck") +
+  theme_minimal() +
+  labs(title = "Running means",
+       subtitle = "Model b9.5", color = "chain")
+```
+
+#### `ggs_running` and `ggs_autocorrelation`
+
+I find much easier to understand the issues by looking at the autocorrelation and the mean plots. They are a very nice complement to the trace and trank plots.
+
+## Summary

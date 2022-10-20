@@ -223,6 +223,16 @@ div.csl-indent {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./ch09_mcmc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Markov Chain Monte Carlo</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">| include: false</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./references.html" class="sidebar-item-text sidebar-link">References</a>
   </div>
 </li>
@@ -362,12 +372,12 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    gt<span class="sc">::</span><span class="fu">tab_options</span>(<span class="at">column_labels.hidden =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 
-<div id="znlcxcgwsg" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="agwoomkezw" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-:where(#znlcxcgwsg) .gt_table {
+:where(#agwoomkezw) .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -392,7 +402,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-left-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_heading {
+:where(#agwoomkezw) .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -404,7 +414,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_title {
+:where(#agwoomkezw) .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -416,7 +426,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-width: 0;
 }
 
-:where(#znlcxcgwsg) .gt_subtitle {
+:where(#agwoomkezw) .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -428,13 +438,13 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-width: 0;
 }
 
-:where(#znlcxcgwsg) .gt_bottom_border {
+:where(#agwoomkezw) .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_col_headings {
+:where(#agwoomkezw) .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -449,7 +459,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_col_heading {
+:where(#agwoomkezw) .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -469,7 +479,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#znlcxcgwsg) .gt_column_spanner_outer {
+:where(#agwoomkezw) .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -481,15 +491,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 4px;
 }
 
-:where(#znlcxcgwsg) .gt_column_spanner_outer:first-child {
+:where(#agwoomkezw) .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-:where(#znlcxcgwsg) .gt_column_spanner_outer:last-child {
+:where(#agwoomkezw) .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-:where(#znlcxcgwsg) .gt_column_spanner {
+:where(#agwoomkezw) .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -501,7 +511,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   width: 100%;
 }
 
-:where(#znlcxcgwsg) .gt_group_heading {
+:where(#agwoomkezw) .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -526,7 +536,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#znlcxcgwsg) .gt_empty_group_heading {
+:where(#agwoomkezw) .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -541,15 +551,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#znlcxcgwsg) .gt_from_md > :first-child {
+:where(#agwoomkezw) .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-:where(#znlcxcgwsg) .gt_from_md > :last-child {
+:where(#agwoomkezw) .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-:where(#znlcxcgwsg) .gt_row {
+:where(#agwoomkezw) .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -568,7 +578,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#znlcxcgwsg) .gt_stub {
+:where(#agwoomkezw) .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -581,7 +591,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#znlcxcgwsg) .gt_stub_row_group {
+:where(#agwoomkezw) .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -595,11 +605,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: top;
 }
 
-:where(#znlcxcgwsg) .gt_row_group_first td {
+:where(#agwoomkezw) .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-:where(#znlcxcgwsg) .gt_summary_row {
+:where(#agwoomkezw) .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -609,16 +619,16 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#znlcxcgwsg) .gt_first_summary_row {
+:where(#agwoomkezw) .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_first_summary_row.thick {
+:where(#agwoomkezw) .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-:where(#znlcxcgwsg) .gt_last_summary_row {
+:where(#agwoomkezw) .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -628,7 +638,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_grand_summary_row {
+:where(#agwoomkezw) .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -638,7 +648,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#znlcxcgwsg) .gt_first_grand_summary_row {
+:where(#agwoomkezw) .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -648,11 +658,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_striped {
+:where(#agwoomkezw) .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-:where(#znlcxcgwsg) .gt_table_body {
+:where(#agwoomkezw) .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -661,7 +671,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_footnotes {
+:where(#agwoomkezw) .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -675,7 +685,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_footnote {
+:where(#agwoomkezw) .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -684,7 +694,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#znlcxcgwsg) .gt_sourcenotes {
+:where(#agwoomkezw) .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -698,7 +708,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#znlcxcgwsg) .gt_sourcenote {
+:where(#agwoomkezw) .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -706,36 +716,36 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#znlcxcgwsg) .gt_left {
+:where(#agwoomkezw) .gt_left {
   text-align: left;
 }
 
-:where(#znlcxcgwsg) .gt_center {
+:where(#agwoomkezw) .gt_center {
   text-align: center;
 }
 
-:where(#znlcxcgwsg) .gt_right {
+:where(#agwoomkezw) .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-:where(#znlcxcgwsg) .gt_font_normal {
+:where(#agwoomkezw) .gt_font_normal {
   font-weight: normal;
 }
 
-:where(#znlcxcgwsg) .gt_font_bold {
+:where(#agwoomkezw) .gt_font_bold {
   font-weight: bold;
 }
 
-:where(#znlcxcgwsg) .gt_font_italic {
+:where(#agwoomkezw) .gt_font_italic {
   font-style: italic;
 }
 
-:where(#znlcxcgwsg) .gt_super {
+:where(#agwoomkezw) .gt_super {
   font-size: 65%;
 }
 
-:where(#znlcxcgwsg) .gt_two_val_uncert {
+:where(#agwoomkezw) .gt_two_val_uncert {
   display: inline-block;
   line-height: 1em;
   text-align: right;
@@ -744,31 +754,31 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   margin-left: 0.1em;
 }
 
-:where(#znlcxcgwsg) .gt_footnote_marks {
+:where(#agwoomkezw) .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-:where(#znlcxcgwsg) .gt_asterisk {
+:where(#agwoomkezw) .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-:where(#znlcxcgwsg) .gt_slash_mark {
+:where(#agwoomkezw) .gt_slash_mark {
   font-size: 0.7em;
   line-height: 0.7em;
   vertical-align: 0.15em;
 }
 
-:where(#znlcxcgwsg) .gt_fraction_numerator {
+:where(#agwoomkezw) .gt_fraction_numerator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: 0.45em;
 }
 
-:where(#znlcxcgwsg) .gt_fraction_denominator {
+:where(#agwoomkezw) .gt_fraction_denominator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: -0.05em;
@@ -833,12 +843,12 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    gt<span class="sc">::</span><span class="fu">tab_options</span>(<span class="at">column_labels.hidden =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 
-<div id="tqfuvvcfjq" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="pjzpuudley" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-:where(#tqfuvvcfjq) .gt_table {
+:where(#pjzpuudley) .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -863,7 +873,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-left-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_heading {
+:where(#pjzpuudley) .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -875,7 +885,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_title {
+:where(#pjzpuudley) .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -887,7 +897,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-width: 0;
 }
 
-:where(#tqfuvvcfjq) .gt_subtitle {
+:where(#pjzpuudley) .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -899,13 +909,13 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-width: 0;
 }
 
-:where(#tqfuvvcfjq) .gt_bottom_border {
+:where(#pjzpuudley) .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_col_headings {
+:where(#pjzpuudley) .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -920,7 +930,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_col_heading {
+:where(#pjzpuudley) .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -940,7 +950,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#tqfuvvcfjq) .gt_column_spanner_outer {
+:where(#pjzpuudley) .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -952,15 +962,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 4px;
 }
 
-:where(#tqfuvvcfjq) .gt_column_spanner_outer:first-child {
+:where(#pjzpuudley) .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-:where(#tqfuvvcfjq) .gt_column_spanner_outer:last-child {
+:where(#pjzpuudley) .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-:where(#tqfuvvcfjq) .gt_column_spanner {
+:where(#pjzpuudley) .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -972,7 +982,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   width: 100%;
 }
 
-:where(#tqfuvvcfjq) .gt_group_heading {
+:where(#pjzpuudley) .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -997,7 +1007,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#tqfuvvcfjq) .gt_empty_group_heading {
+:where(#pjzpuudley) .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1012,15 +1022,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#tqfuvvcfjq) .gt_from_md > :first-child {
+:where(#pjzpuudley) .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-:where(#tqfuvvcfjq) .gt_from_md > :last-child {
+:where(#pjzpuudley) .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-:where(#tqfuvvcfjq) .gt_row {
+:where(#pjzpuudley) .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1039,7 +1049,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#tqfuvvcfjq) .gt_stub {
+:where(#pjzpuudley) .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1052,7 +1062,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#tqfuvvcfjq) .gt_stub_row_group {
+:where(#pjzpuudley) .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1066,11 +1076,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: top;
 }
 
-:where(#tqfuvvcfjq) .gt_row_group_first td {
+:where(#pjzpuudley) .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-:where(#tqfuvvcfjq) .gt_summary_row {
+:where(#pjzpuudley) .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1080,16 +1090,16 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#tqfuvvcfjq) .gt_first_summary_row {
+:where(#pjzpuudley) .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_first_summary_row.thick {
+:where(#pjzpuudley) .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-:where(#tqfuvvcfjq) .gt_last_summary_row {
+:where(#pjzpuudley) .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1099,7 +1109,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_grand_summary_row {
+:where(#pjzpuudley) .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1109,7 +1119,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#tqfuvvcfjq) .gt_first_grand_summary_row {
+:where(#pjzpuudley) .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1119,11 +1129,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_striped {
+:where(#pjzpuudley) .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-:where(#tqfuvvcfjq) .gt_table_body {
+:where(#pjzpuudley) .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1132,7 +1142,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_footnotes {
+:where(#pjzpuudley) .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1146,7 +1156,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_footnote {
+:where(#pjzpuudley) .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -1155,7 +1165,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#tqfuvvcfjq) .gt_sourcenotes {
+:where(#pjzpuudley) .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1169,7 +1179,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#tqfuvvcfjq) .gt_sourcenote {
+:where(#pjzpuudley) .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1177,36 +1187,36 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#tqfuvvcfjq) .gt_left {
+:where(#pjzpuudley) .gt_left {
   text-align: left;
 }
 
-:where(#tqfuvvcfjq) .gt_center {
+:where(#pjzpuudley) .gt_center {
   text-align: center;
 }
 
-:where(#tqfuvvcfjq) .gt_right {
+:where(#pjzpuudley) .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-:where(#tqfuvvcfjq) .gt_font_normal {
+:where(#pjzpuudley) .gt_font_normal {
   font-weight: normal;
 }
 
-:where(#tqfuvvcfjq) .gt_font_bold {
+:where(#pjzpuudley) .gt_font_bold {
   font-weight: bold;
 }
 
-:where(#tqfuvvcfjq) .gt_font_italic {
+:where(#pjzpuudley) .gt_font_italic {
   font-style: italic;
 }
 
-:where(#tqfuvvcfjq) .gt_super {
+:where(#pjzpuudley) .gt_super {
   font-size: 65%;
 }
 
-:where(#tqfuvvcfjq) .gt_two_val_uncert {
+:where(#pjzpuudley) .gt_two_val_uncert {
   display: inline-block;
   line-height: 1em;
   text-align: right;
@@ -1215,31 +1225,31 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   margin-left: 0.1em;
 }
 
-:where(#tqfuvvcfjq) .gt_footnote_marks {
+:where(#pjzpuudley) .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-:where(#tqfuvvcfjq) .gt_asterisk {
+:where(#pjzpuudley) .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-:where(#tqfuvvcfjq) .gt_slash_mark {
+:where(#pjzpuudley) .gt_slash_mark {
   font-size: 0.7em;
   line-height: 0.7em;
   vertical-align: 0.15em;
 }
 
-:where(#tqfuvvcfjq) .gt_fraction_numerator {
+:where(#pjzpuudley) .gt_fraction_numerator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: 0.45em;
 }
 
-:where(#tqfuvvcfjq) .gt_fraction_denominator {
+:where(#pjzpuudley) .gt_fraction_denominator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: -0.05em;
@@ -1613,7 +1623,7 @@ b5.2  -6.6       4.7   -68.9      4.9         2.2   0.8    137.7   9.9   </code>
 <span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch07_b05_03t"</span>)</span>
 <span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.16 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.15 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
