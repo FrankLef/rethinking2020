@@ -107,20 +107,6 @@ b11.1 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_01")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_01.qs")
-# b11.1 <- qread(a_file)
-# b11.1 <- brm(data = dataChimp,
-#               family = binomial,
-#               formula = pulled_left | trials(1) ~ 1,
-#               prior = c(
-#                 prior(normal(0, 10), class = Intercept)
-#                 ),
-#               seed = 11, cores = detectCores(),
-#               sample_prior = TRUE
-#               )
-# b11.1 <- brms::add_criterion(b11.1, criterion = c("waic", "loo"))
-# qsave(b11.1, a_file)
 ```
 
 ```{r}
@@ -158,20 +144,6 @@ b11.1b <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_01b")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_01b.qs")
-# b11.1b <- qread(a_file)
-# b11.1b <- brm(data = dataChimp,
-#               family = binomial,
-#               formula = pulled_left | trials(1) ~ 1,
-#               prior = c(
-#                 prior(normal(0, 1.5), class = Intercept)
-#                 ),
-#               seed = 11, cores = detectCores(),
-#               sample_prior = TRUE
-#               )
-# b11.1b <- brms::add_criterion(b11.1b, criterion = c("waic", "loo"))
-# qsave(b11.1b, a_file)
 ```
 
 ```{r}
@@ -194,9 +166,10 @@ samples <- within(samples, {
 })
 # samples$data
 
+
 ggplot(samples$data, aes(x = p, color = model)) +
-  geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
-  scale_color_paletteer_d("khroma::contrast") +
+  geom_density(linewidth = 1, alpha = 3/4, adjust = 0.1) +
+  scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = c(0.5, 0.8)) +
   labs(title = "Prior density of pulled_left",
        subtitle = "Model 11.1 and 11.1b",
@@ -243,7 +216,7 @@ p$df <- rbind(data.frame(sim$data1, "model" = "sd = 10"),
 
 ggplot(p$df, aes(x = p, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
-  scale_color_paletteer_d("khroma::contrast") +
+  scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = c(0.5, 0.8)) +
   labs(title = "Prior density of pulled_left",
        subtitle = "Simulation with simstudy",
@@ -269,18 +242,9 @@ $$
 
 We get the fit with $sd = 10$
 
-```{r}
-stop("TODO: redo, see textbook")
-```
-
-```{r}
-
-```
-
-
 
 ```{r ch11_b11_02}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "95 secs."))
 b11.2 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
               family = binomial,
@@ -290,36 +254,18 @@ b11.2 <- xfun::cache_rds({
                            nl = TRUE),
               prior = c(
                 prior(normal(0, 1.5), nlpar = a),
-                prior(normal(0, 10), nlpar = b, coef = treatment1),
-                prior(normal(0, 10), nlpar = b, coef = treatment1),
-                prior(normal(0, 10), nlpar = b, coef = treatment1),
-                prior(normal(0, 10), nlpar = b, coef = treatment1)),
+                prior(normal(0, 10), nlpar = b, coef = treatmentAR),
+                prior(normal(0, 10), nlpar = b, coef = treatmentAL),
+                prior(normal(0, 10), nlpar = b, coef = treatmentPR),
+                prior(normal(0, 10), nlpar = b, coef = treatmentPL)
+                ),
               sample_prior = TRUE,
              cores = detectCores(), seed = 11)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   }, file = "ch11_b11_02")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_02.qs")
-# b11.2 <- qread(a_file)
-# b11.2 <- brm(data = dataChimp,
-#               family = binomial,
-#               formula = bf(pulled_left | trials(1) ~ a + b,
-#                            a ~ 1,
-#                            b ~ 0 + treatment,
-#                            nl = TRUE),
-#               prior = c(
-#                 prior(normal(0, 1.5), nlpar = a),
-#                 prior(normal(0, 10), nlpar = b, coef = treatment1),
-#                 prior(normal(0, 10), nlpar = b, coef = treatment2),
-#                 prior(normal(0, 10), nlpar = b, coef = treatment3),
-#                 prior(normal(0, 10), nlpar = b, coef = treatment4)
-#                 ),
-#               sample_prior = TRUE,
-#              cores = detectCores(), seed = 11)
-# b11.2 <- brms::add_criterion(b11.2, criterion = c("waic", "loo"))
-# qsave(b11.2, a_file)
 ```
+
 
 ```{r}
 summary(b11.2)
@@ -330,7 +276,7 @@ brms::inv_logit_scaled(fixef(b11.2))
 then the fit with $sd = 0.5$
 
 ```{r ch11_b11_03}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "95 secs."))
 b11.3 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
               family = binomial,
@@ -340,10 +286,10 @@ b11.3 <- xfun::cache_rds({
                            nl = TRUE),
               prior = c(
                 prior(normal(0, 1.5), nlpar = a),
-                prior(normal(0, 0.5), nlpar = b, coef = treatment1),
-                prior(normal(0, 0.5), nlpar = b, coef = treatment2),
-                prior(normal(0, 0.5), nlpar = b, coef = treatment3),
-                prior(normal(0, 0.5), nlpar = b, coef = treatment4)
+                prior(normal(0, 0.5), nlpar = b, coef = treatmentAR),
+                prior(normal(0, 0.5), nlpar = b, coef = treatmentAL),
+                prior(normal(0, 0.5), nlpar = b, coef = treatmentPR),
+                prior(normal(0, 0.5), nlpar = b, coef = treatmentPL)
                 ),
               sample_prior = TRUE,
              cores = detectCores(), seed = 11)
@@ -351,30 +297,17 @@ b11.3 <- xfun::cache_rds({
   file = "ch11_b11_03")
 tictoc::toc()
 
-# a_file <- here::here("fits", "b11_03.qs")
-# b11.3 <- qread(a_file)
-# b11.3 <- brm(data = dataChimp,
-#               family = binomial,
-#               formula = bf(pulled_left | trials(1) ~ a + b,
-#                            a ~ 1,
-#                            b ~ 0 + treatment,
-#                            nl = TRUE),
-#               prior = c(
-#                 prior(normal(0, 1.5), nlpar = a),
-#                 prior(normal(0, 0.5), nlpar = b, coef = treatment1),
-#                 prior(normal(0, 0.5), nlpar = b, coef = treatment2),
-#                 prior(normal(0, 0.5), nlpar = b, coef = treatment3),
-#                 prior(normal(0, 0.5), nlpar = b, coef = treatment4)
-#                 ),
-#               sample_prior = TRUE,
-#              cores = detectCores(), seed = 11)
-# b11.3 <- brms::add_criterion(b11.3, criterion = c("waic", "loo"))
-# qsave(b11.3, a_file)
 ```
 
 ```{r}
 summary(b11.3)
 brms::inv_logit_scaled(fixef(b11.3))
+```
+
+
+
+```{r}
+tidybayes::get_variables(b11.2)
 ```
 
 
@@ -384,25 +317,26 @@ samples$data1 <- data.frame(model = "sd=10",
                             intercept = prior_draws(b11.2))
 samples$data2 <- data.frame(model = "sd=0.5",
                             intercept = prior_draws(b11.3))
+
 samples <- within(samples, {
   data1 <- data1 %>%
-    mutate(p1 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatment1),
-           p2 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatment2),
-           p3 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatment3),
-           p4 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatment4)) %>%
+    mutate(p1 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentAR),
+           p2 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentAL),
+           p3 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentPR),
+           p4 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentPL)) %>%
     mutate(diff = abs(p1 - p2))
   data2 <- data2 %>%
-    mutate(p1 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatment1),
-           p2 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatment2),
-           p3 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatment3),
-           p4 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatment4)) %>%
+    mutate(p1 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentAR),
+           p2 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentAL),
+           p3 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentPR),
+           p4 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentPL)) %>%
     mutate(diff = abs(p1 - p2))
   data <- bind_rows(data1, data2)
 })
 
 ggplot(samples$data, aes(x = diff, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
-  scale_color_paletteer_d("khroma::contrast") +
+  scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = c(0.5, 0.8)) +
   labs(title = "Prior density of pulled_left",
        subtitle = "Model 11.1 and 11.1b",
@@ -448,7 +382,7 @@ sim <- within(sim, {
 
 ggplot(sim$data, aes(x = diff, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
-  scale_color_paletteer_d("khroma::contrast") +
+  scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = "none",
         ) +
   labs(title = "Prior diff between treatments",
@@ -472,7 +406,7 @@ $$
 We use `brms::brm()` in aslightly different way than @kurtz2020b. Kurtz create distinct priors for every category of treatment. This is justified by his desire to get the prior data in a separate column for every prior. We don't need to do this when using `simstudy` to evaluate the priors. One huge advantage when doing it this way is that we can now use the full power of `tidybayes` which makes the visualization of indexed parameters much easier.
 
 ```{r ch11_b11_04}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "120 secs."))
 b11.4 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
               family = binomial,
@@ -487,23 +421,6 @@ b11.4 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_04")
 tictoc::toc()
-
-
-# a_file <- here::here("fits", "b11_04.qs")
-# b11.4 <- qread(a_file)
-# b11.4 <- brm(data = dataChimp,
-#               family = binomial,
-#               formula = bf(pulled_left | trials(1) ~ a + b,
-#                            a ~ 0 + actor,
-#                            b ~ 0 + treatment,
-#                            nl = TRUE),
-#               prior = c(
-#                 prior(normal(0, 1.5), nlpar = a),
-#                 prior(normal(0, 0.5), nlpar = b)
-#                 ),
-#              cores = detectCores(), seed = 11)
-# b11.4 <- brms::add_criterion(b11.4, criterion = c("waic", "loo"))
-# qsave(b11.4, a_file)
 ```
 
 ```{r}
@@ -644,22 +561,6 @@ b11.6 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_06")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_06.qs")
-# b11.6 <- qread(a_file)
-# b11.6 <- brms::brm(
-#   data = d.aggr,
-#   family = binomial,
-#   formula = bf(left_pulls | trials(18) ~ a + b,
-#                a ~ 0 + actor, 
-#                b ~ 0 + treatment,
-#                nl = TRUE),
-#   prior =  c(prior(normal(0, 1.5), nlpar = a),
-#              prior(normal(0, 0.5), nlpar = b)),
-#   cores = detectCores(), seed = 11
-#   )
-# b11.6 <- brms::add_criterion(b11.6, criterion = c("waic", "loo"))
-# qsave(b11.6, a_file)
 ```
 
 ```{r}
@@ -702,18 +603,6 @@ b11.7 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_07")
 tictoc::toc()
-
-
-
-# a_file <- here::here("fits", "b11_07.qs")
-# b11.7 <- qread(a_file)
-# b11.7 <- brm(data = dataAdmit,
-#       family = binomial,
-#       admit | trials(applications) ~ 0 + gid,
-#       prior(normal(0, 1.5), class = b),
-#       cores = detectCores(), seed = 11)
-# b11.7 <- brms::add_criterion(b11.7, criterion = c("waic", "loo"))
-# qsave(b11.7, a_file)
 ```
 
 ```{r}
@@ -726,8 +615,7 @@ and we compute the contrast between male and female
 ```{r}
 as_draws_df(b11.7) %>%
   mutate_variables(diff_a = b_gidmale - b_gidfemale,
-                   diff_b = gtools::inv.logit(b_gidmale) - gtools::inv.logit(b_gidfemale))
-%>%
+                   diff_b = gtools::inv.logit(b_gidmale) - gtools::inv.logit(b_gidfemale)) %>%
   select(diff_a, diff_b) %>%
   pivot_longer(cols = everything(), names_to = "var") %>%
   group_by(var) %>%
@@ -743,10 +631,12 @@ logit(p_i) &= \alpha_{gid[i]} + \delta_{dept[i]} \\
 \alpha_j &\sim \mathcal{N}(0, 1.5) \\
 \delta_k &\sim \mathcal{N}(0, 1.5)
 \end{align*}
-$$ and we fit the model
+$$ 
+
+and we fit the model
 
 ```{r ch11_b11_08}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "95 secs."))
 b11.8 <- xfun::cache_rds({
   out <- brm(data = dataAdmit,
              family = binomial,
@@ -760,30 +650,20 @@ b11.8 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_08")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_08.qs")
-# b11.8 <- qread(a_file)
-# b11.8 <- brm(data = dataAdmit,
-#       family = binomial,
-#       bf(admit | trials(applications) ~ a + d,
-#          a ~ 0 + gid,
-#          d ~ 0 + dept,
-#          nl = TRUE),
-#       prior = c(prior(normal(0, 1.5), nlpar = a),
-#                 prior(normal(0, 1.5), nlpar = d)),
-#       iter = 4000, warmup = 1000, cores = detectCores(), seed = 11)
-# b11.8 <- brms::add_criterion(b11.8, criterion = c("waic", "loo"))
-# qsave(b11.8, a_file)
-
-# brms::inv_logit_scaled(fixef(b11.8))
 ```
+
+```{r}
+brms::inv_logit_scaled(fixef(b11.8))
+```
+
+
 
 ```{r}
 summary(b11.8)
 ```
 
 
-and aain we compute the contrast between male and female
+and again we compute the contrast between male and female
 
 ```{r}
 as_draws_df(b11.8) %>%
@@ -1105,7 +985,7 @@ $$
 The fit with intercept only
 
 ```{r ch11_b11_09}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
 b11.9 <- xfun::cache_rds({
   out <- brm(data = dataKline,
              family = poisson,
@@ -1115,16 +995,6 @@ b11.9 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_09")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_09.qs")
-# b11.9 <- qread(a_file)
-# b11.9 <- brm(data = dataKline,
-#              family = poisson,
-#              formula = total_tools ~ 1,
-#              prior = c(prior(normal(3, 0.5), class = Intercept)),
-#              cores = detectCores(), seed = 11)
-# b11.9 <- brms::add_criterion(b11.9, criterion = c("waic", "loo"))
-# qsave(b11.9, a_file)
 ```
 
 ```{r}
@@ -1148,19 +1018,6 @@ b11.10 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_10")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_10.qs")
-# b11.10 <- qread(a_file)
-# b11.10 <- brm(data = dataKline,
-#              family = poisson,
-#              formula = bf(total_tools ~ a + b * log_pop_s,
-#                           a + b ~ 0 + cid,
-#                           nl = TRUE),
-#              prior = c(prior(normal(3, 0.5), nlpar = a),
-#                        prior(normal(0, 0.2), nlpar = b)),
-#              cores = detectCores(), seed = 11)
-# b11.10 <- brms::add_criterion(b11.10, criterion = c("waic", "loo"))
-# qsave(b11.10, a_file)
 ```
 
 ```{r}
@@ -1272,7 +1129,10 @@ which as an equilibrium point at $\Delta T = 0$ and therefore
 
 $$
 \hat{T} = \frac{\alpha P^\beta}{\gamma}
-$$ with the theorical model **which has no link function**
+$$ 
+
+
+with the theorical model **which has no link function**
 
 $$
 \begin{align*}
@@ -1296,7 +1156,7 @@ $$
 and the fit, **see identity in poisson(link = "identity")**, this is important and read warning from Kurtz on this.
 
 ```{r ch11_b11_11}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
 b11.11 <- xfun::cache_rds({
   out <- brm(data = dataKline,
       family = poisson(link = "identity"),
@@ -1312,22 +1172,6 @@ b11.11 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_11")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_11.qs")
-# b11.11 <- qread(a_file)
-# b11.11 <- brm(data = dataKline,
-#       family = poisson(link = "identity"),
-#       bf(total_tools ~ exp(a) * population^b / g,
-#          a + b ~ 0 + cid,
-#          g ~ 1,
-#          nl = TRUE),
-#       prior = c(prior(normal(1, 1), nlpar = a),
-#                 prior(exponential(1), nlpar = b, lb = 0),
-#                 prior(exponential(1), nlpar = g, lb = 0)),
-#       cores = detectCores(), seed = 11,
-#       control = list(adapt_delta = .95))
-# b11.11 <- brms::add_criterion(b11.11, criterion = c("waic", "loo"))
-# qsave(b11.11, a_file)
 ```
 
 ```{r}
@@ -1440,7 +1284,7 @@ $$
 and the fit. With `brms` you use the `offset()` funciton.
 
 ```{r ch11_b11_12}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
 b11.12 <- xfun::cache_rds({
   out <- brm(data = dataMonastery,
       family = poisson,
@@ -1451,17 +1295,6 @@ b11.12 <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_12")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_12.qs")
-# b11.12 <- qread(a_file)
-# b11.12 <- brm(data = dataMonastery,
-#       family = poisson,
-#       nb ~ 1 + offset(days_lg) + monastery,
-#       prior = c(prior(normal(0, 1), class = Intercept),
-#                 prior(normal(0, 1), class = b)),
-#       cores = detectCores(), seed = 11)
-# b11.12 <- brms::add_criterion(b11.12, criterion = c("waic", "loo"))
-# qsave(b11.12, a_file)
 ```
 
 ```{r}
@@ -1550,7 +1383,7 @@ p$df
 ggplot(p$df, aes(x = factor(career), y = pct, fill = factor(career))) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = sprintf("%0.1f%%", 100 * pct)), vjust = 1.25) +
-  scale_fill_paletteer_d("khroma::contrast") +
+  scale_fill_paletteer_d("khroma::vibrant") +
   theme(legend.position = "none",
         axis.ticks.y = element_blank(),
         axis.text.y = element_blank()) +
@@ -1598,7 +1431,7 @@ $$
 
 We fit with `stan` using the same code as mcElreath to demonstrate his results are different
 
-```{r}
+```{r ch11_m11_13}
 # define the model
 m11.13_code <- "
 data{
@@ -1631,11 +1464,12 @@ dat_list <-
        career = dataCareer$career, 
        career_income = sim$income)
 
-# fit the model (and save it)
-a_file <- here::here("fits", "m11_13.qs")
-m11.13 <- qread(a_file)
-# m11.13 <- rstan::stan(data = dat_list, model_code = m11.13_code, chains = 4)
-# qsave(m11.13, a_file)
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+m11.13 <- xfun::cache_rds({
+  rstan::stan(data = dat_list, model_code = m11.13_code, chains = 4)},
+  file = "ch11_m11_13")
+tictoc::toc()
+
 ```
 
 and we look at the summary
@@ -1660,7 +1494,7 @@ In the case of multinomial, since every category is a model in itself, we use an
 The 3rd category is the *pivot* and identified as such in the `brm()` function below. The default of `brm()` is to take the first category as the pivot.
 
 ```{r ch11_b11_13null}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "120 secs."))
 b11.13null <- xfun::cache_rds({
   out <- brm(data = dataCareer,
       family = categorical(link = logit, refcat = 3),
@@ -1671,17 +1505,6 @@ b11.13null <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_13null")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_13null.qs")
-# b11.13null <- qread(a_file)
-# b11.13null <- brm(data = dataCareer,
-#       family = categorical(link = logit, refcat = 3),
-#       career ~ 1,
-#       prior = c(prior(normal(0, 1), class = Intercept, dpar = mu1),
-#                 prior(normal(0, 1), class = Intercept, dpar = mu2)),
-#       cores = detectCores(), seed = 11)
-# b11.13null <- add_criterion(b11.13null, criterion = c("waic", "loo"))
-# qsave(b11.13null, a_file)
 ```
 
 ```{r}
@@ -1775,10 +1598,10 @@ crossing(b  = factor(c("b1 & b2", "b"), levels = c("b1 & b2", "b")),
   relocate(fit)
 ```
 
-and so the model fits using different prior of expresion of the `brm` arguments
+and so the model fits using different priors
 
 ```{r ch11_b11_13a}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "130 secs."))
 b11.13a <- xfun::cache_rds({
   out <- brm(data = dataCareer,
       family = categorical(link = logit, refcat = 3),
@@ -1794,77 +1617,11 @@ b11.13a <- xfun::cache_rds({
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_b11_13a")
 tictoc::toc()
-
-# a_file <- here::here("fits", "b11_13a.qs")
-# b11.13a <- qread(a_file)
-# b11.13a <- brm(data = dataCareer,
-#       family = categorical(link = logit, refcat = 3),
-#       bf(career ~ 1,
-#          nlf(mu1 ~ a1 + b1 * 1),
-#          nlf(mu2 ~ a2 + b2 * 2),
-#          a1 + a2 + b1 + b2 ~ 1),
-#       prior = c(prior(normal(0, 1), class = b, nlpar = a1),
-#                 prior(normal(0, 1), class = b, nlpar = a2),
-#                 prior(normal(0, 0.5), class = b, nlpar = b1),
-#                 prior(normal(0, 0.5), class = b, nlpar = b2)),
-#       cores = detectCores(), seed = 11)
-# b11.13a <- add_criterion(b11.13a, criterion = c("waic", "loo"))
-# qsave(b11.13a, a_file)
-
-# a_file <- here::here("fits", "b11_13b.qs")
-# b11.13b <- qread(a_file)
-# b11.13b <- brm(data = dataCareer,
-#       family = categorical(link = logit, refcat = 3),
-#       bf(career ~ 1,
-#          nlf(mu1 ~ a1 + b1 * 1),
-#          nlf(mu2 ~ a2 + b2 * 2),
-#          a1 + a2 + b1 + b2 ~ 1),
-#       prior = c(prior(normal(0, 1), class = b, nlpar = a1),
-#                 prior(normal(0, 1), class = b, nlpar = a2),
-#                 prior(normal(0, 0.5), class = b, nlpar = b1, lb = 0),
-#                 prior(normal(0, 0.5), class = b, nlpar = b2, lb = 0)),
-#       cores = detectCores(), seed = 11,
-#       control = list(adapt_delta = .99))
-# b11.13b <- add_criterion(b11.13b, criterion = c("waic", "loo"))
-# qsave(b11.13b, a_file)
-
-
-# a_file <- here::here("fits", "b11_13c.qs")
-# b11.13c <- qread(a_file)
-# b11.13c <- brm(data = dataCareer,
-#       family = categorical(link = logit, refcat = 3),
-#       bf(career ~ 1,
-#          nlf(mu1 ~ a1 + b * 1),
-#          nlf(mu2 ~ a2 + b * 2),
-#          a1 + a2 + b ~ 1),
-#       prior = c(prior(normal(0, 1), class = b, nlpar = a1),
-#                 prior(normal(0, 1), class = b, nlpar = a2),
-#                 prior(normal(0, 0.5), class = b, nlpar = b)),
-#       cores = detectCores(), seed = 11)
-# b11.13c <- add_criterion(b11.13c, criterion = c("waic", "loo"))
-# qsave(b11.13c, a_file)
-
-
-# a_file <- here::here("fits", "b11_13d.qs")
-# b11.13d <- qread(a_file)
-# b11.13d <- brm(data = dataCareer,
-#       family = categorical(link = logit, refcat = 3),
-#       bf(career ~ 1,
-#          nlf(mu1 ~ a1 + b * 1),
-#          nlf(mu2 ~ a2 + b * 2),
-#          a1 + a2 + b ~ 1),
-#       prior = c(prior(normal(0, 1), class = b, nlpar = a1),
-#                 prior(normal(0, 1), class = b, nlpar = a2),
-#                 prior(normal(0, 0.5), class = b, nlpar = b, lb = 0)),
-#       cores = detectCores(), seed = 11,
-#       control = list(adapt_delta = .99))
-# b11.13d <- add_criterion(b11.13d, criterion = c("waic", "loo"))
-# qsave(b11.13d, a_file)
 ```
 
 
 ```{r ch11_b11_13b}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "150 secs."))
 b11.13b <- xfun::cache_rds({
   out <- brm(data = dataCareer,
       family = categorical(link = logit, refcat = 3),
@@ -1884,7 +1641,7 @@ tictoc::toc()
 ```
 
 ```{r ch11_b11_13c}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "140 secs."))
 b11.13c <- xfun::cache_rds({
   out <- brm(data = dataCareer,
       family = categorical(link = logit, refcat = 3),
@@ -1905,7 +1662,7 @@ tictoc::toc()
 
 
 ```{r ch11_b11_13d}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "120 secs."))
 b11.13d <- xfun::cache_rds({
   out <- brm(data = dataCareer,
       family = categorical(link = logit, refcat = 3),
@@ -2002,7 +1759,7 @@ and we plot the distribution of the family income which is used as a predictor f
 p <- list()
 p$dens <- ggplot(dataCareer, aes(x = family_income, color = fcareer)) +
   geom_density(size = 1.5) +
-  scale_color_paletteer_d("khroma::contrast") +
+  scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = c(0.8, 0.8),
         legend.title = element_blank(),
         axis.ticks.y = element_blank(),
@@ -2018,7 +1775,7 @@ Now lets fit the model with `brms`
 
 
 ```{r ch11_b11_14}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
 b11.14 <- xfun::cache_rds({
   out <- brm(data = dataCareer, 
              family = categorical(link = logit, refcat = 3),
@@ -2042,23 +1799,6 @@ summary(b11.14)
 
 
 
-```{r}
-
-# b11.14 <- brm(data = dataCareer, 
-#       family = categorical(link = logit, refcat = 3),
-#       bf(career ~ 1,
-#          nlf(mu1 ~ a1 + b1 * family_income),
-#          nlf(mu2 ~ a2 + b2 * family_income),
-#          a1 + a2 + b1 + b2 ~ 1),
-#       prior = c(prior(normal(0, 1.5), class = b, nlpar = a1),
-#                 prior(normal(0, 1.5), class = b, nlpar = a2),
-#                 prior(normal(0, 1), class = b, nlpar = b1),
-#                 prior(normal(0, 1), class = b, nlpar = b2)),
-#       cores = detectCores(), seed = 11)
-# b11.14 <- add_criterion(b11.14, criterion = c("waic", "loo"))
-# qsave(b11.14, a_file)
-```
-
 and lets see PSIS
 
 ```{r}
@@ -2081,8 +1821,8 @@ p$stats
 ggplot(p$stats, aes(x = family_income, y = .epred, ymin = .lower, ymax = .upper, 
                     color = .category, fill = .category)) +
   geom_smooth(stat = "identity") +
-  scale_color_paletteer_d("khroma::contrast") +
-  scale_fill_paletteer_d("khroma::contrast") +
+  scale_color_paletteer_d("khroma::vibrant") +
+  scale_fill_paletteer_d("khroma::vibrant") +
   theme(legend.position = "bottom") +
   labs(title = "probabilities of career relative to family income",
        y = "probabilities", color = "career", fill = "career")

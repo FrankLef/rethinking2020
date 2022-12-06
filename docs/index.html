@@ -228,7 +228,12 @@ div.csl-indent {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">| include: false</span></a>
+  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Big Entropy and the Generalized Linear Model</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch11_counting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Counting and Classification</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -310,7 +315,7 @@ Important
 <div class="cell-output cell-output-stdout">
 <pre><code>─ Session info ───────────────────────────────────────────────────────────────
  setting  value
- version  R version 4.2.1 (2022-06-23 ucrt)
+ version  R version 4.2.2 (2022-10-31 ucrt)
  os       Windows 10 x64 (build 22621)
  system   x86_64, mingw32
  ui       RTerm
@@ -318,31 +323,31 @@ Important
  collate  English_United States.utf8
  ctype    English_United States.utf8
  tz       America/New_York
- date     2022-10-20
- pandoc   2.18 @ C:/Program Files/RStudio/bin/quarto/bin/tools/ (via rmarkdown)
+ date     2022-12-06
+ pandoc   2.19.2 @ C:/Program Files/RStudio/bin/quarto/bin/tools/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
  package     * version date (UTC) lib source
- cli           3.3.0   2022-04-25 [1] CRAN (R 4.2.1)
- digest        0.6.29  2021-12-01 [1] CRAN (R 4.2.1)
- evaluate      0.16    2022-08-09 [1] CRAN (R 4.2.1)
+ cli           3.4.1   2022-09-23 [1] CRAN (R 4.2.2)
+ digest        0.6.30  2022-10-18 [1] CRAN (R 4.2.2)
+ evaluate      0.18    2022-11-07 [1] CRAN (R 4.2.2)
  fastmap       1.1.0   2021-01-25 [1] CRAN (R 4.2.1)
  htmltools     0.5.3   2022-07-18 [1] CRAN (R 4.2.1)
  htmlwidgets   1.5.4   2021-09-08 [1] CRAN (R 4.2.1)
- jsonlite      1.8.0   2022-02-22 [1] CRAN (R 4.2.1)
- knitr         1.39    2022-04-26 [1] CRAN (R 4.2.1)
+ jsonlite      1.8.3   2022-10-21 [1] CRAN (R 4.2.2)
+ knitr         1.41    2022-11-18 [1] CRAN (R 4.2.2)
  magrittr      2.0.3   2022-03-30 [1] CRAN (R 4.2.1)
- rlang         1.0.4   2022-07-12 [1] CRAN (R 4.2.1)
- rmarkdown     2.15    2022-08-16 [1] CRAN (R 4.2.1)
- rstudioapi    0.13    2020-11-12 [1] CRAN (R 4.2.1)
+ rlang         1.0.6   2022-09-24 [1] CRAN (R 4.2.1)
+ rmarkdown     2.18    2022-11-09 [1] CRAN (R 4.2.2)
+ rstudioapi    0.14    2022-08-22 [1] CRAN (R 4.2.2)
  sessioninfo   1.2.2   2021-12-06 [1] CRAN (R 4.2.1)
  stringi       1.7.8   2022-07-11 [1] CRAN (R 4.2.1)
- stringr       1.4.0   2019-02-10 [1] CRAN (R 4.2.1)
- xfun          0.32    2022-08-10 [1] CRAN (R 4.2.1)
- yaml          2.3.5   2022-02-21 [1] CRAN (R 4.2.0)
+ stringr       1.4.1   2022-08-20 [1] CRAN (R 4.2.2)
+ xfun          0.35    2022-11-16 [1] CRAN (R 4.2.2)
+ yaml          2.3.6   2022-10-18 [1] CRAN (R 4.2.1)
 
  [1] C:/Users/Ephel/AppData/Local/R/win-library/4.2
- [2] C:/Program Files/R/R-4.2.1/library
+ [2] C:/Program Files/R/R-4.2.2/library
 
 ──────────────────────────────────────────────────────────────────────────────</code></pre>
 </div>

@@ -228,7 +228,12 @@ div.csl-indent {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">| include: false</span></a>
+  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Big Entropy and the Generalized Linear Model</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch11_counting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Counting and Classification</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -335,6 +340,10 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Average brain volume vs body mass for 6 hominin species"</span>,</span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"body mass in kg"</span>, <span class="at">y =</span> <span class="st">"brain volume in cc"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.</code></pre>
+</div>
 <div class="cell-output-display">
 <p><img src="ch07_information_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -352,32 +361,32 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 <section id="firing-the-weatherperson" class="level3" data-number="7.2.1">
 <h3 data-number="7.2.1" class="anchored" data-anchor-id="firing-the-weatherperson"><span class="header-section-number">7.2.1</span> Firing the weatherperson</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the emoji used in his section</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>sun <span class="ot">&lt;-</span> emo<span class="sc">::</span><span class="fu">ji</span>(<span class="st">"sun"</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>rain <span class="ot">&lt;-</span> emo<span class="sc">::</span><span class="fu">ji</span>(<span class="st">"cloud_with_rain"</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>umbrella <span class="ot">&lt;-</span> emo<span class="sc">::</span><span class="fu">ji</span>(<span class="st">"closed_umbrella"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the emoji used in his section</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sun <span class="ot">&lt;-</span> emo<span class="sc">::</span><span class="fu">ji</span>(<span class="st">"sun"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>rain <span class="ot">&lt;-</span> emo<span class="sc">::</span><span class="fu">ji</span>(<span class="st">"cloud_with_rain"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>umbrella <span class="ot">&lt;-</span> emo<span class="sc">::</span><span class="fu">ji</span>(<span class="st">"closed_umbrella"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The currently emplyoed weather person has the following data</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>weather <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">day =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">predicted =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.6</span>), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>)),</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">rep</span>(<span class="fu">c</span>(rain, sun), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>))</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">|&gt;</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>()</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>weather <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>(<span class="at">rowname_col =</span> <span class="st">"rowname"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    gt<span class="sc">::</span><span class="fu">tab_options</span>(<span class="at">column_labels.hidden =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>weather <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">day =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">predicted =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.6</span>), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>)),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">rep</span>(<span class="fu">c</span>(rain, sun), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">|&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>()</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>weather <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>(<span class="at">rowname_col =</span> <span class="st">"rowname"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    gt<span class="sc">::</span><span class="fu">tab_options</span>(<span class="at">column_labels.hidden =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 
-<div id="agwoomkezw" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="usanedqvvi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-:where(#agwoomkezw) .gt_table {
+:where(#usanedqvvi) .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -402,7 +411,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-left-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_heading {
+:where(#usanedqvvi) .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -414,7 +423,12 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_title {
+:where(#usanedqvvi) .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+:where(#usanedqvvi) .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -426,7 +440,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-width: 0;
 }
 
-:where(#agwoomkezw) .gt_subtitle {
+:where(#usanedqvvi) .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -438,13 +452,13 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-width: 0;
 }
 
-:where(#agwoomkezw) .gt_bottom_border {
+:where(#usanedqvvi) .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_col_headings {
+:where(#usanedqvvi) .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -459,7 +473,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_col_heading {
+:where(#usanedqvvi) .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -479,7 +493,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#agwoomkezw) .gt_column_spanner_outer {
+:where(#usanedqvvi) .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -491,15 +505,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 4px;
 }
 
-:where(#agwoomkezw) .gt_column_spanner_outer:first-child {
+:where(#usanedqvvi) .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-:where(#agwoomkezw) .gt_column_spanner_outer:last-child {
+:where(#usanedqvvi) .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-:where(#agwoomkezw) .gt_column_spanner {
+:where(#usanedqvvi) .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -511,7 +525,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   width: 100%;
 }
 
-:where(#agwoomkezw) .gt_group_heading {
+:where(#usanedqvvi) .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -534,9 +548,10 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-width: 1px;
   border-right-color: #D3D3D3;
   vertical-align: middle;
+  text-align: left;
 }
 
-:where(#agwoomkezw) .gt_empty_group_heading {
+:where(#usanedqvvi) .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -551,15 +566,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#agwoomkezw) .gt_from_md > :first-child {
+:where(#usanedqvvi) .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-:where(#agwoomkezw) .gt_from_md > :last-child {
+:where(#usanedqvvi) .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-:where(#agwoomkezw) .gt_row {
+:where(#usanedqvvi) .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -578,7 +593,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#agwoomkezw) .gt_stub {
+:where(#usanedqvvi) .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -591,7 +606,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#agwoomkezw) .gt_stub_row_group {
+:where(#usanedqvvi) .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -605,11 +620,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: top;
 }
 
-:where(#agwoomkezw) .gt_row_group_first td {
+:where(#usanedqvvi) .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-:where(#agwoomkezw) .gt_summary_row {
+:where(#usanedqvvi) .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -619,16 +634,16 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#agwoomkezw) .gt_first_summary_row {
+:where(#usanedqvvi) .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_first_summary_row.thick {
+:where(#usanedqvvi) .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-:where(#agwoomkezw) .gt_last_summary_row {
+:where(#usanedqvvi) .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -638,7 +653,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_grand_summary_row {
+:where(#usanedqvvi) .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -648,7 +663,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#agwoomkezw) .gt_first_grand_summary_row {
+:where(#usanedqvvi) .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -658,11 +673,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_striped {
+:where(#usanedqvvi) .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-:where(#agwoomkezw) .gt_table_body {
+:where(#usanedqvvi) .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -671,7 +686,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_footnotes {
+:where(#usanedqvvi) .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -685,7 +700,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_footnote {
+:where(#usanedqvvi) .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -694,7 +709,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#agwoomkezw) .gt_sourcenotes {
+:where(#usanedqvvi) .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -708,7 +723,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#agwoomkezw) .gt_sourcenote {
+:where(#usanedqvvi) .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -716,111 +731,104 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#agwoomkezw) .gt_left {
+:where(#usanedqvvi) .gt_left {
   text-align: left;
 }
 
-:where(#agwoomkezw) .gt_center {
+:where(#usanedqvvi) .gt_center {
   text-align: center;
 }
 
-:where(#agwoomkezw) .gt_right {
+:where(#usanedqvvi) .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-:where(#agwoomkezw) .gt_font_normal {
+:where(#usanedqvvi) .gt_font_normal {
   font-weight: normal;
 }
 
-:where(#agwoomkezw) .gt_font_bold {
+:where(#usanedqvvi) .gt_font_bold {
   font-weight: bold;
 }
 
-:where(#agwoomkezw) .gt_font_italic {
+:where(#usanedqvvi) .gt_font_italic {
   font-style: italic;
 }
 
-:where(#agwoomkezw) .gt_super {
+:where(#usanedqvvi) .gt_super {
   font-size: 65%;
 }
 
-:where(#agwoomkezw) .gt_two_val_uncert {
-  display: inline-block;
-  line-height: 1em;
-  text-align: right;
-  font-size: 60%;
-  vertical-align: -0.25em;
-  margin-left: 0.1em;
-}
-
-:where(#agwoomkezw) .gt_footnote_marks {
+:where(#usanedqvvi) .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-:where(#agwoomkezw) .gt_asterisk {
+:where(#usanedqvvi) .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-:where(#agwoomkezw) .gt_slash_mark {
-  font-size: 0.7em;
-  line-height: 0.7em;
-  vertical-align: 0.15em;
+:where(#usanedqvvi) .gt_indent_1 {
+  text-indent: 5px;
 }
 
-:where(#agwoomkezw) .gt_fraction_numerator {
-  font-size: 0.6em;
-  line-height: 0.6em;
-  vertical-align: 0.45em;
+:where(#usanedqvvi) .gt_indent_2 {
+  text-indent: 10px;
 }
 
-:where(#agwoomkezw) .gt_fraction_denominator {
-  font-size: 0.6em;
-  line-height: 0.6em;
-  vertical-align: -0.05em;
+:where(#usanedqvvi) .gt_indent_3 {
+  text-indent: 15px;
+}
+
+:where(#usanedqvvi) .gt_indent_4 {
+  text-indent: 20px;
+}
+
+:where(#usanedqvvi) .gt_indent_5 {
+  text-indent: 25px;
 }
 </style>
 <table class="gt_table">
   
   
   <tbody class="gt_table_body">
-    <tr><td class="gt_row gt_right gt_stub">day</td>
-<td class="gt_row gt_left"> 1</td>
-<td class="gt_row gt_left"> 2</td>
-<td class="gt_row gt_left"> 3</td>
-<td class="gt_row gt_left"> 4</td>
-<td class="gt_row gt_left"> 5</td>
-<td class="gt_row gt_left"> 6</td>
-<td class="gt_row gt_left"> 7</td>
-<td class="gt_row gt_left"> 8</td>
-<td class="gt_row gt_left"> 9</td>
-<td class="gt_row gt_left">10</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">predicted</td>
-<td class="gt_row gt_left">1.0</td>
-<td class="gt_row gt_left">1.0</td>
-<td class="gt_row gt_left">1.0</td>
-<td class="gt_row gt_left">0.6</td>
-<td class="gt_row gt_left">0.6</td>
-<td class="gt_row gt_left">0.6</td>
-<td class="gt_row gt_left">0.6</td>
-<td class="gt_row gt_left">0.6</td>
-<td class="gt_row gt_left">0.6</td>
-<td class="gt_row gt_left">0.6</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">observed</td>
-<td class="gt_row gt_left">🌧</td>
-<td class="gt_row gt_left">🌧</td>
-<td class="gt_row gt_left">🌧</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td></tr>
+    <tr><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">day</th>
+<td headers="stub_1_1 V1" class="gt_row gt_left"> 1</td>
+<td headers="stub_1_1 V2" class="gt_row gt_left"> 2</td>
+<td headers="stub_1_1 V3" class="gt_row gt_left"> 3</td>
+<td headers="stub_1_1 V4" class="gt_row gt_left"> 4</td>
+<td headers="stub_1_1 V5" class="gt_row gt_left"> 5</td>
+<td headers="stub_1_1 V6" class="gt_row gt_left"> 6</td>
+<td headers="stub_1_1 V7" class="gt_row gt_left"> 7</td>
+<td headers="stub_1_1 V8" class="gt_row gt_left"> 8</td>
+<td headers="stub_1_1 V9" class="gt_row gt_left"> 9</td>
+<td headers="stub_1_1 V10" class="gt_row gt_left">10</td></tr>
+    <tr><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">predicted</th>
+<td headers="stub_1_2 V1" class="gt_row gt_left">1.0</td>
+<td headers="stub_1_2 V2" class="gt_row gt_left">1.0</td>
+<td headers="stub_1_2 V3" class="gt_row gt_left">1.0</td>
+<td headers="stub_1_2 V4" class="gt_row gt_left">0.6</td>
+<td headers="stub_1_2 V5" class="gt_row gt_left">0.6</td>
+<td headers="stub_1_2 V6" class="gt_row gt_left">0.6</td>
+<td headers="stub_1_2 V7" class="gt_row gt_left">0.6</td>
+<td headers="stub_1_2 V8" class="gt_row gt_left">0.6</td>
+<td headers="stub_1_2 V9" class="gt_row gt_left">0.6</td>
+<td headers="stub_1_2 V10" class="gt_row gt_left">0.6</td></tr>
+    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">observed</th>
+<td headers="stub_1_3 V1" class="gt_row gt_left">🌧</td>
+<td headers="stub_1_3 V2" class="gt_row gt_left">🌧</td>
+<td headers="stub_1_3 V3" class="gt_row gt_left">🌧</td>
+<td headers="stub_1_3 V4" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V5" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V6" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V7" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V8" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V9" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V10" class="gt_row gt_left">☀️</td></tr>
   </tbody>
   
   
@@ -830,25 +838,25 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 </div>
 <p>The new weather person has this data</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>weather_new <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">day =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">predicted =</span> <span class="dv">0</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">rep</span>(<span class="fu">c</span>(rain, sun), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>))</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">|&gt;</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>()</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>weather_new <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>(<span class="at">rowname_col =</span> <span class="st">"rowname"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    gt<span class="sc">::</span><span class="fu">tab_options</span>(<span class="at">column_labels.hidden =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>weather_new <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">day =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">predicted =</span> <span class="dv">0</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">rep</span>(<span class="fu">c</span>(rain, sun), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">7</span>))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">|&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>()</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>weather_new <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>(<span class="at">rowname_col =</span> <span class="st">"rowname"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    gt<span class="sc">::</span><span class="fu">tab_options</span>(<span class="at">column_labels.hidden =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 
-<div id="pjzpuudley" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="wunhzfugmh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-:where(#pjzpuudley) .gt_table {
+:where(#wunhzfugmh) .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -873,7 +881,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-left-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_heading {
+:where(#wunhzfugmh) .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -885,7 +893,12 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_title {
+:where(#wunhzfugmh) .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+:where(#wunhzfugmh) .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -897,7 +910,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-width: 0;
 }
 
-:where(#pjzpuudley) .gt_subtitle {
+:where(#wunhzfugmh) .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -909,13 +922,13 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-width: 0;
 }
 
-:where(#pjzpuudley) .gt_bottom_border {
+:where(#wunhzfugmh) .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_col_headings {
+:where(#wunhzfugmh) .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -930,7 +943,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_col_heading {
+:where(#wunhzfugmh) .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -950,7 +963,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#pjzpuudley) .gt_column_spanner_outer {
+:where(#wunhzfugmh) .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -962,15 +975,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 4px;
 }
 
-:where(#pjzpuudley) .gt_column_spanner_outer:first-child {
+:where(#wunhzfugmh) .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-:where(#pjzpuudley) .gt_column_spanner_outer:last-child {
+:where(#wunhzfugmh) .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-:where(#pjzpuudley) .gt_column_spanner {
+:where(#wunhzfugmh) .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -982,7 +995,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   width: 100%;
 }
 
-:where(#pjzpuudley) .gt_group_heading {
+:where(#wunhzfugmh) .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1005,9 +1018,10 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-width: 1px;
   border-right-color: #D3D3D3;
   vertical-align: middle;
+  text-align: left;
 }
 
-:where(#pjzpuudley) .gt_empty_group_heading {
+:where(#wunhzfugmh) .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1022,15 +1036,15 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: middle;
 }
 
-:where(#pjzpuudley) .gt_from_md > :first-child {
+:where(#wunhzfugmh) .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-:where(#pjzpuudley) .gt_from_md > :last-child {
+:where(#wunhzfugmh) .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-:where(#pjzpuudley) .gt_row {
+:where(#wunhzfugmh) .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1049,7 +1063,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   overflow-x: hidden;
 }
 
-:where(#pjzpuudley) .gt_stub {
+:where(#wunhzfugmh) .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1062,7 +1076,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#pjzpuudley) .gt_stub_row_group {
+:where(#wunhzfugmh) .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1076,11 +1090,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   vertical-align: top;
 }
 
-:where(#pjzpuudley) .gt_row_group_first td {
+:where(#wunhzfugmh) .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-:where(#pjzpuudley) .gt_summary_row {
+:where(#wunhzfugmh) .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1090,16 +1104,16 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#pjzpuudley) .gt_first_summary_row {
+:where(#wunhzfugmh) .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_first_summary_row.thick {
+:where(#wunhzfugmh) .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-:where(#pjzpuudley) .gt_last_summary_row {
+:where(#wunhzfugmh) .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1109,7 +1123,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_grand_summary_row {
+:where(#wunhzfugmh) .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1119,7 +1133,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#pjzpuudley) .gt_first_grand_summary_row {
+:where(#wunhzfugmh) .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1129,11 +1143,11 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-top-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_striped {
+:where(#wunhzfugmh) .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-:where(#pjzpuudley) .gt_table_body {
+:where(#wunhzfugmh) .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1142,7 +1156,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-bottom-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_footnotes {
+:where(#wunhzfugmh) .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1156,7 +1170,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_footnote {
+:where(#wunhzfugmh) .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -1165,7 +1179,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#pjzpuudley) .gt_sourcenotes {
+:where(#wunhzfugmh) .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1179,7 +1193,7 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   border-right-color: #D3D3D3;
 }
 
-:where(#pjzpuudley) .gt_sourcenote {
+:where(#wunhzfugmh) .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1187,111 +1201,104 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
   padding-right: 5px;
 }
 
-:where(#pjzpuudley) .gt_left {
+:where(#wunhzfugmh) .gt_left {
   text-align: left;
 }
 
-:where(#pjzpuudley) .gt_center {
+:where(#wunhzfugmh) .gt_center {
   text-align: center;
 }
 
-:where(#pjzpuudley) .gt_right {
+:where(#wunhzfugmh) .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-:where(#pjzpuudley) .gt_font_normal {
+:where(#wunhzfugmh) .gt_font_normal {
   font-weight: normal;
 }
 
-:where(#pjzpuudley) .gt_font_bold {
+:where(#wunhzfugmh) .gt_font_bold {
   font-weight: bold;
 }
 
-:where(#pjzpuudley) .gt_font_italic {
+:where(#wunhzfugmh) .gt_font_italic {
   font-style: italic;
 }
 
-:where(#pjzpuudley) .gt_super {
+:where(#wunhzfugmh) .gt_super {
   font-size: 65%;
 }
 
-:where(#pjzpuudley) .gt_two_val_uncert {
-  display: inline-block;
-  line-height: 1em;
-  text-align: right;
-  font-size: 60%;
-  vertical-align: -0.25em;
-  margin-left: 0.1em;
-}
-
-:where(#pjzpuudley) .gt_footnote_marks {
+:where(#wunhzfugmh) .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-:where(#pjzpuudley) .gt_asterisk {
+:where(#wunhzfugmh) .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-:where(#pjzpuudley) .gt_slash_mark {
-  font-size: 0.7em;
-  line-height: 0.7em;
-  vertical-align: 0.15em;
+:where(#wunhzfugmh) .gt_indent_1 {
+  text-indent: 5px;
 }
 
-:where(#pjzpuudley) .gt_fraction_numerator {
-  font-size: 0.6em;
-  line-height: 0.6em;
-  vertical-align: 0.45em;
+:where(#wunhzfugmh) .gt_indent_2 {
+  text-indent: 10px;
 }
 
-:where(#pjzpuudley) .gt_fraction_denominator {
-  font-size: 0.6em;
-  line-height: 0.6em;
-  vertical-align: -0.05em;
+:where(#wunhzfugmh) .gt_indent_3 {
+  text-indent: 15px;
+}
+
+:where(#wunhzfugmh) .gt_indent_4 {
+  text-indent: 20px;
+}
+
+:where(#wunhzfugmh) .gt_indent_5 {
+  text-indent: 25px;
 }
 </style>
 <table class="gt_table">
   
   
   <tbody class="gt_table_body">
-    <tr><td class="gt_row gt_right gt_stub">day</td>
-<td class="gt_row gt_left"> 1</td>
-<td class="gt_row gt_left"> 2</td>
-<td class="gt_row gt_left"> 3</td>
-<td class="gt_row gt_left"> 4</td>
-<td class="gt_row gt_left"> 5</td>
-<td class="gt_row gt_left"> 6</td>
-<td class="gt_row gt_left"> 7</td>
-<td class="gt_row gt_left"> 8</td>
-<td class="gt_row gt_left"> 9</td>
-<td class="gt_row gt_left">10</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">predicted</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td>
-<td class="gt_row gt_left">0</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">observed</td>
-<td class="gt_row gt_left">🌧</td>
-<td class="gt_row gt_left">🌧</td>
-<td class="gt_row gt_left">🌧</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td>
-<td class="gt_row gt_left">☀️</td></tr>
+    <tr><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">day</th>
+<td headers="stub_1_1 V1" class="gt_row gt_left"> 1</td>
+<td headers="stub_1_1 V2" class="gt_row gt_left"> 2</td>
+<td headers="stub_1_1 V3" class="gt_row gt_left"> 3</td>
+<td headers="stub_1_1 V4" class="gt_row gt_left"> 4</td>
+<td headers="stub_1_1 V5" class="gt_row gt_left"> 5</td>
+<td headers="stub_1_1 V6" class="gt_row gt_left"> 6</td>
+<td headers="stub_1_1 V7" class="gt_row gt_left"> 7</td>
+<td headers="stub_1_1 V8" class="gt_row gt_left"> 8</td>
+<td headers="stub_1_1 V9" class="gt_row gt_left"> 9</td>
+<td headers="stub_1_1 V10" class="gt_row gt_left">10</td></tr>
+    <tr><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">predicted</th>
+<td headers="stub_1_2 V1" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V2" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V3" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V4" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V5" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V6" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V7" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V8" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V9" class="gt_row gt_left">0</td>
+<td headers="stub_1_2 V10" class="gt_row gt_left">0</td></tr>
+    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">observed</th>
+<td headers="stub_1_3 V1" class="gt_row gt_left">🌧</td>
+<td headers="stub_1_3 V2" class="gt_row gt_left">🌧</td>
+<td headers="stub_1_3 V3" class="gt_row gt_left">🌧</td>
+<td headers="stub_1_3 V4" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V5" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V6" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V7" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V8" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V9" class="gt_row gt_left">☀️</td>
+<td headers="stub_1_3 V10" class="gt_row gt_left">☀️</td></tr>
   </tbody>
   
   
@@ -1301,14 +1308,14 @@ R^2 &amp;= \frac{var(outcome) - var(residuals)}{var(outcome)} =
 </div>
 <p>would be, i.e.&nbsp;the expected nb of correct predictions,</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span> <span class="sc">*</span> <span class="dv">1</span> <span class="sc">+</span> <span class="dv">7</span> <span class="sc">*</span> <span class="fl">0.4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span> <span class="sc">*</span> <span class="dv">1</span> <span class="sc">+</span> <span class="dv">7</span> <span class="sc">*</span> <span class="fl">0.4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 5.8</code></pre>
 </div>
 </div>
 <p>which gives a frequency per day (probability) of</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>(<span class="dv">3</span> <span class="sc">*</span> <span class="dv">1</span> <span class="sc">+</span> <span class="dv">7</span> <span class="sc">*</span> <span class="fl">0.4</span>) <span class="sc">/</span> <span class="dv">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>(<span class="dv">3</span> <span class="sc">*</span> <span class="dv">1</span> <span class="sc">+</span> <span class="dv">7</span> <span class="sc">*</span> <span class="fl">0.4</span>) <span class="sc">/</span> <span class="dv">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.58</code></pre>
 </div>
@@ -1321,16 +1328,16 @@ H(p)=-E(\log{p_i})=-\sum_{i=1}^n{p_i \cdot \log{p_i}}
 \]</span></p>
 <p>the entropy for the above is</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.3</span>, <span class="fl">0.7</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="sc">-</span><span class="fu">sum</span>(p <span class="sc">*</span> <span class="fu">log</span>(p))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.3</span>, <span class="fl">0.7</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="sc">-</span><span class="fu">sum</span>(p <span class="sc">*</span> <span class="fu">log</span>(p))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.6108643</code></pre>
 </div>
 </div>
 <p>but in Abu Dhabi it is</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.99</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="sc">-</span><span class="fu">sum</span>(p <span class="sc">*</span> <span class="fu">log</span>(p))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.99</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="sc">-</span><span class="fu">sum</span>(p <span class="sc">*</span> <span class="fu">log</span>(p))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.05600153</code></pre>
 </div>
@@ -1446,20 +1453,20 @@ WAIC = -2 (lppd - p_{WAIC})
 <section id="model-comparison" class="level2" data-number="7.5">
 <h2 data-number="7.5" class="anchored" data-anchor-id="model-comparison"><span class="header-section-number">7.5</span> Model comparison</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch06_b06_06_.*[.]rds$"</span>)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>b6<span class="fl">.6</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch06_b06_07_.*[.]rds$"</span>)</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>b6<span class="fl">.7</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch06_b06_08_.*[.]rds$"</span>)</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>b6<span class="fl">.8</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch06_b06_06_.*[.]rds$"</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>b6<span class="fl">.6</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch06_b06_07_.*[.]rds$"</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>b6<span class="fl">.7</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch06_b06_08_.*[.]rds$"</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>b6<span class="fl">.8</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="model-mis-selection" class="level3" data-number="7.5.1">
 <h3 data-number="7.5.1" class="anchored" data-anchor-id="model-mis-selection"><span class="header-section-number">7.5.1</span> Model mis-selection</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>loo<span class="sc">::</span><span class="fu">waic</span>(b6<span class="fl">.7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>loo<span class="sc">::</span><span class="fu">waic</span>(b6<span class="fl">.7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Computed from 4000 by 100 log-likelihood matrix
@@ -1471,8 +1478,8 @@ waic         345.1 13.1
 
 1 (1.0%) p_waic estimates greater than 0.4. We recommend trying loo instead. </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># can also use this function if you need to manipulate the data</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>loo<span class="sc">::</span><span class="fu">waic</span>(b6<span class="fl">.7</span>)<span class="sc">$</span>estimates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># can also use this function if you need to manipulate the data</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>loo<span class="sc">::</span><span class="fu">waic</span>(b6<span class="fl">.7</span>)<span class="sc">$</span>estimates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>             Estimate         SE
 elpd_waic -172.527626  6.5710413
@@ -1482,19 +1489,19 @@ waic       345.055251 13.1420826</code></pre>
 </div>
 <p>The <code>waic</code> is <span class="math inline">\(-2 * elpd\)</span> which is not what Kurtz says in his version of the textbook. I think he is mistaken. McElreath on the other is conistent with his previous definitions.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">near</span>(loo<span class="sc">::</span><span class="fu">waic</span>(b6<span class="fl">.7</span>)<span class="sc">$</span>estimates[<span class="st">"elpd_waic"</span>, <span class="st">"Estimate"</span>] <span class="sc">*</span> <span class="sc">-</span><span class="dv">2</span>,</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>     loo<span class="sc">::</span><span class="fu">waic</span>(b6<span class="fl">.7</span>)<span class="sc">$</span>estimates[<span class="st">"waic"</span>, <span class="st">"Estimate"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">near</span>(loo<span class="sc">::</span><span class="fu">waic</span>(b6<span class="fl">.7</span>)<span class="sc">$</span>estimates[<span class="st">"elpd_waic"</span>, <span class="st">"Estimate"</span>] <span class="sc">*</span> <span class="sc">-</span><span class="dv">2</span>,</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>     loo<span class="sc">::</span><span class="fu">waic</span>(b6<span class="fl">.7</span>)<span class="sc">$</span>estimates[<span class="st">"waic"</span>, <span class="st">"Estimate"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
 </div>
 </div>
 <p>and comparing the 3 models</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>, <span class="at">criterion =</span> <span class="st">"waic"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>, <span class="at">criterion =</span> <span class="st">"waic"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and for more details</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(w, <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(w, <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     elpd_diff se_diff elpd_waic se_elpd_waic p_waic se_p_waic waic   se_waic
 b6.7    0.0       0.0  -172.5       6.6          3.7    0.7     345.1   13.1 
@@ -1505,7 +1512,7 @@ b6.6  -25.8       6.3  -198.4       5.5          1.6    0.3     396.7   11.1 </c
 <p>Kurtz make some mistake in describing this data. Be careful when reading him. McElreath is more precise.</p>
 <p>To get the corresponding WAIC we simply mutliply by -2</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(<span class="at">waic_diff =</span> w[, <span class="st">"elpd_diff"</span>] <span class="sc">*</span> <span class="sc">-</span><span class="dv">2</span>, <span class="at">waic_se =</span> w[, <span class="st">"se_diff"</span>] <span class="sc">*</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(<span class="at">waic_diff =</span> w[, <span class="st">"elpd_diff"</span>] <span class="sc">*</span> <span class="sc">-</span><span class="dv">2</span>, <span class="at">waic_se =</span> w[, <span class="st">"se_diff"</span>] <span class="sc">*</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     waic_diff   waic_se
 b6.7   0.00000  0.000000
@@ -1515,8 +1522,8 @@ b6.6  51.69095 12.562092</code></pre>
 </div>
 <p>and we can also compare using <code>loo</code> which gives the same results.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>l <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>, <span class="at">criterion =</span> <span class="st">"loo"</span>)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(l, <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>l <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>, <span class="at">criterion =</span> <span class="st">"loo"</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(l, <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     elpd_diff se_diff elpd_loo se_elpd_loo p_loo  se_p_loo looic  se_looic
 b6.7    0.0       0.0  -172.5      6.6         3.7    0.7    345.1   13.2  
@@ -1525,17 +1532,17 @@ b6.6  -25.8       6.3  -198.4      5.5         1.6    0.3    396.8   11.1  </cod
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>, <span class="at">criterion =</span> <span class="st">"waic"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>() <span class="sc">|&gt;</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>(<span class="st">"model_name"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model_name =</span> forcats<span class="sc">::</span><span class="fu">fct_reorder</span>(model_name, waic, <span class="at">.desc =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(w, <span class="fu">aes</span>(<span class="at">x =</span> waic, <span class="at">y =</span> model_name, <span class="at">xmin =</span> waic <span class="sc">-</span> se_waic, <span class="at">xmax =</span> waic <span class="sc">+</span> se_waic)) <span class="sc">+</span></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>(<span class="at">shape =</span> <span class="dv">19</span>, <span class="at">size =</span> <span class="fl">0.75</span>, <span class="at">color =</span> <span class="st">"mediumseagreen"</span>) <span class="sc">+</span></span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(waic, <span class="dv">0</span>))) <span class="sc">+</span></span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    ggthemes<span class="sc">::</span><span class="fu">theme_few</span>() <span class="sc">+</span></span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"midnightblue"</span>),</span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">panel.border =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"WAIC plot"</span>, <span class="at">x =</span> <span class="st">"waic"</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>, <span class="at">criterion =</span> <span class="st">"waic"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>(<span class="st">"model_name"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model_name =</span> forcats<span class="sc">::</span><span class="fu">fct_reorder</span>(model_name, waic, <span class="at">.desc =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(w, <span class="fu">aes</span>(<span class="at">x =</span> waic, <span class="at">y =</span> model_name, <span class="at">xmin =</span> waic <span class="sc">-</span> se_waic, <span class="at">xmax =</span> waic <span class="sc">+</span> se_waic)) <span class="sc">+</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>(<span class="at">shape =</span> <span class="dv">19</span>, <span class="at">size =</span> <span class="fl">0.75</span>, <span class="at">color =</span> <span class="st">"mediumseagreen"</span>) <span class="sc">+</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(waic, <span class="dv">0</span>))) <span class="sc">+</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    ggthemes<span class="sc">::</span><span class="fu">theme_few</span>() <span class="sc">+</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"midnightblue"</span>),</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">panel.border =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"WAIC plot"</span>, <span class="at">x =</span> <span class="st">"waic"</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="ch07_information_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -1545,8 +1552,8 @@ b6.6  -25.8       6.3  -198.4      5.5         1.6    0.3    396.8   11.1  </cod
 w_i = \frac{exp(-0.5 \Delta_i)}{\sum_j exp(-0.5 \Delta_j)}
 \]</span> which can be obtained with <code>brms::model_weights</code></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>brms<span class="sc">::</span><span class="fu">model_weights</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>) <span class="sc">|&gt;</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="at">digits =</span> <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>brms<span class="sc">::</span><span class="fu">model_weights</span>(b6<span class="fl">.6</span>, b6<span class="fl">.7</span>, b6<span class="fl">.8</span>) <span class="sc">|&gt;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="at">digits =</span> <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  b6.6   b6.7   b6.8 
 0.0213 0.9787 0.0000 </code></pre>
@@ -1556,26 +1563,26 @@ w_i = \frac{exp(-0.5 \Delta_i)}{\sum_j exp(-0.5 \Delta_j)}
 <section id="outliers-and-other-illusions" class="level3" data-number="7.5.2">
 <h3 data-number="7.5.2" class="anchored" data-anchor-id="outliers-and-other-illusions"><span class="header-section-number">7.5.2</span> Outliers and other illusions</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"WaffleDivorce"</span>)</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> WaffleDivorce <span class="sc">|&gt;</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">D =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(Divorce)),</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">M =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(Marriage)),</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">A =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(MedianAgeMarriage)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"WaffleDivorce"</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> WaffleDivorce <span class="sc">|&gt;</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">D =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(Divorce)),</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">M =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(Marriage)),</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">A =</span> <span class="fu">scale</span>(<span class="fu">as.vector</span>(MedianAgeMarriage)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch05_b05_01_.*[.]rds$"</span>)</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch05_b05_02_.*[.]rds$"</span>)</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch05_b05_03_.*[.]rds$"</span>)</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.3</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch05_b05_01_.*[.]rds$"</span>)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch05_b05_02_.*[.]rds$"</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path=</span>here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>), <span class="at">pattern=</span><span class="st">"ch05_b05_03_.*[.]rds$"</span>)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(fn) <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.3</span> <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"cache"</span>, fn))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>l <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b5<span class="fl">.1</span>, b5<span class="fl">.2</span>, b5<span class="fl">.3</span>, <span class="at">criterion =</span> <span class="st">"loo"</span>)</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(l, <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>l <span class="ot">&lt;-</span> loo<span class="sc">::</span><span class="fu">loo_compare</span>(b5<span class="fl">.1</span>, b5<span class="fl">.2</span>, b5<span class="fl">.3</span>, <span class="at">criterion =</span> <span class="st">"loo"</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(l, <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     elpd_diff se_diff elpd_loo se_elpd_loo p_loo se_p_loo looic se_looic
 b5.1   0.0       0.0   -62.3      6.4         3.1   1.7    124.5  12.8   
@@ -1584,23 +1591,23 @@ b5.2  -6.6       4.7   -68.9      4.9         2.2   0.8    137.7   9.9   </code>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>dp <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">pareto_k =</span> b5<span class="fl">.3</span><span class="sc">$</span>criteria<span class="sc">$</span>loo<span class="sc">$</span>diagnostics<span class="sc">$</span>pareto_k,</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">p_waic   =</span> b5<span class="fl">.3</span><span class="sc">$</span>criteria<span class="sc">$</span>waic<span class="sc">$</span>pointwise[, <span class="st">"p_waic"</span>],</span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">Loc      =</span> d<span class="sc">$</span>Loc,</span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">South =</span> d<span class="sc">$</span>South)</span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dp, <span class="fu">aes</span>(<span class="at">x =</span> pareto_k, <span class="at">y =</span> p_waic, <span class="at">color =</span> Loc <span class="sc">==</span> <span class="st">"ID"</span>)) <span class="sc">+</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> .<span class="dv">5</span>, <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">shape =</span> Loc <span class="sc">==</span> <span class="st">"ID"</span>)) <span class="sc">+</span></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> . <span class="sc">%&gt;%</span> <span class="fu">filter</span>(p_waic <span class="sc">&gt;</span> <span class="fl">0.5</span>),</span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> pareto_k <span class="sc">-</span> <span class="fl">0.03</span>, <span class="at">label =</span> Loc),</span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"darkgreen"</span>, <span class="st">"violetred"</span>)) <span class="sc">+</span></span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_shape_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">19</span>, <span class="dv">19</span>)) <span class="sc">+</span></span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Gaussian model (b5.3)"</span>,</span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="fu">deparse1</span>(b5<span class="fl">.3</span><span class="sc">$</span>formula<span class="sc">$</span>formula),</span>
-<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">caption =</span> <span class="st">"Different than McElreath but ok with Kurtz (same conclusions for both)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>dp <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">pareto_k =</span> b5<span class="fl">.3</span><span class="sc">$</span>criteria<span class="sc">$</span>loo<span class="sc">$</span>diagnostics<span class="sc">$</span>pareto_k,</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">p_waic   =</span> b5<span class="fl">.3</span><span class="sc">$</span>criteria<span class="sc">$</span>waic<span class="sc">$</span>pointwise[, <span class="st">"p_waic"</span>],</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">Loc      =</span> d<span class="sc">$</span>Loc,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">South =</span> d<span class="sc">$</span>South)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dp, <span class="fu">aes</span>(<span class="at">x =</span> pareto_k, <span class="at">y =</span> p_waic, <span class="at">color =</span> Loc <span class="sc">==</span> <span class="st">"ID"</span>)) <span class="sc">+</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> .<span class="dv">5</span>, <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">shape =</span> Loc <span class="sc">==</span> <span class="st">"ID"</span>)) <span class="sc">+</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> . <span class="sc">%&gt;%</span> <span class="fu">filter</span>(p_waic <span class="sc">&gt;</span> <span class="fl">0.5</span>),</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> pareto_k <span class="sc">-</span> <span class="fl">0.03</span>, <span class="at">label =</span> Loc),</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"darkgreen"</span>, <span class="st">"violetred"</span>)) <span class="sc">+</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_shape_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">19</span>, <span class="dv">19</span>)) <span class="sc">+</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Gaussian model (b5.3)"</span>,</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="fu">deparse1</span>(b5<span class="fl">.3</span><span class="sc">$</span>formula<span class="sc">$</span>formula),</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">caption =</span> <span class="st">"Different than McElreath but ok with Kurtz (same conclusions for both)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="ch07_information_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -1609,25 +1616,25 @@ b5.2  -6.6       4.7   -68.9      4.9         2.2   0.8    137.7   9.9   </code>
 <p>See Kurtz on how to do it with <code>brms</code> as follows. We use <span class="math inline">\(\nu = 2\)</span>, same as McElreath.</p>
 <p>Make sure you read McElreath and Kurtz on the t-distribution. A few things are important to remember. e.g.&nbsp;the parameter <span class="math inline">\(\sigma\)</span> is not the standard deviation in t-distribution.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"60 secs."</span>))</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.3</span>t <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> d, </span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> student,</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">bf</span>(D <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> M <span class="sc">+</span> A, <span class="at">nu =</span> <span class="dv">2</span>),</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.2</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.5</span>), <span class="at">class =</span> b),</span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="fu">detectCores</span>(),</span>
-<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">seed =</span> <span class="dv">5</span>)</span>
-<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> brms<span class="sc">::</span><span class="fu">add_criterion</span>(out, <span class="at">criterion =</span> <span class="fu">c</span>(<span class="st">"waic"</span>, <span class="st">"loo"</span>))},</span>
-<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch07_b05_03t"</span>)</span>
-<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"60 secs."</span>))</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>b5<span class="fl">.3</span>t <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> d, </span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> student,</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">bf</span>(D <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> M <span class="sc">+</span> A, <span class="at">nu =</span> <span class="dv">2</span>),</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.2</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.5</span>), <span class="at">class =</span> b),</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="fu">detectCores</span>(),</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">seed =</span> <span class="dv">5</span>)</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> brms<span class="sc">::</span><span class="fu">add_criterion</span>(out, <span class="at">criterion =</span> <span class="fu">c</span>(<span class="st">"waic"</span>, <span class="st">"loo"</span>))},</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch07_b05_03t"</span>)</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>run time of 60 secs., use the cache.: 0.15 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(b5<span class="fl">.3</span>t)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(b5<span class="fl">.3</span>t)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: student 
   Links: mu = identity; sigma = identity; nu = identity 
@@ -1655,24 +1662,24 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <p>and now we have a more robust results, i.e.&nbsp;where the influence from ID and ME is lessened.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>dp <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">pareto_k =</span> b5<span class="fl">.3</span>t<span class="sc">$</span>criteria<span class="sc">$</span>loo<span class="sc">$</span>diagnostics<span class="sc">$</span>pareto_k,</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">p_waic   =</span> b5<span class="fl">.3</span>t<span class="sc">$</span>criteria<span class="sc">$</span>waic<span class="sc">$</span>pointwise[, <span class="st">"p_waic"</span>],</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">Loc      =</span> d<span class="sc">$</span>Loc,</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">South =</span> d<span class="sc">$</span>South)</span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dp, <span class="fu">aes</span>(<span class="at">x =</span> pareto_k, <span class="at">y =</span> p_waic, <span class="at">color =</span> Loc <span class="sc">==</span> <span class="st">"ID"</span>)) <span class="sc">+</span></span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> .<span class="dv">5</span>, <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">shape =</span> Loc <span class="sc">==</span> <span class="st">"ID"</span>)) <span class="sc">+</span></span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> . <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Loc <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ID"</span>, <span class="st">"ME"</span>)),</span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> pareto_k <span class="sc">-</span> <span class="fl">0.01</span>, <span class="at">label =</span> Loc),</span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"darkgreen"</span>, <span class="st">"violetred"</span>)) <span class="sc">+</span></span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_shape_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">19</span>, <span class="dv">19</span>)) <span class="sc">+</span></span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
-<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"midnightblue"</span>)) <span class="sc">+</span></span>
-<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Student-t model (b5.3)"</span>,</span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"using brms (see Kurtz)"</span>,</span>
-<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">caption =</span> <span class="st">"See Kurtz comments"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>dp <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">pareto_k =</span> b5<span class="fl">.3</span>t<span class="sc">$</span>criteria<span class="sc">$</span>loo<span class="sc">$</span>diagnostics<span class="sc">$</span>pareto_k,</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">p_waic   =</span> b5<span class="fl">.3</span>t<span class="sc">$</span>criteria<span class="sc">$</span>waic<span class="sc">$</span>pointwise[, <span class="st">"p_waic"</span>],</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">Loc      =</span> d<span class="sc">$</span>Loc,</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">South =</span> d<span class="sc">$</span>South)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dp, <span class="fu">aes</span>(<span class="at">x =</span> pareto_k, <span class="at">y =</span> p_waic, <span class="at">color =</span> Loc <span class="sc">==</span> <span class="st">"ID"</span>)) <span class="sc">+</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> .<span class="dv">5</span>, <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">shape =</span> Loc <span class="sc">==</span> <span class="st">"ID"</span>)) <span class="sc">+</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> . <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Loc <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ID"</span>, <span class="st">"ME"</span>)),</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> pareto_k <span class="sc">-</span> <span class="fl">0.01</span>, <span class="at">label =</span> Loc),</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"darkgreen"</span>, <span class="st">"violetred"</span>)) <span class="sc">+</span></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_shape_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">19</span>, <span class="dv">19</span>)) <span class="sc">+</span></span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"midnightblue"</span>)) <span class="sc">+</span></span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Student-t model (b5.3)"</span>,</span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"using brms (see Kurtz)"</span>,</span>
+<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">caption =</span> <span class="st">"See Kurtz comments"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="ch07_information_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid" width="672"></p>
 </div>
