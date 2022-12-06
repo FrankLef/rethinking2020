@@ -18,6 +18,7 @@ book:
     - ch08_interactions.qmd
     - ch09_mcmc.qmd
     - ch10_glm.qmd
+    - ch11_counting.qmd
     - references.qmd
 
 bibliography: references.bib
