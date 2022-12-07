@@ -1,0 +1,1144 @@
+# Monsters and Mixtures {#Mixed}
+
+```{r}
+#| include: false
+library(dplyr, quietly = TRUE)
+library(tidyr, quietly = TRUE)
+library(tidybayes, quietly = TRUE)
+library(rethinking)
+library(brms)
+library(qs)
+library(loo)
+library(modelr)
+library(simstudy)
+library(posterior)
+library(scales)
+library(dagitty, quietly = TRUE)
+library(ggdag, quietly = TRUE)
+library(ggdist, quietly = TRUE)
+library(ggmcmc, quietly = TRUE)
+library(bayesplot, quietly = TRUE)
+library(patchwork, quietly = TRUE)
+library(paletteer, quietly = TRUE)
+```
+
+
+
+We set the current theme used for plotting
+
+```{r}
+theme_set(
+  ggthemes::theme_hc(base_size = 12, base_family = "sans", style = "darkunica") +
+  theme(title = element_text(color = "floralwhite"),
+        axis.title.y = element_text(angle = 90),
+        strip.background = element_rect(fill = "darkgrey"))
+  )
+```
+
+```{r}
+data(iris)
+ggplot(iris, aes(x = Petal.Length, y = Sepal.Length, color = Species)) +
+  geom_point() +
+  labs(title = "Iris dataset", subtitle = sprintf("%d lines", nrow(iris)))
+```
+
+## Over-dispersed outcomes
+
+### Beta-binomial
+
+#### Beta-binomial distribution
+
+The beta distribution is
+
+$$
+\mathcal{Beta}(x|\alpha, \beta) =
+\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} x^{\alpha -1} (1-x)^{\beta -1} =
+\frac{1}{B(\alpha, \beta)} x^{\alpha -1} (1-x)^{\beta -1}, 0 \leq x \leq 1
+$$ which is not the format used by McElreath. He uses the following shape parameters which are much easier to understand as $\mu$ is the **average** of the distribution and $\kappa$ is the **spread**.
+
+$$
+\mu = \bar{p} = \frac{\alpha}{\alpha + \beta} \\
+\kappa = \theta = \alpha + \beta
+$$
+
+the `simstudy` package provide the function to perform that conversion from $mean = \mu$ and $precision = \kappa$ to the shape(mathematical) parameters $\alpha$ and $\beta$
+
+```{r}
+paramsMeanKappa <- list(mean = 0.5, kappa = 5)
+paramsShape <- with(paramsMeanKappa, simstudy::betaGetShapes(mean, kappa))
+stopifnot(paramsShape$shape1 == paramsMeanKappa$mean * paramsMeanKappa$kappa,
+          paramsShape$shape2 == (1 - paramsMeanKappa$mean) * paramsMeanKappa$kappa)
+```
+
+and the parameters are used in different `beta` functions but give the same result.
+
+```{r}
+dens1 <- with(paramsMeanKappa, rethinking::dbeta2(0.25, mean, kappa))
+dens2 <- with(paramsShape, dbeta(0.25, shape1, shape2))
+stopifnot(dens1 == dens2)
+```
+
+and the standard deviation of the beta binomial distribution is
+
+$$
+\sigma = \sqrt{\frac{\mu(1-\mu)}{\kappa+1}}
+$$
+
+The beta-binomial distribution is not defined in `brms`. We need to define the family in \``brms` as well as a `stan_funs()` and `stanvar()`.
+
+```{r}
+# IMPORTANT: we could have used lb = c(NA, 0) as Kurtz does
+#            but McElreath adds 2 to theta
+# see note just below on lb = c(NA, 2)
+beta_binomial2 <- custom_family(
+  "beta_binomial2", dpars = c("mu", "phi"),
+  links = c("logit", "log"), lb = c(NA, 2),
+  type = "int", vars = "vint1[n]"
+)
+
+stan_funs <- "
+  real beta_binomial2_lpmf(int y, real mu, real phi, int T) {
+    return beta_binomial_lpmf(y | T, mu * phi, (1 - mu) * phi);
+  }
+  int beta_binomial2_rng(real mu, real phi, int T) {
+    return beta_binomial_rng(T, mu * phi, (1 - mu) * phi);
+  }
+"
+
+stanvars <- stanvar(scode = stan_funs, block = "functions")
+```
+
+> Did you notice `lb = c(NA, 2)`? In Burkner's vignette the lower bound of $\phi$ is 0. Since McElreath wanted the lower bound to 2, we will use lb = 2.
+
+See also McElreath explanation of 2 in section 12.1.1 just before R code 12.1 on p. 371.
+
+Variations of the beta-binomial distribution using different parameter values can be illustrated as follows
+
+```{r}
+p <- list()
+p$df <- crossing(pbar = c(0.25, 0.5, 0.75), theta = c(5, 15, 30)) %>% 
+  expand(nesting(pbar, theta), 
+         x = seq(from = 0, to = 1, length.out = 100)) %>%
+  mutate(shape1 = betaGetShapes(pbar, theta)$shape1,
+         shape2 = betaGetShapes(pbar, theta)$shape2) %>%
+  mutate(density = dbeta(x, shape1, shape2),
+         mu = paste("mu", pbar, sep = "=="),
+         kappa = paste("kappa", theta, sep = "=="))
+
+p$plot <- ggplot(data = p$df, aes(x = x, y = density)) +
+  geom_area(fill = "darkorchid1") + 
+  scale_y_continuous(NULL, labels = NULL) +
+  theme(axis.ticks.y = element_blank()) +
+  labs(title = "Beta can take many shapes",
+       x = "parameter space") +
+  facet_grid(kappa~mu, labeller = label_parsed)
+p$plot
+```
+
+#### Beta-binomial model
+
+The data used is
+
+```{r}
+data(UCBadmit)
+dataAdmit <- UCBadmit %>%
+  mutate(gid = ifelse(applicant.gender == "male", "1", "2"))
+rm(UCBadmit)
+# glimpse(dataAdmit)
+```
+
+There is an error in the model defined by McElrath, to concur with his code at 11.26, the model is
+
+$$
+\begin{align*}
+admit_i &\sim \mathcal{BetaBinomial}(N_i, \bar{p}_i, \phi) \\
+logit(\bar{p}_i) &= \alpha_{gid[i]} \\
+\alpha &\sim \mathcal{N}(0, 1.5) \\
+\phi &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+which we fit as follows, see important note above on `beta_binomial2()`
+
+```{r ch12_b12_01}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b12.1 <- xfun::cache_rds({
+  brm(
+    data = dataAdmit,
+    family = beta_binomial2,
+    admit | vint(applications) ~ 0 + gid,
+    prior = c(prior(normal(0, 1.5), class = b),
+              prior(exponential(1), class = phi)),
+    cores = detectCores(),
+    stanvars = stanvars,
+    seed = 12)},
+  file = "ch12_b12_01")
+tictoc::toc()
+```
+
+```{r}
+summary(b12.1)
+```
+
+
+
+and the posterior data which *represents the distribution rather than the data*
+
+```{r}
+samples <- list()
+samples$data <- as_draws_df(b12.1) %>%
+  mutate_variables(a_diff = b_gid1 - b_gid2,
+                   p_gid1 = gtools::inv.logit(b_gid1),
+                   p_gid2 = gtools::inv.logit(b_gid2))
+samples$data %>%
+  summarize_draws("mean", "median", "sd", "mad", 
+                  ~quantile2(.x, probs = c(0.055, 0.945)),
+                  default_convergence_measures()) %>%
+  filter(variable != "lp__") %>%
+  mutate(across(.cols = where(is.double), .fns = round, digits = 2))
+
+# stats used in the plot later
+samples$stats <- list(
+  mean_pgid2 = mean(samples$data$p_gid2),
+  mean_phi = mean(samples$data$phi)
+)
+```
+
+and so, just like McElreath, the difference between the admission rates `a_diff` is close to zero.
+
+#### Beta-binomial plots
+
+See @kurtz2020b for the details
+
+```{r}
+set.seed(12)
+
+p <- list()
+p$df <-
+  samples$data %>%
+  slice_sample(n = 100) %>%
+  expand(nesting(.draw, p_gid2, phi),
+         x = seq(from = 0, to = 1, by = .005)) %>%
+  mutate(density = purrr::pmap_dbl(list(x, p_gid2, phi), rethinking::dbeta2))
+glimpse(p$df)
+samples$stats
+```
+
+```{r}
+ggplot(p$df, aes(x = x, y = density)) + 
+  stat_function(fun = rethinking::dbeta2,
+                args = list(prob = samples$stats$mean_pgid2,
+                            theta = samples$stats$mean_phi),
+                size = 1, color = "magenta") +
+  geom_line(aes(group = .draw),
+            alpha = .2, color = "green") +
+  scale_y_continuous(breaks = scales::breaks_width(width = 0.5), limits = c(0, 3)) +
+  labs(subtitle = "distribution of female admission rates",
+       x = "probability admit", y = "density")
+```
+
+and for the posterior validation check we need to create funcitions to handle predictions and fitted values. See @kurtz2020b.
+
+```{r}
+expose_functions(b12.1, vectorize = TRUE)
+
+# required to use `predict()`
+log_lik_beta_binomial2 <- function(i, prep) {
+  mu     <- prep$dpars$mu[, i]
+  phi    <- prep$dpars$phi
+  trials <- prep$data$vint1[i]
+  y      <- prep$data$Y[i]
+  beta_binomial2_lpmf(y, mu, phi, trials)
+}
+
+posterior_predict_beta_binomial2 <- function(i, prep, ...) {
+  mu     <- prep$dpars$mu[, i]
+  phi    <- prep$dpars$phi
+  trials <- prep$data$vint1[i]
+  beta_binomial2_rng(mu, phi, trials)
+}
+
+# required to use `fitted()`
+posterior_epred_beta_binomial2 <- function(prep) {
+  mu     <- prep$dpars$mu
+  trials <- prep$data$vint1
+  trials <- matrix(trials, nrow = nrow(mu), ncol = ncol(mu), byrow = TRUE)
+  mu * trials
+}
+```
+
+```{r}
+samples$predict <- predicted_draws(b12.1, newdata = dataAdmit)
+# samples$predict
+
+samples$predict_stats <- samples$predict %>%  ggdist::mean_qi(.width = 0.89) %>%
+  mutate(case = seq_len(n()),
+         p = .prediction / applications,
+         p_lower = .lower / applications,
+         p_upper = .upper / applications)
+
+samples$epred <- epred_draws(b12.1, newdata = dataAdmit)
+
+samples$epred_stats <- samples$epred %>%  ggdist::mean_qi(.width = 0.89) %>%
+  mutate(case = seq_len(n()),
+         p = .epred / applications,
+         p_lower = .lower / applications,
+         p_upper = .upper / applications)
+
+
+p <- list()
+p$plot <- ggplot(samples$predict_stats, aes(x = case, y = p)) +
+  geom_linerange(aes(ymin = p_lower, ymax = p_upper),
+                 size = 2.5, alpha = 1/3, color = "palegreen") +
+  geom_pointrange(samples$epred_stats,
+                  mapping = aes(x = case, y = p, ymin = p_lower, ymax = p_upper),
+                  size = 1, shape = 1, color = "lightyellow") +
+  geom_point(dataAdmit %>% mutate(case = seq_len(n())), 
+             mapping = aes(x = case, y = admit / applications),  
+             size = 2, color = "turquoise") +
+  scale_x_continuous(breaks = 1:12) +
+  scale_y_continuous(breaks = 0:5 / 5, limits = c(0, 1)) +
+  theme(legend.position = "none") +
+  labs(Title = "Admission data",
+       subtitle = "Posterior validation check",
+       y = "admittance probability")
+p$plot
+```
+
+### Negative-binomial or gamma-Poisson
+
+**You absolutely need to look at the Poisson-lognormal mixture in Kurtz's blog [Kurtz lognormal](https://solomonkurz.netlify.app/post/2021-07-12-got-overdispersion-try-observation-level-random-effects-with-the-poisson-lognormal-mixture/). See the added section below.**
+
+#### Gamma-Poisson distribution shape
+
+In terms of the shape $\alpha$ and rate $\beta$ the gamma distribution is
+
+$$
+\mathcal{Gamma}(y \mid\alpha, \beta) = \frac{\beta^\alpha y^{\alpha-1} e^{-\beta y}}{\Gamma(\alpha)}
+$$
+
+but the rate $\beta$ and scale $\theta$ are the reciprocal of each other. Therefore the gamma distribution can be expressed in terms of shape $\alpha$ and scale $\theta$ as
+
+$$
+\mathcal{Gamma}(y \mid\alpha, \theta) = \frac{y^{\alpha-1} e^{-\frac{y}{\theta}}}{\theta^\alpha\Gamma(\alpha)}
+$$
+
+and, also, the gamma distribution can be expressed in terms of mean $\mu$ and shape $\alpha$
+
+$$
+\mathcal{Gamma}(y \mid \mu, \alpha) = 
+\frac{(\frac{\alpha}{\mu})^\alpha}{\Gamma(\alpha)}
+y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
+$$ 
+
+To convert from the $\mu = mean$ and $\theta = dispersion= \frac{mean^2}{variance}$ to the shape and rate parameters we use the function `simstudy::gammaGetShapeRate()`. To help us find the mean and dispersion to use with `simstudy::gammaGetShapeRate()`, the custom function `gammaGetMeanDispersion` is also defined. It is the inverse of `simstudy::gammaGetShapeRate()`.
+
+```{r}
+# custom function which is the inverse function of gammaGetShapeRate()
+gammaGetMeanDispersion <- function(shape, rate) {
+  stopifnot(shape > 0, rate > 0)
+  dispersion <- 1 / shape
+  mean <- shape / rate
+  list("mean" = mean, "dispersion" = dispersion)
+}
+
+# test it
+prm <- list()
+prm <- within(prm, {
+  values <- list(mean = 1, dispersion = 10)
+  # get the shape and rate from the mean and dispersion
+  sr <- gammaGetShapeRate(mean = values$mean, dispersion = values$dispersion)
+  # using the inverse should take you back to the mean and dispersion
+  md <- gammaGetMeanDispersion(shape = sr$shape, rate = sr$shape)
+})
+# using the inverse should take you back to the mean and dispersion
+stopifnot(identical(prm$md, prm$values))
+```
+
+In the `dgamma` the shape parameter influence the rate which is equivalent to Poisson $lambda$
+
+```{r}
+p <- list()
+p$df <- crossing(shape = c(0.1, 0.25, 0.5, 0.75, 1, 2), 
+                 rate = c(1/10, 1/5, 1/2, 1)) %>%
+  expand(nesting(shape, rate), 
+         x = seq(from = 0, to = 5, length.out = 100)) %>%
+  mutate(density = dgamma(x, shape, rate),
+         shape_char    = paste("shape", shape, sep = "=="),
+         rate_char = paste("rate", rate, sep = "=="))
+```
+
+```{r}
+p$plot <- ggplot(data = p$df %>% filter(shape == 0.1, rate == 0.1),
+                 aes(x = x, y = density)) +
+  geom_area(fill = "orchid") +
+  scale_y_continuous(NULL, labels = NULL) +
+  labs(title = "Gamma prior with default values (shape = 0.1, rate = 0.1)",
+       x = "parameter space") +
+  theme(axis.ticks.y = element_blank())
+p$plot
+```
+
+and the plot with different values of sape and rate
+
+```{r}
+p$plot <- ggplot(data = p$df, aes(x = x, y = density, color = rate_char)) +
+  geom_line(size = 1) +
+  scale_y_continuous(NULL, labels = NULL) +
+  scale_color_paletteer_d("ggthemes::excel_Atlas") +
+  theme(axis.text.x = element_text(size = rel(0.8)),
+        axis.ticks.y = element_blank(),
+        legend.title = element_blank()) +
+  labs(title = "Gamma can take many shapes",
+       x = "parameter space") +
+  facet_wrap(. ~ shape_char, scales = "free_y", labeller = label_parsed)
+p$plot
+```
+
+#### Data
+
+```{r}
+data(Kline)
+dataKline <- Kline %>%
+  mutate(log_pop_s = log(population),
+         log_pop_s = as.vector(scale(log_pop_s)),
+         cid = factor(contact, levels = c("low", "high")))
+rm(Kline)
+skimr::skim(dataKline)
+```
+
+#### Null model {.unnumbered}
+
+> This section is important as it serves to evaluate the prior to use for the full model. See how @kurtz2020b does it. My work below does not show everything (yet).
+
+Start with the null model, or as Kurtz calls it, the intercept-only model.
+
+$$
+\begin{align*}
+total\_tools_i &\sim \mathcal{GammaPoisson}(\mu, \alpha) \\
+log(\mu) &= \beta_0 \\
+\beta_0 &\sim \mathcal{Normal}(3, 0.5) \\
+\alpha &\sim \mathcal{Gamma}(0.01,0.01)
+\end{align*}
+$$
+
+and the fit with `brm`
+
+```{r}
+stop("TODO")
+a_file <- here::here("fits", "b12_02a.qs")
+b12.2a <- qread(a_file)
+# b12.2a <- brm(data = dataKline,
+#       family = negbinomial,
+#       total_tools ~ 1,
+#       prior = c(prior(normal(3, 0.5), class = Intercept),  # beta_0
+#                 prior(gamma(0.01, 0.01), class = shape)),  # alpha
+#       cores = detectCores(),
+#       seed = 12)
+# b12.2a <- brms::add_criterion(b12.2a, criterion = c("waic", "loo"))
+# qsave(b12.2a, a_file)
+summary(b12.2a)
+```
+
+and the fit with `ulam`
+
+```{r}
+a_file <- here::here("fits", "m12_02a.qs")
+m12.2a <- qread(a_file)
+# m12.2a <- ulam(
+#   data = dataKline,
+#   flist = alist(
+#     total_tools ~ dgampois(mu, scale),
+#     log(mu) <- a,
+#     a ~ dnorm(3, 0.5),
+#     scale ~ dexp(1)
+#   ),
+#   log_lik = TRUE
+# )
+# qsave(m12.2a, a_file)
+summary(m12.2a)
+```
+
+```{r}
+posterior_summary(b12.2a)
+```
+
+```{r}
+precis(m12.2a)
+```
+
+```{r}
+m <- posterior_summary(b12.2a)["b_Intercept", "Estimate"]
+m
+s <- posterior_summary(b12.2a)["shape", "Estimate"]
+d <- s
+simstudy::gammaGetShapeRate(mean = m, dispersion = d)
+```
+
+Because the model has only the intercept and no predictor, there is only one value for the Intercept which is the mean of the 10 Poisson rates $\lambda_i, i =1,...10$.
+
+The $alpha$ is simply the $shape$ parameter of gamma ... and does not really describe anything. It is really used to define the shape of the distribution.
+
+And the prediction plots show that the distributions all use the same rate and shape.
+
+```{r}
+samples <- list()
+samples$data <- predicted_draws(b12.2a, newdata = dataKline)
+ggplot(samples$data, aes(.prediction, color = culture)) +
+  geom_density(size = 1) +
+  scale_y_continuous(NULL, labels = NULL) +
+  scale_color_paletteer_d("khroma::soil") +
+  theme(axis.text.x = element_text(size = rel(0.8)),
+        axis.ticks.y = element_blank(),
+        legend.position = "none") +
+  labs(title = "Predictive distributions",
+       x = "total tools") +
+  facet_wrap(. ~ culture)
+```
+
+and we can also visualize the distributions of our $rate$ and $shape$ parameters
+
+```{r}
+samples <- list()
+samples$data <- as_draws_df(b12.2a) %>%
+  select(b_Intercept, shape) %>%
+  mutate(mu = exp(b_Intercept),
+         theta = mu / shape) %>%
+  select(mu, shape, theta) %>%
+  pivot_longer(cols = everything())
+# str(samples$data)
+ggplot(samples$data, aes(value, fill = name, color = name)) +
+  geom_density(geom = "area") +
+  scale_y_continuous(NULL, labels = NULL) +
+  scale_fill_paletteer_d("fishualize::Scarus_quoyi") +
+  scale_color_paletteer_d("fishualize::Scarus_quoyi") +
+  theme(axis.text.x = element_text(size = rel(0.8)),
+        axis.ticks.y = element_blank(),
+        legend.position = "none") +
+  labs(title = "Posterior distributions of rate and shape",
+       x = NULL) +
+  facet_wrap(. ~ name, scales = "free_y")
+```
+
+#### Full model {.unnumbered}
+
+$$
+\begin{align*}
+total\_tools_i &\sim \mathcal{GammaPoisson}(\mu_i, \alpha) \\
+log(\mu) &= \frac{\exp{(\beta_{0,cid[i]})} \cdot population_i^{\beta_{1,cid[i]}}}{\gamma} \\
+\beta_{0,j} &\sim \mathcal{Normal}(1, 1) \\
+\beta_{1,j} &\sim \mathcal{Exponential}(1) \\
+\gamma &\sim \mathcal{Exponential}(1) \\
+\alpha &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+```{r}
+a_file <- here::here("fits", "b12_02b.qs")
+b12.2b <- qread(a_file)
+# b12.2b <- brm(data = dataKline,
+#       family = negbinomial(link = "identity"),
+#       bf(total_tools ~ exp(b0) * population^b1 / g,
+#          b0 + b1 ~ 0 + cid,
+#          g ~ 1,
+#          nl = TRUE),
+#       prior = c(prior(normal(1, 1), nlpar = b0),
+#                 prior(exponential(1), nlpar = b1, lb = 0),
+#                 prior(exponential(1), nlpar = g, lb = 0),
+#                 prior(exponential(1), class = shape)),
+#       cores = detectCores(),
+#       seed = 12,
+#       control = list(adapt_delta = .95))
+# we have to be careful when using waic with gamma-Poisson
+# but in this case we do it. We use t in the plot.
+# b12.2b <- brms::add_criterion(b12.2b, criterion = c("waic", "loo"))
+# qsave(b12.2b, a_file)
+summary(b12.2b)
+```
+
+add the *pareto k* for use in the plot later
+
+```{r}
+# append k value to data
+dataKline <- dataKline %>%
+  mutate(ParetoK = b12.2b$criteria$loo$diagnostics$pareto_k)
+stopifnot(!any(is.na(dataKline)))
+
+dataKline %>%
+  select(culture, ParetoK) %>%
+  arrange(desc(ParetoK))
+```
+
+and the fitted values are
+
+```{r}
+fitted <- list()
+fitted <- within(fitted, {
+  newdata <- dataKline %>%
+  distinct(cid, culture) %>%
+  expand(nesting(cid, culture), 
+         population = seq_range(dataKline$population, n = 20, pretty = TRUE))
+  
+  data <- epred_draws(b12.2b, newdata = newdata) %>%
+    as.data.frame()
+  
+  stats <- data %>%
+    select(cid, population, .epred) %>%
+    group_by(cid, population) %>%
+    ggdist::mean_qi(.width = 0.89)
+})
+  
+p <- list()
+p$poisgamma <- ggplot(dataKline,
+                aes(x = population, y = total_tools, color = cid, size = ParetoK)) +
+  geom_smooth(fitted$stats,
+              mapping = aes(x = population, y = .epred, ymin = .lower,
+                            ymax = .upper, fill = cid, color = cid),
+              inherit.aes = FALSE, stat = "identity") +
+  geom_point(show.legend = FALSE) +
+  ggrepel::geom_text_repel(aes(label = culture), size = 3) +
+  scale_x_continuous(breaks = scales::breaks_extended(n = 5),
+                     labels = scales::label_number(scale = 0.001)) +
+  scale_color_paletteer_d("khroma::light") +
+  scale_fill_paletteer_d("khroma::light") +
+  scale_size_continuous() +
+  theme(legend.position = c(0.2, 0.85)) +
+  labs(title = "Fitted values with the gamma-Poisson model",
+       subtitle = "model b12.2b",
+       x = "population in thousands")
+p$poisgamma
+```
+
+the main difference now is that since we use predictor $cid$ then the parameter $rate = b_0$ of the gamma distribution used to determined the $\lambda_i$ is allowed to vary by $cid$. Therefore we have different distribution possible by $cid$ and can change the distribution by culture as follows.
+
+```{r}
+predict <- list()
+predict <- within(predict, {
+  newdata <- dataKline %>%
+  distinct(cid, culture) %>%
+  expand(nesting(cid, culture), 
+         population = seq_range(dataKline$population, n = 20, pretty = TRUE))
+  
+  data <- predicted_draws(b12.2b, newdata = newdata) %>%
+    as.data.frame()
+})
+# str(predict$data)
+
+ggplot(predict$data, aes(x = .prediction, color = cid, fill = cid)) +
+  geom_density() +
+  scale_color_paletteer_d("khroma::light") +
+  scale_fill_paletteer_d("khroma::light") +
+  coord_cartesian(xlim = c(0, 200)) +
+  theme(axis.text.x = element_text(size = 8),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  labs(title = "Predictive distributions by culture colored by cid",
+       subtitle = "model b12.2b", x = "total tools", y = NULL) +
+  facet_wrap(. ~ culture)
+```
+
+### Poisson-lognormal {.unnumbered}
+
+This is an extra section. The result is so useful it is worth adding here. See [Kurtz lognormal](https://solomonkurz.netlify.app/post/2021-07-12-got-overdispersion-try-observation-level-random-effects-with-the-poisson-lognormal-mixture/).
+
+it was also saved in a local file called **Poisson-lognormal_mixture_Solomon Kurz.html** in \*\*C:\Users\Public\MyStudies\Rethinking\_docs\*\*
+
+## Zero-inflated outcomes
+
+> Make sure you read this section in @kurtz2020b. It is loaded with very useful informations. Especially when using `brms`.
+
+### Zero-inflated Poisson
+
+This tpe oof model is called a *hurdle model* in the literature. This type of model has served me very well in the context of business.
+
+With zero-inflated Poisson both parameters $p$ and $\lambda$ can have their own equation.
+
+$$
+\begin{align*}
+prod_i &\sim \mathcal{ZIPoisson}(p_i, \lambda_i) \\
+logit(p_i) &= \alpha_p + \beta_p x_i \\
+log(\lambda_i) &= \alpha_\lambda + \beta_\lambda x_i \\
+\end{align*}
+$$
+
+We use `simstudy` to simulate this.
+
+```{r}
+sim <- list()
+sim <- within(sim, {
+  defs <- defData(varname = "drink", dist = "categorical", formula = "0.8;0.2")
+  defs <- defData(defs, varname = "work", dist = "poisson", formula = 1)
+  defs <- defData(defs, varname = "output", dist = "nonrandom", 
+                  formula ="(2 - drink) * work")
+  data <- genData(n = 365, dtDefs = defs)
+  data <- genFactor(data, varname = "drink", labels = c("drinkNot", "drink"))
+})
+dataMonastery <- as.data.frame(sim$data)
+```
+
+plot the data
+
+```{r}
+ggplot(dataMonastery, aes(x = output)) +
+  geom_histogram(aes(fill = fdrink), binwidth = 1) +
+  scale_fill_paletteer_d("khroma::vibrant") +
+  stat_bin(aes(y = ..count.., label = ifelse(..count.., ..count.., "")), 
+           geom = "text", color = "ghostwhite", vjust = -0.5) +
+  theme(legend.position = c(0.8, 0.8),
+        legend.title = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank()) +
+  labs(title = "Frequency of monastery's output",
+       subtitle = sprintf("output for %d days", nrow(sim$data)),
+       y = "nb of days")
+```
+
+#### Model and fit
+
+$$
+\begin{align*}
+prod_i &\sim \mathcal{ZIPoisson}(p, \lambda) \\
+logit(p) &= \alpha_p \\
+log(\lambda) &= \alpha_\lambda \\
+\alpha_p &\sim \mathcal{Beta}(2, 6) \\
+\alpha_\lambda &\sim \mathcal{N}(1, 0.5)
+\end{align*}
+$$
+
+In `brms`, $p_i$ is denoted `zi`. To use a non-default prior for `zi`, make sure to indicate `class = zi`. **Important to read @kurtz2020b**.
+
+```{r}
+a_file <- here::here("fits", "b12_03.qs")
+b12.3 <- qread(a_file)
+# b12.3 <- brm(data = dataMonastery,
+#       family = zero_inflated_poisson,
+#       output ~ 1,
+#       prior = c(prior(normal(1, 0.5), class = Intercept),
+#                 prior(beta(2, 6), class = zi)),  # the brms default is beta(1, 1)
+#       cores = detectCores(),
+#       seed = 12)
+# b12.3 <- add_criterion(b12.3, criterion = c("waic", "loo"))
+# qsave(b12.3, a_file)
+summary(b12.3)
+```
+
+and we generate a summary with `posterior::summarize_draws`
+
+```{r}
+samples <- list()
+samples$data <- as_draws(b12.3) %>%
+  mutate_variables(lambda = exp(b_Intercept))
+samples$stats <- samples$data %>%
+  summarize_draws() %>%
+  filter(variable != "lp__") %>%
+  mutate(across(.cols = where(is.numeric), round, digits = 2))
+samples$stats
+```
+
+The $b_Intercept$ represents $\lambda$ on the log scale, because the link function for $\lambda$. This can be confirm by looking at the summary which shows **Links: mu = log; zi = identity**.
+
+We observe that $lambda$ matches the actual rate of our simulation with `defData(defs, varname = "work", dist = "poisson", formula = 1)`.
+
+When using `brms` the parameter $zi$ has link function *identity* as evidenced in the summary by **Links: mu = log; zi = identity**. In this case we have obtained $zi = 0.20$ which is close enough to McEleath's estimate of 0.23.
+
+We observe that $zi$ is the actual rate of our simulation with `defData(varname = "drink", dist = "categorical", formula = "0.8;0.2")`.
+
+## Ordered categorical outcomes
+
+### Example: Moral intuition
+
+```{r}
+data(Trolley)
+dataTrolley <- Trolley %>%
+  mutate(response = factor(response, ordered = TRUE))
+rm(Trolley)
+skimr::skim(dataTrolley)
+```
+
+and we can describe the data using the `summarytools` which does a great job at creating that sort or report.
+
+### Describing and ordered distribution with intercepts
+
+The histogram of response
+
+```{r}
+p <- list()
+p$df <- dataTrolley %>%
+  count(response)
+p$freq <- ggplot(p$df, aes(x = response, y = n, fill = response)) +
+  geom_bar(stat = "identity") +
+  scale_fill_paletteer_d(palette = "khroma::discrete_rainbow") +
+  theme(legend.position = "none") +
+  labs(title = "Histogram of Trolley responses")
+# p$freq
+```
+
+The cumulative proportions plot
+
+```{r}
+p$df2 <- dataTrolley %>%
+  count(response) %>%
+  arrange(response) %>%
+  mutate(pct = n / sum(n),
+         cum_pct = cumsum(pct))
+p$cumfreq <- ggplot(p$df2, aes(x = as.integer(response), y = cum_pct)) +
+  geom_line(color = "yellow", size = 1) +
+  geom_point(color = "orange", size = 2) +
+  labs(title = "Cumulative proportions", 
+       x = "response", y = "cumulative probabilities")
+# p$cumfreq
+```
+
+And the plot of `logit`
+
+```{r}
+p$df3 <- dataTrolley %>%
+  count(response) %>%
+  mutate(pct = n / sum(n),
+         cum_pct = cumsum(pct),
+         logit = log(cum_pct / (1 - cum_pct)),
+         logit_ctr = scale(logit, center = TRUE, scale = FALSE))
+# d.p3
+p$center <- ggplot(p$df3, aes(x = as.integer(response), y = logit)) +
+  geom_line(color = "pink", size = 1) +
+  geom_point(color = "violetred", size = 2) +
+  #   scale_x_continuous(breaks = scales::breaks_width(width = 1)) +
+  # scale_y_continuous(breaks = scales::breaks_width(width = 1)) +
+  labs(title = "Log of Cumulative Odds",
+       y = "log of cumulative odds (centered)")
+# p$center
+```
+
+and the 3 plots in figure 12.4 are
+
+```{r}
+(p$freq + p$cumfreq + p$center) +
+  plot_annotation(title = "Figure 12.4")
+```
+
+The model is
+
+$$
+\begin{align*}
+response_i &\sim \mathcal{Categorical}(\overrightarrow{p}) \\
+logit(p_k) &= \alpha_k - \phi \\
+\phi &= 0 \\
+\alpha_k &\sim \mathcal{N}(0, 1.5)
+\end{align*}
+$$ and the fit with brms
+
+```{r}
+# define start values
+inits <- list(
+  `Intercept[1]` = -2,
+  `Intercept[2]` = -1,
+  `Intercept[3]` = 0,
+  `Intercept[4]` = 1,
+  `Intercept[5]` = 2,
+  `Intercept[6]` = 2.5
+)
+inits_list <- list(inits, inits, inits, inits)
+a_file <- here::here("fits", "b12_04.qs")
+b12.4 <- qread(a_file)
+# message("This takes at least 5 min.")
+# b12.4 <- brm(
+#   data = dataTrolley,
+#   family = cumulative,
+#   response ~ 1,
+#   prior = c(
+#     prior(normal(0, 1.5), class = Intercept)),
+#   cores = detectCores(),
+#   # the start values
+#   inits = inits_list,
+#   seed = 12)
+# b12.4 <- add_criterion(b12.4, c("loo", "waic"))
+qsave(b12.4, a_file)
+```
+
+which gives the summary
+
+```{r}
+print(b12.4)
+```
+
+and we convert the intercepts to the normal scale
+
+```{r}
+b12.4 %>%
+  fixef() %>%
+  brms::inv_logit_scaled()
+
+b12.4 %>%
+  fixef() %>%
+    gtools::inv.logit()
+```
+
+**Important:** The SD i.e. `Est.Error` are not valid using the `inv_logit_scaled`, that is using a direct inverse exp function.
+
+They must be computed using a posterior sample.
+
+```{r}
+samples <- list()
+samples <- within(samples, {
+  data <- as_draws(b12.4) %>%
+    as.data.frame()
+  summ <- data %>%
+    select(!matches(match = "disc|lp__")) %>%
+    mutate(across(.cols = where(is.double), .fns = ~gtools::inv.logit(.))) %>%
+    pivot_longer(cols = everything()) %>%
+    mutate(name = sub(pattern = "^X[[:digit:]][.]b_", replacement = "", x = name),
+           name = sub(pattern = "[.]$", replacement = "]", x = name),
+           name = sub(pattern = "[.]", replacement = "[", x = name)) %>%
+    group_by(name) %>%
+    ggdist::mean_qi(.width = 0.95)
+})
+# glimpse(samples$data)
+# glimpse(samples$summ)
+samples$summ
+```
+
+and to validate our fit, we see that the $value$ in the summary is the same as the $cum_pct$ previously computed.
+
+```{r}
+p$df3$cum_pct
+```
+
+### Adding predictor variables
+
+> This form automatically ensure the correct ordering of the outcome values, while still morphing the likelihood of each individual valueas the predictor $x_i$ changes value. Why is the linear model $\phi$ substracted from each intercept? Because if we decrease the log-cumulative-odds of every outcome value $k$ below the maximum, this necessarily shifts probability mass upwards towards higher outcome values.
+
+$$
+\begin{align*}
+\log{\left[ \frac{Pr(y_i \le k)}{1-Pr(y_i \le k)} \right]} &= \alpha_k - \phi_i \\
+\phi_i &= \beta x_i
+\end{align*}
+$$
+
+For example lets take model b12.4
+
+```{r}
+fixef(b12.4)
+```
+
+#### Logistic / Logit functions
+
+See the appendix A of this book for a detailed treatment of all these functions. They will be added the suffix *.new* to identify them.
+
+The `logistic()` and `inv_logit()` functions are actually the same as `stats::plogis()`.
+
+Also, the function `logit()` already exists as `stats::qlogis()`.
+
+therefore `dordlogit()` as given
+
+```{r}
+dordlogit.new <- function(x, phi = 0L, log = FALSE) {
+  x <- sort(x)  # the ordering is important
+  p <- stats::plogis(q = c(x, Inf), location = phi)
+  p <- c( p[1], p[2:length(p)] - p[1:(length(p)-1)] )
+  if (log) p <- log(p)
+  p
+}
+```
+
+which gives about the same result as R code 11.9 in McElreath on p. 386 with R code 12.20, and Kurtz.
+
+```{r}
+probk <- dordlogit.new(fixef(b12.4)[, 1])
+round(probk, 2)
+```
+
+which gives and expected value of
+
+```{r}
+sum(1:7 * probk)
+```
+
+#### Subsracting from the log-cumulative odds
+
+If we substract from the *log-cumulative odds* then we shift the probability mass to higher outcome values.
+
+For example with model b12.4
+
+```{r}
+probk <- dordlogit.new(fixef(b12.4)[, 1])
+round(probk, 2)
+```
+
+which gives an expected value
+
+```{r}
+sum(1:7 * probk)
+```
+
+but if we substract 0.5
+
+```{r}
+(dordlogit.new(fixef(b12.4)[, 1], phi = 0.5))
+```
+
+then we have a higher expected value
+
+```{r}
+sum(dordlogit.new(fixef(b12.4)[, 1], phi = 0.5) * 1:7)
+```
+
+#### Ordered categorical with several predictors
+
+Our model with several predictors is
+
+$$
+\begin{align*}
+response_i &\sim Categorical(\overrightarrow{p}) \\
+logit(Pr(y_i \leq k)) &= \frac{Pr(y_i \leq k)}{1 - Pr(y_i \leq k)}  = \alpha_k - \phi_i \\
+\phi_i &= \beta_{action} \cdot action_i + \beta_{intention} \cdot intention_i +  \beta_{contact} \cdot contact_i + \beta{a,i} \cdot(action_i \times intention_i) +
+\beta{c,i} \cdot(contact_i \times intention_i) \\
+\alpha_k &\sim \mathcal{N}(0, 1.5) \\
+\beta_{\bullet} &\sim \mathcal{N}(0, 0.5)
+\end{align*}
+$$
+
+and the fit is
+
+```{r}
+a_file <- here::here("fits", "b12_05.qs")
+b12.5 <- qread(a_file)
+# message("This takes at least 10 min.")
+# b12.5 <- brms::brm(data = d,
+#                    family = cumulative,
+#                    formula = response ~ 1 + action + intention + contact + 
+#                      action:intention + contact:intention,
+#                    prior = c(prior(normal(0, 1.5), class = Intercept),
+#                              prior(normal(0, 0.5), class = b)),
+#                    cores = detectCores(),
+#                    # inits = list(inits, inits),
+#                    seed = 12)
+# b12.5 <- add_criterion(b12.5, c("loo", "waic"))
+# qsave(b12.5, a_file)
+summary(b12.5)
+```
+
+and plot the coefficients
+
+```{r}
+get_variables(b12.5)
+```
+
+```{r}
+labs <- paste0("beta[", 1:5, "]")
+
+b12.5_post <- gather_draws(model = b12.5, `b_action.*`, `b_contact.*`, `b_intention.*`,
+                           regex = TRUE)
+
+ggplot(b12.5_post, aes(x = .value, y = .variable)) +
+  geom_vline(xintercept = 0, alpha = 1/5, linetype = 3) +
+  stat_gradientinterval(.width = .5, size = 1, point_size = 3/2, shape = 21,
+                      point_fill = "darkgreen",
+                      fill ="green",
+                      color = "darkgreen") +
+  scale_x_continuous("marginal posterior", breaks = -5:0 / 4) +
+  coord_cartesian(xlim = c(-1.4, 0)) +
+  labs(x = "marginal posterior", y = NULL,
+       title = "Model b12.5 coefficients")
+```
+
+## Ordered categorical predictors
+
+### Dirichlet distribution
+
+The Dirichlet distribution, used in this section, can be illustrated as follows
+
+```{r}
+set.seed(1805)  # seed from McElreath
+dp <- gtools::rdirichlet(10, alpha = rep(2, 7))  %>%
+  data.frame() %>%
+  setNames(1:7) %>%
+  mutate(row = seq_len(nrow(.))) %>%
+  pivot_longer(cols = -row, names_to = "index", values_to = "prob")
+
+ggplot(dp, aes(x = index, y = prob, group = row)) +
+  geom_line(aes(color = row == 3)) +
+  geom_point(aes(color = row == 3)) +
+  scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "lightgreen")) +
+  theme(legend.position = "none") +
+  labs(title = "Dirichlet distribution",
+       subtitle = "Figure 12.7",
+       x = "index of variable in vector",
+       y = "probability")
+```
+
+NOTE: The `brms` package also has a `rdirchlet()` function which is very useful when investigating priors. See @kurtz2020b for details.
+
+### Data
+
+```{r}
+data(Trolley)
+d <- Trolley
+rm(Trolley)
+d <- d %>% 
+  mutate(edu_new = 
+           recode_factor(edu,
+                  "Elementary School" = 1,
+                  "Middle School" = 2,
+                  "Some High School" = 3,
+                  "High School Graduate" = 4,
+                  "Some College" = 5, 
+                  "Bachelor's Degree" = 6,
+                  "Master's Degree" = 7,
+                  "Graduate Degree" = 8,
+                  .ordered = TRUE) %>% 
+           as.integer())
+
+d %>% 
+  distinct(edu, edu_new) %>% 
+  arrange(edu_new)
+```
+
+### Model and fit
+
+The model is
+
+$$
+\begin{align*}
+response_i &\sim \mathcal{Categorical}(\overrightarrow{\textbf{p}}) \\
+logit(p_k) &= \alpha_k - \phi_i \\
+\phi_i &= \beta_E \sum_{j=0}^{E_i-1} \delta_j + \beta_A \cdot action_i + \beta_I \cdot intention_i + \beta_C \cdot contact_i \\
+\alpha_k &\sim \mathcal{N}(0,1.5) \\
+\beta_A, \beta_I, \beta_C &\sim \mathcal{N}(0,1) \\
+\beta_E &\sim \mathcal{N}(0, 0.143) \\
+\overrightarrow{\mathbf{\delta}} &\sim \mathcal{Dirichlet}([2,2,2,2,2,2,2])
+\end{align*}
+$$
+
+```{r}
+a_file <- here::here("fits", "b12_06.qs")
+b12.6 <- qread(a_file)
+# message("This takes at least 90 minutes. Yes, 90 min.")
+# b12.6 <- brm(data = d,
+#       family = cumulative,
+#       response ~ 1 + action + contact + intention + mo(edu_new),  # note the `mo()` syntax
+#       prior = c(prior(normal(0, 1.5), class = Intercept),
+#                 prior(normal(0, 1), class = b),
+#                 # note the new kinds of prior statements
+#                 # for monotonic variable edu_new
+#                 prior(normal(0, 0.143), class = b, coef = moedu_new),
+#                 prior(dirichlet(2, 2, 2, 2, 2, 2, 2), class = simo, coef = moedu_new1)),
+#       cores = detectCores(),
+#       seed = 12)
+# b12.6 <- add_criterion(b12.6, c("loo", "waic"))
+# qsave(b12.6, a_file)
+summary(b12.6)
+```
+
+```{r}
+delta_labels <- c("Elem", "MidSch", "SHS", "HSG", "SCol", "Bach", "Mast", "Grad")
+
+dp <- posterior_samples(b12.6) %>% 
+  select(contains("simo_moedu_new1")) %>% 
+  setNames(paste0(delta_labels[2:8], "~(delta[", 1:7, "])"))
+
+GGally::ggpairs(dp, labeller = label_parsed) +
+  ggthemes::theme_hc() +
+  theme(strip.text = element_text(size = 8))
+```
+
+## Summary
