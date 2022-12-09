@@ -1,0 +1,727 @@
+
+# Multilevel Models {#MLM}
+
+```{r}
+#| include: false
+library(dplyr)
+library(tidyr)
+library(tidybayes)
+library(rethinking)
+library(brms)
+library(qs)
+library(loo)
+library(modelr)
+library(simstudy)
+library(posterior)
+library(scales)
+library(dagitty)
+library(ggdag)
+library(ggdist)
+library(ggmcmc)
+library(bayesplot)
+library(patchwork)
+library(paletteer)
+```
+
+```{r}
+# these options help stan run faster
+# source: http://mjskay.github.io/tidybayes/articles/tidy-brms.html
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+```
+
+
+
+We set the current theme used for plotting
+
+```{r}
+theme_set(ggthemes::theme_solarized_2())
+# theme_set(
+#   ggthemes::theme_solarized_2(light = TRUE) +
+#   theme(strip.background = element_rect(fill = "darkgrey"))
+#   )
+```
+
+```{r}
+# data(iris)
+# ggplot(iris, aes(x = Petal.Length, y = Sepal.Length, color = Species)) +
+#   geom_point() +
+#   labs(title = "Iris dataset", subtitle = sprintf("%d lines", nrow(iris)))
+```
+
+## Example: Multilevel tadpoles
+
+```{r}
+data(reedfrogs)
+dataFrogs <- reedfrogs %>%
+  mutate(tank = seq_len(n()),
+         tank = factor(tank))
+rm(reedfrogs)
+skimr::skim(dataFrogs)
+```
+
+with the plot of data
+
+```{r}
+plotFrogs <- ggplot(dataFrogs, aes(x = as.integer(tank), y = propsurv)) +
+  geom_point(color = "sienna") +
+  geom_hline(yintercept = 0.8, color = "sienna1", linetype = "dashed") +
+  geom_vline(xintercept = c(16.5, 32.5), size = 1/3, color = "sienna1") +
+  scale_x_continuous(breaks = c(1, 16, 32, 48)) +
+  scale_y_continuous(breaks = scales::breaks_width(width = 0.2),
+                     labels = scales::label_percent(accuracy = 1)) +
+  annotate(geom = "text",
+           x = c(8, 16 + 6, 32 + 8), y = 0,
+           label = c("small tanks", "medium tanks", "large tanks"),
+           color = "midnightblue") +
+  theme(axis.text.x = element_text(size = rel(1))) +
+  labs(title = "Tadpole tanks",
+       subtitle = sprintf("%d data points", nrow(dataFrogs)),
+       x = "tank", y = "proportion survival")
+plotFrogs
+```
+
+### Simple
+
+and the model, without multilevel effect, is
+
+$$
+\begin{align*}
+surv_i &\sim \mathcal{Binomial}(n_i, p_i) \\
+logit(p_i) &= \alpha_{tank[i]} \\
+\alpha_{tank} &\sim \mathcal{N}(0, 1.5)
+\end{align*}
+$$
+
+and we fit this
+
+```{r ch13_b13_01}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b13.1 <- xfun::cache_rds({
+  out <- brm(
+    data = dataFrogs,
+    family = binomial,
+    surv | trials(density) ~ 0 + tank,
+    prior = c(prior(normal(0, 1.5), class = b)),
+    cores = detectCores(), seed = 13)
+  out <- add_criterion(out, c("loo", "waic"))
+  out},
+  file = "ch13_b13_01")
+tictoc::toc()
+```
+
+We will strive to use `tidybayes` and `posterior` whenever possible instead of solutions such as `coef[]`, `fixef` and `ranef`. It is the recommended way in documentation from `brms` and makes the work much easier.
+
+```{r}
+get_variables(b13.1)
+```
+
+```{r}
+b13.1 %>%
+  as_draws() %>%
+  summarize_draws()
+```
+
+and visualize the intercepts which correspond to the logit of the probabilities.
+
+```{r}
+p <- list()
+p <- within(p, {
+  data <- b13.1 %>%
+    as_draws() %>%
+    summarize_draws() %>%
+    filter(variable != "lp__") %>%
+    select(variable, a = mean) %>%
+    mutate(p = gtools::inv.logit(a)) %>%
+    rename(exp_surv_log_odds = a, exp_surv_prob = p) %>%
+    pivot_longer(cols = c(exp_surv_log_odds, exp_surv_prob))
+  plot <- ggplot(data, aes(x = value, fill = name, color = name)) + 
+    geom_dotplot() +
+    scale_fill_manual(values = c("orange1", "orange4")) +
+    scale_color_manual(values = c("orange1", "orange4")) +
+    scale_y_continuous(breaks = NULL) +
+    theme(legend.position = "none") +
+    labs(title = "Tank-level intercepts from the no-pooling model",
+         x = NULL, y = NULL) +
+    facet_wrap(. ~ name, scales = "free_x")
+})
+p$plot
+```
+
+### Multilevel
+
+and now the multilevel model
+
+$$
+\begin{align*}
+surv_i &\sim \mathcal{Binomial}(n_i, p_i) \\
+logit(p_i) &= \alpha_{tank[i]} \\
+\alpha_j &\sim \mathcal{N}(\bar{\alpha}, \sigma) \\
+\bar{\alpha} &\sim \mathcal{N}(0, 1.5) \\
+\sigma &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+and the fit is as follows. Note the prior `prior(exponential(0, 1), class = sd)` *which is parametrized in the standard deviation metric* (Kurtz). It is common for multilevel software to model the variance metric. This will be further explained in chapter 14.
+
+```{r ch13_b13_02}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b13.2 <- xfun::cache_rds({
+  out <- brm(
+    data = dataFrogs,
+    family = binomial,
+    surv | trials(density) ~ 1 + (1 | tank),
+    prior = c(prior(normal(0, 1.5), class = Intercept),
+            prior(exponential(1), class = sd)),
+    cores = detectCores(),
+    sample_prior = TRUE, seed = 13)
+  out <- add_criterion(out, c("loo", "waic"))
+  out},
+  file = "ch13_b13_02")
+tictoc::toc()
+summary(b13.2)
+```
+
+```{r}
+get_variables(b13.2)
+```
+
+```{r}
+b13.2 %>%
+  as_draws() %>%
+  subset_draws(variable = "tank\\[", regex = TRUE) %>%
+  summarize_draws(mean, median, sd, mad, ~quantile2(., probs = c(0.055, 0.945))) %>%
+  mutate(tank = as.integer(regmatches(variable, regexpr(pattern = "[[:digit:]]+", variable)))) %>%
+  relocate(tank)
+```
+
+### Comparison
+
+and compare the models
+
+```{r}
+loo_compare(b13.1, b13.2, criterion = "waic")
+```
+
+and convert the elpd_diif to the waic metric
+
+```{r}
+loo_compare(b13.1, b13.2, criterion = "waic") %>%
+  as.data.frame() %>%
+  mutate(waic_diff = elpd_diff * -2,
+         waic_diff_se = se_diff * 2) %>%
+  select(elpd_diff, se_diff, waic_diff, waic_diff_se)
+```
+
+```{r}
+model_weights(b13.1, b13.2, weights = "waic") %>%
+  round(digits = 2)
+```
+
+### Posterior distribution
+
+```{r}
+summary(b13.2)
+```
+
+This time we don't have a list of intercepts as in `b13.2`. We have a descripion of their distribution $\alpha_j \sim \mathcal{N}(\bar{\alpha}, \sigma)$ where $Intercept = \bar{\alpha}$ and $sd(Intercept) = \sigma$.
+
+The task of getting the posterior is easier with `tidybayes` and `posterior` than the way McElreath and Kurtz do it.
+
+```{r}
+# IMPORTANT: We use the median value, not the mean because of skewed
+#            binomial dist. You don't always have to use the mean!
+fitted <- list()
+fitted <- within(fitted, {
+  newdata <- dataFrogs
+  data <- epred_draws(b13.2, newdata = newdata) %>%
+    as.data.frame() %>%
+    select(tank, density, .epred) %>%
+    mutate(prop = .epred / density) %>%
+    group_by(tank) %>%
+    summarize(surv_prop = median(prop))
+})
+# fitted$data
+```
+
+```{r}
+plotFrogs +
+  geom_point(fitted$data, mapping = aes(x = as.integer(tank), y = surv_prop),
+             inherit.aes = FALSE, shape = 1, size = 2, color = "darkorange")
+```
+
+First, we take a sampling of size 100 of the 4000 draws from the posterior sample with `slice_sample(n = 100)`.
+
+Second, to simulate the **distribution** of the logodds values described by the `b_Intercept` and `tank_Intercepts` of **each draw** we create a sequence of 100 logodds values between -4 and 5 (based on the acutal range of -2, 3.5 shown just above) which is done by `expand(nesting(iter, b_Intercept, sd_tank__Intercept), x = seq(from = -4, to = 5, length.out = 100))` and which will result in 10000 lines.
+
+Third, we compute the normal density for each of the 10000 lines using the `b_Intercept` and `tank_Intercepts` of each line. The normal density is used because the model is $\alpha_{tank} \sim \mathcal{N}(0, 5)$ and $\alpha \sim \mathcal{N}(0, 1)$. This is done with
+
+```{r}
+samples <- list()
+samples <- within(samples, {
+  data1 <- as_draws_df(b13.2) %>%
+    slice_sample(n = 100) %>%
+    expand(nesting(.draw, b_Intercept, sd_tank__Intercept),
+           x = seq(from = -4, to = 5, length.out = 100)) %>%
+    mutate(density = dnorm(x, mean = b_Intercept, sd = sd_tank__Intercept))
+  data2 <- as_draws_df(b13.2) %>%
+    slice_sample(n = 1000, replace = TRUE) %>%
+    mutate(p_logit = rnorm(n(), mean = b_Intercept, sd = sd_tank__Intercept),
+           p = gtools::inv.logit(p_logit))
+  
+  p1 <- ggplot(data1, aes(x = x, y = density, group = .draw)) +
+    geom_line(alpha = .2, color = "sienna2") +
+    scale_y_continuous(NULL, breaks = NULL) +
+    coord_cartesian(xlim = c(-3, 4)) +
+    labs(title = "Population survival distribution",
+         subtitle = "log-odds scale", x = NULL, y = NULL)
+  
+  p2 <-  ggplot(data2, aes(x = p)) +
+    geom_density(size = 0, fill = "sienna2", color = "sienna2", adjust = 0.1) +
+    scale_y_continuous(NULL, breaks = NULL) +
+    labs(title = "Probability of survival",
+         subtitle = "transformed by the inverse-logit function",
+         x = NULL, y = NULL)
+})
+wrap_plots(samples$p1, samples$p2)
+```
+
+To improve the model you could use Half-Normal (or Half-Cauchy) instead of exponential, and now the multilevel model
+
+$$
+\begin{align*}
+surv_i &\sim \mathcal{Binomial}(n_i, p_i) \\
+logit(p_i) &= \alpha_{tank[i]} \\
+\alpha_j &\sim \mathcal{N}(\bar{\alpha}, \sigma) \\
+\bar{\alpha} &\sim \mathcal{N}(0, 1.5) \\
+\sigma &\sim \mathcal{Half-Normal}(0, 1)
+\end{align*}
+$$
+
+## Varying effects
+
+### The model
+
+$$
+\begin{align*}
+surv_i &\sim \mathcal{Binomial}(n_i, p_i) \\
+logit(p_i) &= \alpha_{pond[i]} \\
+\alpha_{pond[i]} &\sim \mathcal{N}(\bar{\alpha}, \sigma) \\
+\bar{\alpha} &\sim \mathcal{N}(0, 1.5) \\
+\sigma &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+where we have
+
+-   $\bar{\alpha}$: Average log-odd of the survival rate for entire population of ponds
+-   $\sigma$: Standard deviation of log-odds of survival among ponds
+-   $\alpha_{pond}$: vector of individual pond intercept (mean)
+
+### Assign value to the parameters
+
+```{r}
+sim <- list()
+sim <- within(sim, {
+  a_bar <- 1.5
+  sigma <- 1.5
+  nponds <- 60
+  set.seed(5005)  # same seed as McElreath
+  data <- data.frame(
+    pond = seq_len(nponds),
+    Ni = rep(as.integer(c(5, 10, 25, 35)), each = 15),
+    true_a = rnorm(nponds, mean = a_bar, sd = sigma)) %>%
+    mutate(true_p = gtools::inv.logit(true_a))
+})
+# because of stan, Ni must be an integer
+stopifnot(is.integer(sim$data$Ni))
+# glimpse(sim$data)
+```
+
+and we plot the data to see the real distributions
+
+```{r}
+ggplot(sim$data, aes(x = true_a, y = as.factor(Ni))) +
+  stat_dotsinterval(.width = 0.5, fill = "orange", fatten_point = 3) +
+  labs(title = "Distribution of log odd of survival by pond",
+       y = NULL)
+```
+
+### Simulate survivors
+
+The model uses
+
+$$
+\begin{align*}
+surv_i &\sim \mathcal{Binomial}(n_i, p_i) \\
+logit(p_i) &= \alpha_{pond[i]} \\
+\alpha_{pond[i]} &\sim \mathcal{N}(\bar{\alpha}, \sigma) \\
+\bar{\alpha} &\sim \mathcal{N}(0, 1.5) \\
+\sigma &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$ 
+
+therefore the simulation of $p_i$ must use the logistic function
+
+```{r}
+sim <- within(sim, {
+  set.seed(5005)
+  data <- data %>%
+    mutate(Si = rbinom(n(), prob = true_p, size = Ni))
+  # data$Si <- rbinom(nponds, prob = data$true_p, size = data$Ni)
+})
+```
+
+```{r}
+# near(inv_logit_scaled(sim$data$true_a), gtools::inv.logit(sim$data$true_a))
+```
+
+### Compute the no-pooling estimates
+
+```{r}
+sim$data <- sim$data %>%
+  mutate(nopool_p = Si / Ni)
+# glimpse(sim$data)
+```
+
+### Compute the partial pooling estimates
+
+```{r ch13_b13_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b13.3 <- xfun::cache_rds({
+  out <- brm(
+    data = sim$data,
+    family = binomial,
+    Si | trials(Ni) ~ 1 + (1 | pond),
+    prior = c(prior(normal(0, 1.5), class = Intercept),
+            prior(exponential(1), class = sd)),
+    cores = detectCores(), seed = 13)
+  out <- add_criterion(out, c("loo", "waic"))
+  out},
+  file = "ch13_b13_03")
+tictoc::toc()
+summary(b13.3)
+```
+
+The package `tidybayes` is handy when dealing with multi-level models. We will favor using it instead of the straight tidyverse approach from @kurtz2020b. Using `coef[]` etc. can create a lot of confusion. The `tidybayes` offers a unified naming convention that contribute to the learning process. For an expert, maybe not, for a beginnier yes, absolutely.
+
+A useful function to understand the use of `tidybayes` is `get_variables()` which gives us the variables' name structure to use.
+
+```{r}
+# get_variables(b13.3)
+```
+
+and we have our point summaries and interval as follows
+
+```{r}
+as_draws(b13.3) %>%
+  subset_draws(variable = "pond\\[", regex = TRUE) %>%
+  summarize_draws(mean, median, sd, mad, ~quantile2(., probs = c(0.055, 0.945))) %>%
+  mutate(pond = as.integer(regmatches(variable, regexpr(pattern = "[[:digit:]]+", variable)))) %>%
+  relocate(pond)
+```
+
+It is important to understand that `epred_draws` is not simply the result of `linpred-draws` converted with the inverse link function. It can be illustrated in this case as follows
+
+```{r}
+# the linear/link-level predictor
+lp <- linpred_draws(b13.3, newdata = sim$data[, c("Ni", "pond")]) %>%
+  select(-.chain, -.iteration) %>%
+  summarize_draws()
+# the
+ep <- epred_draws(b13.3, newdata = sim$data[, c("Ni", "pond")]) %>%
+  select(-.chain, -.iteration) %>%
+  summarize_draws()
+
+# the link-level precitor
+head(lp[, c("pond", "Ni", "mean")])
+# the expected posterior predictive
+head(ep[, c("pond", "Ni", "mean")])
+
+# now the inverse of the link-level predictor
+# is not the same as the expected posterior predictive
+head(data.frame(
+  linpred = lp$mean,
+  linpred_inv = gtools::inv.logit(lp$mean),
+  epred = ep$mean / ep$Ni
+))
+```
+
+and we get the information on the level 1, the fixed effect, with `fixef(b13.3)` and the level 2, random effects, with `ran`ef(b13.3)\`
+
+```{r}
+# fixef(b13.3)
+# ranef(b13.3)
+```
+
+and the whole thing is obtained with the `fit` which calls the stan data
+
+```{r}
+# b13.3$fit
+```
+
+> In this work we favor using `tidybayes` and `posterior`. fixef(b13.3), ranef(b13.3), b13.3\$fit and coef()\[, ,\] are avoided.
+
+```{r}
+coef(b13.3)$pond[, , ] %>%
+  as.data.frame()
+```
+
+```{r}
+sim <- within(sim, {
+  linpred <- linpred_draws(b13.3, newdata = sim$data[, c("Ni", "pond")]) %>%
+    select(-.chain, -.iteration) %>%
+    summarize_draws()
+
+  data <- data %>%
+    # bind_cols(partpool_p) %>%
+    mutate(partpool_p = gtools::inv.logit(linpred$mean)) %>%
+    mutate(nopool_error = abs(nopool_p - true_p),
+           partpool_error = abs(partpool_p - true_p))
+  })
+# glimpse(sim$data)
+```
+
+```{r}
+ggplot(sim$data, aes(x = pond, y = nopool_error)) +
+  geom_point(color = "sienna") +
+  geom_point(mapping = aes(y = partpool_error),
+             shape = 1, size = 2, color = "darkorange") +
+  geom_vline(xintercept = c(16.5, 32.5), size = 1/3, color = "sienna1") +
+  scale_x_continuous(breaks = c(1, 10, 20, 30, 40, 50, 60)) +
+  scale_y_continuous(breaks = scales::breaks_width(width = 0.10),
+                     labels = scales::label_percent(accuracy = 1)) +
+  annotate(geom = "text", 
+           x = c(15 - 7.5, 30 - 7.5, 45 - 7.5, 60 - 7.5), y = .45, 
+           label = c("tiny (5)", "small (10)", "medium (25)", "large (35)")) +
+  theme(axis.text.x = element_text(size = rel(1))) +
+  labs(title = "Tadpole tanks",
+       subtitle = "Same results as Kurtz, difference with McElreath caused by the seed",
+       x = NULL, y = NULL)
+```
+
+> **Important**: The `coef` gives the coefficients of the posterior distribution. It is the same as `linpred`. It reflects all the levels of the multilevel model, that is both the fixed effects, obtained by `fixef()`, and the random effects, obtained by `ranef()`, on the posterior ditribution. In our current model which only has an intercept, it is therefore, also, the average by pond.
+
+## More than one type of cluster
+
+### Multilevel chimpanzees
+
+#### The model
+
+$$
+\begin{align*}
+pull\_left_i &\sim \mathcal{Binomial}(1, p_i) \\
+logit(p_i) &= \alpha + \alpha_{actor[i]} + \gamma_{block[i]} +\beta_{treatment[i]} \\
+\beta_j &\sim \mathcal{N}(0, 0.5), \text{for j = 1..4} \\
+\alpha_j &\sim \mathcal{N}(\bar{\alpha}, \sigma_{\alpha}), \text{for j = 1..7} \\
+\gamma_j &\sim \mathcal{N}(0, \sigma_{\gamma}), \text{for j = 1..6} \\
+\bar{\alpha} &\sim \mathcal{N}(0, 1.5) \\
+\sigma_{\alpha} &\sim \mathcal{Exponential}(1) \\
+\sigma_{\gamma} &\sim \mathcal{Exponential}(1)
+\end{align*}
+$$
+
+#### The fit
+
+We load the data
+
+```{r}
+data(chimpanzees)
+dataChimp <- chimpanzees %>%
+  mutate(actor = factor(actor),
+         block = factor(block),
+         treatment = factor(1 + prosoc_left + 2 * condition,
+                            levels = as.character(1:4),
+                            labels = c("R/N", "L/N", "R/P", "L/P")))
+rm(chimpanzees)
+glimpse(dataChimp)
+```
+
+```{r ch13_b13_04}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+b13.4 <- xfun::cache_rds({
+  out <- brm(data = dataChimp,
+      family = binomial,
+      bf(pulled_left | trials(1) ~ a + b,
+         a ~ 1 + (1 | actor) + (1 | block),
+         b ~ 0 + treatment,
+         nl = TRUE),
+      prior = c(prior(normal(0, 0.5), nlpar = b),
+                prior(normal(0, 1.5), class = b, coef = Intercept, nlpar = a),
+                prior(exponential(1), class = sd, group = actor, nlpar = a),
+                prior(exponential(1), class = sd, group = block, nlpar = a)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      seed = 13)
+  out <- add_criterion(out, c("loo", "waic"))
+  out},
+  file = "ch13_b13_04")
+tictoc::toc()
+```
+
+the posterior samples is
+
+```{r}
+# get_variables(b13.4)
+```
+
+```{r}
+samples <- list()
+samples <- within(samples, {
+  data <- as_draws_df(b13.4)
+  summ <- as_draws(b13.4) %>%
+    summarize_draws %>%
+    filter(variable != "lp__")
+})
+```
+
+and we look at the standard deviation of the random effect of actor
+
+```{r}
+p <- list()
+p <- within(p, {
+  dens <- ggplot(samples$data) +
+    tidybayes::stat_halfeye(aes(x = sd_actor__a_Intercept), .width = 0.95, fill = "orange") +
+    tidybayes::stat_halfeye(aes(x = sd_block__a_Intercept), .width = 0.95, fill = "darkgreen") +
+    coord_cartesian(xlim = c(0, 4)) +
+    labs(title = expression(sigma[actor] *", "* sigma[block]),
+         x = expression(sigma), y = NULL)
+  coef <- ggplot(samples$summ, aes(x = mean, xmin = q5, xmax = q95, y = variable)) + 
+    geom_pointinterval(fatten_point = 3,color = "navyblue") +
+    ggrepel::geom_text_repel(aes(label = round(mean, 2)), size = 3, color = "purple") +
+    theme(legend.position = "none") +
+    labs(x = NULL, y = NULL)
+  
+})
+# p$dens
+# p$coef
+wrap_plots(p)
+```
+
+```{r ch13_b13_05}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+b13.5 <- xfun::cache_rds({
+  out <- brm(data = dataChimp,
+      family = binomial,
+      bf(pulled_left | trials(1) ~ a + b,
+         a ~ 1 + (1 | actor),
+         b ~ 0 + treatment,
+         nl = TRUE),
+      prior = c(prior(normal(0, 0.5), nlpar = b),
+                prior(normal(0, 1.5), class = b, coef = Intercept, nlpar = a),
+                prior(exponential(1), class = sd, group = actor, nlpar = a)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 13)
+  out <- add_criterion(out, c("loo", "waic"))
+  out},
+  file = "ch13_b13_05")
+tictoc::toc()
+```
+
+```{r}
+loo_compare(b13.4, b13.5, criterion = "waic")
+```
+
+### Even more clusters
+
+```{r ch13_b13_06}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "140 secs."))
+b13.6 <- xfun::cache_rds({
+  out <- brm(data = dataChimp,
+      family = binomial,
+      pulled_left | trials(1) ~ 1 + (1 | actor) + (1 | block) + (1 | treatment),
+      prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(exponential(1), class = sd)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      seed = 13)
+  out <- add_criterion(out, c("loo", "waic"))
+  out},
+  file = "ch13_b13_06")
+tictoc::toc()
+```
+
+```{r}
+loo_compare(b13.4, b13.5, b13.6, criterion = "waic")
+```
+
+## Divergent transitions and non-centered priors
+
+```{r echo=FALSE}
+message("Not covered")
+```
+
+## Multilevel posterior predictions
+
+Strongly recommended to read @kurtz2020b who is more elaborate in this section.
+
+### Posterior prediction for same clusters
+
+We can do a posterior fit for chimp #2. Remember this chimp was an outlier as it was always pulling the left lever no matter what.
+
+```{r}
+fitd <- list()
+fitd <- within(fitd, {
+  chimp <- 2L
+  labels<- c("R/N", "L/N", "R/P", "L/P")
+  newdata <- data.frame(
+    actor = factor(chimp),
+    treatment = unique(dataChimp$treatment),
+    block = 1
+  )
+  data <- epred_draws(b13.4, newdata = newdata) %>%
+    select(-.chain, -.iteration, -.draw) %>%
+    summarize_draws()
+  # and the empirical frequencies are
+  obs <- dataChimp %>%
+    filter(actor == chimp) %>%
+    group_by(treatment) %>%
+    summarize(prob = mean(pulled_left))
+  p <- ggplot(obs, aes(x = treatment, y = prob, group = 1)) +
+    geom_lineribbon(data, 
+                    mapping = aes(x = treatment, y = mean, ymin = q5, ymax = q95),
+                    fill = "orange", color = "brown") +
+    geom_point(color = "navyblue", size = 2) +
+    coord_cartesian(ylim = c(0.75, 1))+
+    labs(title = sprintf("Fitted prediction for chimp # %d", chimp), 
+         x = NULL, y = NULL)
+})
+# glimpse(fitd$data)
+fitd$p
+```
+
+and for chimp \# 5
+
+```{r}
+fitd <- list()
+fitd <- within(fitd, {
+  chimp <- 5L
+  labels<- c("R/N", "L/N", "R/P", "L/P")
+  newdata <- data.frame(
+    actor = factor(chimp),
+    treatment = unique(dataChimp$treatment),
+    block = 1
+  )
+  data <- epred_draws(b13.4, newdata = newdata) %>%
+    select(-.chain, -.iteration, -.draw) %>%
+    summarize_draws()
+  # and the empirical frequencies are
+  obs <- dataChimp %>%
+    filter(actor == chimp) %>%
+    group_by(treatment) %>%
+    summarize(prob = mean(pulled_left))
+  p <- ggplot(obs, aes(x = treatment, y = prob, group = 1)) +
+    geom_lineribbon(data, 
+                    mapping = aes(x = treatment, y = mean, ymin = q5, ymax = q95),
+                    fill = "orange", color = "brown") +
+    geom_point(color = "navyblue", size = 2) +
+    coord_cartesian(ylim = c(0, 1))+
+    labs(title = sprintf("Fitted prediction for chimp # %d", chimp), 
+         x = NULL, y = NULL)
+})
+# glimpse(fitd$data)
+fitd$p
+```
+
+### Posterior prediction for new clusters
+
+### Post-stratification
+
+## Summary

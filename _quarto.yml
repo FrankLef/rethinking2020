@@ -20,6 +20,7 @@ book:
     - ch10_glm.qmd
     - ch11_counting.qmd
     - ch12_mixed.qmd
+    - ch13_multilevels.qmd
     - references.qmd
 
 bibliography: references.bib
