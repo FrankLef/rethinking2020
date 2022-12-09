@@ -2,9 +2,9 @@
 
 ```{r}
 #| include: false
-library(dplyr, quietly = TRUE)
-library(tidyr, quietly = TRUE)
-library(tidybayes, quietly = TRUE)
+library(dplyr)
+library(tidyr)
+library(tidybayes)
 library(rethinking)
 library(brms)
 library(qs)
@@ -13,13 +13,13 @@ library(modelr)
 library(simstudy)
 library(posterior)
 library(scales)
-library(dagitty, quietly = TRUE)
-library(ggdag, quietly = TRUE)
-library(ggdist, quietly = TRUE)
-library(ggmcmc, quietly = TRUE)
-library(bayesplot, quietly = TRUE)
-library(patchwork, quietly = TRUE)
-library(paletteer, quietly = TRUE)
+library(dagitty)
+library(ggdag)
+library(ggdist)
+library(ggmcmc)
+library(bayesplot)
+library(patchwork)
+library(paletteer)
 ```
 
 
@@ -229,7 +229,7 @@ ggplot(p$df, aes(x = x, y = density)) +
   stat_function(fun = rethinking::dbeta2,
                 args = list(prob = samples$stats$mean_pgid2,
                             theta = samples$stats$mean_phi),
-                size = 1, color = "magenta") +
+                linewidth = 1, color = "magenta") +
   geom_line(aes(group = .draw),
             alpha = .2, color = "green") +
   scale_y_continuous(breaks = scales::breaks_width(width = 0.5), limits = c(0, 3)) +
@@ -424,47 +424,61 @@ $$
 
 and the fit with `brm`
 
+```{r ch12_b12_02a}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+b12.2a <- xfun::cache_rds({
+  out <- brm(data = dataKline,
+      family = negbinomial,
+      total_tools ~ 1,
+      prior = c(prior(normal(3, 0.5), class = Intercept),  # beta_0
+                prior(gamma(0.01, 0.01), class = shape)),  # alpha
+      cores = detectCores(),
+      seed = 12)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
+  out},
+  file = "ch12_b12_02a")
+tictoc::toc()
+```
+
 ```{r}
-stop("TODO")
-a_file <- here::here("fits", "b12_02a.qs")
-b12.2a <- qread(a_file)
-# b12.2a <- brm(data = dataKline,
-#       family = negbinomial,
-#       total_tools ~ 1,
-#       prior = c(prior(normal(3, 0.5), class = Intercept),  # beta_0
-#                 prior(gamma(0.01, 0.01), class = shape)),  # alpha
-#       cores = detectCores(),
-#       seed = 12)
-# b12.2a <- brms::add_criterion(b12.2a, criterion = c("waic", "loo"))
-# qsave(b12.2a, a_file)
 summary(b12.2a)
 ```
 
+
 and the fit with `ulam`
 
-```{r}
-a_file <- here::here("fits", "m12_02a.qs")
-m12.2a <- qread(a_file)
-# m12.2a <- ulam(
-#   data = dataKline,
-#   flist = alist(
-#     total_tools ~ dgampois(mu, scale),
-#     log(mu) <- a,
-#     a ~ dnorm(3, 0.5),
-#     scale ~ dexp(1)
-#   ),
-#   log_lik = TRUE
-# )
-# qsave(m12.2a, a_file)
-summary(m12.2a)
+```{r ch12_m12_02a}
+message("Could not fix the installation of cmdstanr")
+# tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+# m12.2a <- xfun::cache_rds({
+#   ulam(
+#     data = dataKline,
+#     flist = alist(
+#       total_tools ~ dgampois(mu, scale),
+#       log(mu) <- a,
+#       a ~ dnorm(3, 0.5),
+#       scale ~ dexp(1)),
+#   log_lik = TRUE)},
+#   file = "ch12_m12_02a")
+# tictoc::toc()
+# 
+# set_cmdstan_path(path = NULL)
+# cmdstan_path()
+
+# Sys.getenv("CMDSTAN")
 ```
 
 ```{r}
-posterior_summary(b12.2a)
+# summary(m12.2a)
+```
+
+
+```{r}
+# posterior_summary(b12.2a)
 ```
 
 ```{r}
-precis(m12.2a)
+# precis(m12.2a)
 ```
 
 ```{r}
@@ -533,28 +547,34 @@ log(\mu) &= \frac{\exp{(\beta_{0,cid[i]})} \cdot population_i^{\beta_{1,cid[i]}}
 \end{align*}
 $$
 
+```{r ch12_b12_02b}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "75 secs."))
+b12.2b <- xfun::cache_rds({
+  # we have to be careful when using waic with gamma-Poisson
+  # but in this case we do it. We use t in the plot.
+  out <- brm(data = dataKline,
+      family = negbinomial(link = "identity"),
+      bf(total_tools ~ exp(b0) * population^b1 / g,
+         b0 + b1 ~ 0 + cid,
+         g ~ 1,
+         nl = TRUE),
+      prior = c(prior(normal(1, 1), nlpar = b0),
+                prior(exponential(1), nlpar = b1, lb = 0),
+                prior(exponential(1), nlpar = g, lb = 0),
+                prior(exponential(1), class = shape)),
+      cores = detectCores(),
+      seed = 12,
+      control = list(adapt_delta = .95))
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
+  out},
+  file = "ch12_b12_02b")
+tictoc::toc()
+```
+
 ```{r}
-a_file <- here::here("fits", "b12_02b.qs")
-b12.2b <- qread(a_file)
-# b12.2b <- brm(data = dataKline,
-#       family = negbinomial(link = "identity"),
-#       bf(total_tools ~ exp(b0) * population^b1 / g,
-#          b0 + b1 ~ 0 + cid,
-#          g ~ 1,
-#          nl = TRUE),
-#       prior = c(prior(normal(1, 1), nlpar = b0),
-#                 prior(exponential(1), nlpar = b1, lb = 0),
-#                 prior(exponential(1), nlpar = g, lb = 0),
-#                 prior(exponential(1), class = shape)),
-#       cores = detectCores(),
-#       seed = 12,
-#       control = list(adapt_delta = .95))
-# we have to be careful when using waic with gamma-Poisson
-# but in this case we do it. We use t in the plot.
-# b12.2b <- brms::add_criterion(b12.2b, criterion = c("waic", "loo"))
-# qsave(b12.2b, a_file)
 summary(b12.2b)
 ```
+
 
 add the *pareto k* for use in the plot later
 
@@ -682,7 +702,7 @@ plot the data
 ggplot(dataMonastery, aes(x = output)) +
   geom_histogram(aes(fill = fdrink), binwidth = 1) +
   scale_fill_paletteer_d("khroma::vibrant") +
-  stat_bin(aes(y = ..count.., label = ifelse(..count.., ..count.., "")), 
+  stat_bin(aes(y = after_stat(count), label = ifelse(..count.., ..count.., "")), 
            geom = "text", color = "ghostwhite", vjust = -0.5) +
   theme(legend.position = c(0.8, 0.8),
         legend.title = element_blank(),
@@ -707,20 +727,23 @@ $$
 
 In `brms`, $p_i$ is denoted `zi`. To use a non-default prior for `zi`, make sure to indicate `class = zi`. **Important to read @kurtz2020b**.
 
-```{r}
-a_file <- here::here("fits", "b12_03.qs")
-b12.3 <- qread(a_file)
-# b12.3 <- brm(data = dataMonastery,
-#       family = zero_inflated_poisson,
-#       output ~ 1,
-#       prior = c(prior(normal(1, 0.5), class = Intercept),
-#                 prior(beta(2, 6), class = zi)),  # the brms default is beta(1, 1)
-#       cores = detectCores(),
-#       seed = 12)
-# b12.3 <- add_criterion(b12.3, criterion = c("waic", "loo"))
-# qsave(b12.3, a_file)
+```{r ch12_b12_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "75 secs."))
+b12.3 <- xfun::cache_rds({
+  out <- brm(data = dataMonastery,
+      family = zero_inflated_poisson,
+      output ~ 1,
+      prior = c(prior(normal(1, 0.5), class = Intercept),
+                prior(beta(2, 6), class = zi)),  # the brms default is beta(1, 1)
+      cores = detectCores(),
+      seed = 12)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
+  out},
+  file = "ch12_b12_03")
+tictoc::toc()
 summary(b12.3)
 ```
+
 
 and we generate a summary with `posterior::summarize_draws`
 
@@ -767,7 +790,7 @@ p$df <- dataTrolley %>%
   count(response)
 p$freq <- ggplot(p$df, aes(x = response, y = n, fill = response)) +
   geom_bar(stat = "identity") +
-  scale_fill_paletteer_d(palette = "khroma::discrete_rainbow") +
+  scale_fill_paletteer_d("khroma::bright") +
   theme(legend.position = "none") +
   labs(title = "Histogram of Trolley responses")
 # p$freq
@@ -825,9 +848,11 @@ logit(p_k) &= \alpha_k - \phi \\
 \phi &= 0 \\
 \alpha_k &\sim \mathcal{N}(0, 1.5)
 \end{align*}
-$$ and the fit with brms
+$$ 
 
-```{r}
+and the fit with brms
+
+```{r ch12_b12_04}
 # define start values
 inits <- list(
   `Intercept[1]` = -2,
@@ -838,21 +863,22 @@ inits <- list(
   `Intercept[6]` = 2.5
 )
 inits_list <- list(inits, inits, inits, inits)
-a_file <- here::here("fits", "b12_04.qs")
-b12.4 <- qread(a_file)
-# message("This takes at least 5 min.")
-# b12.4 <- brm(
-#   data = dataTrolley,
-#   family = cumulative,
-#   response ~ 1,
-#   prior = c(
-#     prior(normal(0, 1.5), class = Intercept)),
-#   cores = detectCores(),
-#   # the start values
-#   inits = inits_list,
-#   seed = 12)
-# b12.4 <- add_criterion(b12.4, c("loo", "waic"))
-qsave(b12.4, a_file)
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "13 mins."))
+b12.4 <- xfun::cache_rds({
+  out <- brm(
+    data = dataTrolley,
+    family = cumulative,
+    response ~ 1,
+    prior = c(
+      prior(normal(0, 1.5), class = Intercept)),
+    cores = detectCores(),
+    # the start values
+    init = inits_list,
+    seed = 12)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
+  out},
+  file = "ch12_b12_04")
+tictoc::toc()
 ```
 
 which gives the summary
@@ -999,21 +1025,22 @@ $$
 
 and the fit is
 
-```{r}
-a_file <- here::here("fits", "b12_05.qs")
-b12.5 <- qread(a_file)
-# message("This takes at least 10 min.")
-# b12.5 <- brms::brm(data = d,
-#                    family = cumulative,
-#                    formula = response ~ 1 + action + intention + contact + 
-#                      action:intention + contact:intention,
-#                    prior = c(prior(normal(0, 1.5), class = Intercept),
-#                              prior(normal(0, 0.5), class = b)),
-#                    cores = detectCores(),
-#                    # inits = list(inits, inits),
-#                    seed = 12)
-# b12.5 <- add_criterion(b12.5, c("loo", "waic"))
-# qsave(b12.5, a_file)
+```{r ch12_b12_05}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "15 mins."))
+b12.5 <- xfun::cache_rds({
+  out <- brms::brm(data = dataTrolley,
+                   family = cumulative,
+                   formula = response ~ 1 + action + intention + contact +
+                     action:intention + contact:intention,
+                   prior = c(prior(normal(0, 1.5), class = Intercept),
+                             prior(normal(0, 0.5), class = b)),
+                   cores = detectCores(),
+                   # inits = list(inits, inits),
+                   seed = 12)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
+  out},
+  file = "ch12_b12_05")
+tictoc::toc()
 summary(b12.5)
 ```
 
@@ -1109,9 +1136,29 @@ logit(p_k) &= \alpha_k - \phi_i \\
 \end{align*}
 $$
 
-```{r}
-a_file <- here::here("fits", "b12_06.qs")
-b12.6 <- qread(a_file)
+```{r ch12_b12_06}
+stop("TODO: Run it, it will take 90 mins.")
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 mins."))
+b12.6 <- xfun::cache_rds({
+  out <- brm(data = d,
+      family = cumulative,
+      response ~ 1 + action + contact + intention + mo(edu_new),  # note the `mo()` syntax
+      prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(normal(0, 1), class = b),
+                # note the new kinds of prior statements
+                # for monotonic variable edu_new
+                prior(normal(0, 0.143), class = b, coef = moedu_new),
+                prior(dirichlet(2, 2, 2, 2, 2, 2, 2), class = simo, coef = moedu_new1)),
+      cores = detectCores(),
+      seed = 12)
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
+  out},
+  file = "ch12_b12_06")
+tictoc::toc()
+
+
+# a_file <- here::here("fits", "b12_06.qs")
+# b12.6 <- qread(a_file)
 # message("This takes at least 90 minutes. Yes, 90 min.")
 # b12.6 <- brm(data = d,
 #       family = cumulative,
