@@ -35,12 +35,6 @@ theme_set(
   )
 ```
 
-```{r}
-data(iris)
-ggplot(iris, aes(x = Petal.Length, y = Sepal.Length, color = Species)) +
-  geom_point() +
-  labs(title = "Iris dataset", subtitle = sprintf("%d lines", nrow(iris)))
-```
 
 ## Over-dispersed outcomes
 
@@ -1137,7 +1131,6 @@ logit(p_k) &= \alpha_k - \phi_i \\
 $$
 
 ```{r ch12_b12_06}
-stop("TODO: Run it, it will take 90 mins.")
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 mins."))
 b12.6 <- xfun::cache_rds({
   out <- brm(data = d,
@@ -1155,24 +1148,6 @@ b12.6 <- xfun::cache_rds({
   out},
   file = "ch12_b12_06")
 tictoc::toc()
-
-
-# a_file <- here::here("fits", "b12_06.qs")
-# b12.6 <- qread(a_file)
-# message("This takes at least 90 minutes. Yes, 90 min.")
-# b12.6 <- brm(data = d,
-#       family = cumulative,
-#       response ~ 1 + action + contact + intention + mo(edu_new),  # note the `mo()` syntax
-#       prior = c(prior(normal(0, 1.5), class = Intercept),
-#                 prior(normal(0, 1), class = b),
-#                 # note the new kinds of prior statements
-#                 # for monotonic variable edu_new
-#                 prior(normal(0, 0.143), class = b, coef = moedu_new),
-#                 prior(dirichlet(2, 2, 2, 2, 2, 2, 2), class = simo, coef = moedu_new1)),
-#       cores = detectCores(),
-#       seed = 12)
-# b12.6 <- add_criterion(b12.6, c("loo", "waic"))
-# qsave(b12.6, a_file)
 summary(b12.6)
 ```
 
