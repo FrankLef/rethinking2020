@@ -21,6 +21,7 @@ book:
     - ch11_counting.qmd
     - ch12_mixed.qmd
     - ch13_multilevels.qmd
+    - ch14_covariances.qmd
     - references.qmd
 
 bibliography: references.bib
