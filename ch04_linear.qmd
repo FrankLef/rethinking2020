@@ -9,12 +9,22 @@ library(dplyr)
 library(tidyr)
 library(scales)
 library(tidybayes)
+library(tidybayes.rethinking)
+library(posterior)
 library(ggplot2)
 library(ggdist)
 library(modelr)
 library(patchwork)
 library(paletteer)
 ```
+
+```{r}
+#  For execution on a local, multicore CPU with excess RAM
+options(mc.cores = parallel::detectCores())
+#  To avoid recompilation of unchanged Stan programs
+rstan_options(auto_write = TRUE)
+```
+
 
 ## Why normal distributions are normal
 
@@ -57,21 +67,22 @@ $$
 
 ```{r}
 data("Howell1")
-d <- Howell1
+dataHowel <- Howell1
 rm(Howell1)
 ```
 
 which we can visualize using `skimr`
 
 ```{r}
-skimr::skim(d) |>
+skimr::skim(dataHowel) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 select only the adults
 
 ```{r}
-d2 <- d[d$age >= 18, ]
+dataHowel_gte18 <- dataHowel |>
+  filter(age >= 18)
 ```
 
 ### The model
@@ -87,28 +98,30 @@ $$
 We do the prior predictive simulation with the prior $\mu \sim \mathcal{N}(178, 20)$
 
 ```{r}
-prior1 <- data.frame(id=seq_len(1e4)) %>%
-  mutate(mu=rnorm(n=nrow(.), mean=178, sd=20),
-         sigma=runif(n=nrow(.), min=0, max=50),
-         height = rnorm(n=nrow(.), mean=mu, sd=sigma))
+prior <- list()
+prior$sim1 <- data.frame(id = seq_len(1e4)) |>
+  mutate(mu=rnorm(n=n(), mean=178, sd=20),
+         sigma=runif(n=n(), min=0, max=50),
+         height = rnorm(n=n(), mean=mu, sd=sigma))
 ```
 
 and we do the prior predictive simulation with the prior $\mu \sim \mathcal{N}(178, 100)$
 
 ```{r}
-prior2 <- data.frame(id=seq_len(1e4)) %>%
-  mutate(mu=rnorm(n=nrow(.), mean=178, sd=100),
-         sigma=runif(n=nrow(.), min=0, max=50),
-         height = rnorm(n=nrow(.), mean=mu, sd=sigma))
+prior$sim2 <- data.frame(id=seq_len(1e4)) %>%
+  mutate(mu=rnorm(n=n(), mean=178, sd=100),
+         sigma=runif(n=n(), min=0, max=50),
+         height = rnorm(n=n(), mean=mu, sd=sigma))
 ```
 
 and we visualize using `ggplot`
 
 ```{r}
-p <- list()
-# NOTE: we use {} with |> to use nrow in  sprintf
-p$prior1 <- prior1 %>%
-  {
+plotPrior <- list()
+# NOTE: we use (\(.){})() with |>
+# https://towardsdatascience.com/understanding-the-native-r-pipe-98dea6d8b61b
+plotPrior$sim1 <- prior$sim1 |>
+  (\(.){
     ggplot(data=., aes(x=height)) +
       geom_density(color = "slateblue1", size = 1) +
       theme_classic() +
@@ -116,15 +129,13 @@ p$prior1 <- prior1 %>%
       labs(
         title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
         subtitle = sprintf("sample size = %d", nrow(.)),
-        fill = "quantile"
-  )
-  }
-# p$prior1
+        fill = "quantile")})()
+# plotPrior$sim1
 ```
 
 ```{r}
-p$prior2 <- prior2 %>%
-  {
+plotPrior$sim2 <- prior$sim2 |>
+  (\(.){
     ggplot(data=., aes(x = height)) +
       geom_density(color = "peru", size = 1) +
       geom_vline(xintercept = 0, linetype = "dotted", color = "navy") +
@@ -134,15 +145,15 @@ p$prior2 <- prior2 %>%
         title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
         subtitle = sprintf("sample size = %d", nrow(.)),
         fill = "quantile")
-  }
-# p$prior2
+  })()
+# plotPrior$sim2
 ```
 
-and we generate the 4 plots using `ggdist::stat_dist_interval()` used for analytical distribution
+and we generate the 2 plots of analytical distribution
 
 ```{r}
-p$normal <- data.frame(mean=178, sd=20) %>%
-  {
+plotPrior$normal <- data.frame(mean=178, sd=20) |>
+  (\(.){
     ggplot(data=.) +
       geom_function(fun=dnorm, args=list(mean=.$mean, sd=.$sd),
                     color="olivedrab4", size=1) +
@@ -151,12 +162,12 @@ p$normal <- data.frame(mean=178, sd=20) %>%
   theme_classic() +
   labs(title = bquote(mu ~ .(sprintf("~ dnorm(%.0f, %.0f)", .$mean, .$sd))), 
        x = expression(mu), y = "density") 
-  }
-# p$normal
+  })()
+# plotPrior$normal
 
 
-p$uniform <- data.frame(min=0, max=50) %>%
-  {
+plotPrior$uniform <- data.frame(min=0, max=50) |>
+  (\(.){
     ggplot(data=.) +
       geom_function(fun=dunif, args=list(min=.$min, max=.$max),
                     color="rosybrown2", size=1) +
@@ -165,30 +176,38 @@ p$uniform <- data.frame(min=0, max=50) %>%
       theme_classic() +
       labs(title = bquote(mu ~ .(sprintf("~ dunif(%.0f, %.0f)", .$min, .$max))), 
            x = expression(sigma), y = "density")
-  }
-# p$uniform
+  })()
+# plotPrior$uniform
 ```
 
 ```{r}
-patchwork::wrap_plots(p)
+patchwork::wrap_plots(plotPrior)
 ```
 
 ### Grid approximation of posterior distribution
 
-First create the grid. The name `the_grid` is used here instead of `post`, as in the textbook, to emphasize that these are posterior of the grid. They are not the actual posteriors which will be calculated next using a sampling.
+First create the grid.
+
+```{r}
+
+```
+
 
 ```{r}
 # create grid of mu and sigma
-post <- list(n = 200L)
-post$grid <-with(post, {
-  data.frame(
-  mu = seq(from = 140, to = 160, length.out = n),
-  sigma = seq(from = 4, to = 9, length.out = n)) |>
-  expand(mu, sigma)
-})
+post <- list()
+post <- within(post, {
+  ngrid <- 200L
+  grid <- data.frame(
+    mu = seq(from = 140, to = 160, length.out = ngrid),
+    sigma = seq(from = 4, to = 9, length.out = ngrid)) |>
+    expand(mu, sigma)
+  })
 ```
 
-Then we calculate the likelihood. Since probabilities are percentage this causes a numerical issue as multiple multiplications of percentages will create very small numbers, so small in fact that they will be miscalculated.
+Then we calculate the likelihood. Since probabilities are percentage this 
+causes a numerical issue as multiple multiplications of percentages 
+will create very small numbers, so small in fact that they will be miscalculated.
 
 To resolve this problem, we use logarithms.
 
@@ -210,20 +229,32 @@ $$
 \sum_{i=1}^n \left[ \log{\mathcal{N}(y_i \mid \mu, \sigma)} +
  \log{\mathcal{N}(\mu \mid mean = 0, sd = 10)} +
  \log{\mathcal{U}(\sigma | min = 0, max = 10)} \right]
-$$ and to compute the posterior distribution we compute the likelihood which is the first element of the addition
+$$ 
+
+and to compute the posterior distribution we compute the likelihood which is 
+the first element of the addition
 
 $$
 \sum_{i=1}^n \log{\mathcal{N}(y_i \mid \mu, \sigma)}
-$$ as follows
+$$ 
+
+as follows
 
 ```{r}
 # The likelihood on the log scale
-post$grid <- post$grid %>%
-  mutate(LL=sapply(seq_len(nrow(.)), 
-                   function(i) sum(dnorm(d2$height, 
-                                         mean=post$grid$mu[i], 
-                                         sd=post$grid$sigma[i], 
-                                         log=TRUE))))
+post <- within(post, {
+  grid <- grid %>%
+    mutate(LL = sapply(
+      X = seq_len(nrow(.)), 
+      FUN = function(i) {
+        sum(dnorm(x = dataHowel_gte18$height, 
+                  mean = grid$mu[i], 
+                  sd = grid$sigma[i], 
+                  log = TRUE))
+        })
+      )
+  })
+# glimpse(post$grid)
 ```
 
 then the remaining 2 elements of the summation are the priors
@@ -233,20 +264,24 @@ $$
  \log{\mathcal{N}(\mu \mid mean = 0, sd = 10)} +
  \log{\mathcal{U}(\sigma | min = 0, max = 10)} 
  \right]
-$$ which we add to the likelihood to obtain the posterior distribution on the log scale
+$$ 
+
+which we add to the likelihood to obtain the posterior distribution on the log scale
 
 ```{r}
-# add the the priors to the likelihood  on the log scales to obtain the
+# add the priors to the likelihood  on the log scales to obtain the
 # log of the posterior
 post$grid <- post$grid |>
   mutate(prob =
            LL + 
-           dnorm(x=mu, mean=178, sd=20, log=TRUE) +
-           dunif(x=sigma, min=0, max=50, log=TRUE))
+           dnorm(x = mu, mean = 178, sd = 20, log = TRUE) +
+           dunif(x = sigma, min = 0, max = 50, log = TRUE))
 ```
 
-and to convert the posterior back to the natural scale we exponentiate.\
-The usage of `max(the_grid$post)` is explained in endnote 73. It is basically used as an approximation to what would be the denominator of the likelihood.
+and to convert the posterior back to the natural scale we exponentiate.
+The usage of `max(the_grid$post)` is explained in endnote 73. 
+It is basically used as an approximation to what would be the denominator 
+of the likelihood.
 
 $$
 \sum_{i=1}^n \left[
@@ -285,7 +320,7 @@ p$heat
 ### Sampling from the grid's posterior
 
 ```{r}
-post$samples <- post$grid |>
+post$draws <- post$grid |>
   slice_sample(n=1e4, weight_by = prob, replace = TRUE)
 ```
 
@@ -293,17 +328,17 @@ and visualizing the density of $\mu$ and $\sigma$
 
 ```{r}
 # plot the density of mu
-p$mu <- ggplot(data = post$samples, mapping = aes(x = mu)) +
-  geom_density(color = "blue", size = 1, fill = "lightblue") +
+p$mu <- ggplot(data = post$draws, mapping = aes(x = mu)) +
+  geom_density(color = "blue", linewidth = 1, fill = "lightblue") +
   theme_minimal() +
   labs(title = expression("distribution of" ~ mu), x = expression(mu))
-p$mu
+# p$mu
 ```
 
 ```{r}
 # plot the density of sigma
-p$sigma <- ggplot(data = post$samples, mapping = aes(x = sigma)) +
-  geom_density(color = "darkgreen", size = 1, fill = "lightgreen") +
+p$sigma <- ggplot(data = post$draws, mapping = aes(x = sigma)) +
+  geom_density(color = "darkgreen", linewidth = 1, fill = "lightgreen") +
   theme_minimal() +
   labs(title = expression("distribution of" ~ sigma), x = expression(sigma))
 ```
@@ -315,24 +350,20 @@ p$mu + p$sigma
 or, even, mapping them together using `ggExtra`
 
 ```{r}
-p$marg <- ggplot(data = post$samples, mapping = aes(x = mu, y = sigma)) +
+p$marg <- ggplot(data = post$draws, mapping = aes(x = mu, y = sigma)) +
   geom_point(color = "mediumorchid", size = 0.8) +
   geom_jitter(color = "mediumorchid", size = 0.8) +
   theme_minimal() +
   labs(title = expression("distribution of" ~ mu ~ sigma),
        x = expression(mu), y = expression(sigma))
 p$marg <- ggExtra::ggMarginal(p$marg, 
-                    xparams = list(colour = "blue", fill = "lightblue", size = 1),
-                    yparams = list(colour="darkgreen", fill = "lightgreen", size = 1))
+                    xparams = list(colour = "blue", fill = "lightblue", 
+                                   linewidth = 1),
+                    yparams = list(colour="darkgreen", fill = "lightgreen", 
+                                   linewidth = 1))
 p$marg
 ```
 
-```{r}
-# to see the outut from ggMarginal, an extra code chunk is required
-# Source: https://github.com/daattali/ggExtra
-# grid::grid.newpage()
-# grid::grid.draw(p)
-```
 
 ### Finding the posterior distribution with `quap` and `brm()`
 
@@ -356,37 +387,40 @@ and the fit is
 
 ```{r ch04_m04_01}
 # see Overthinking in section 4.3.5 for the difference between alist() and list()
-m4.1_args <-list(
- flist = alist(
-    height ~ dnorm(mu, sigma),
-    mu ~ dnorm(178, 28),
-    sigma ~ dunif(0, 50)),
- start = list(
-    mu  = mean(d2$height),
-    sigma = sd(d2$height)
-    ))
-
-m4.1 <- xfun::cache_rds(
-  {rethinking::quap(m4.1_args$flist, data = d2, start = m4.1_args$start)},
+m4.1 <- list()
+m4.1$args <- list(
+    flist = alist(
+      height ~ dnorm(mu, sigma),
+      mu ~ dnorm(178, 28),
+      sigma ~ dunif(0, 50)),
+    start = list(
+      mu  = mean(dataHowel_gte18$height),
+      sigma = sd(dataHowel_gte18$height)
+      ))
+# fit the data to the model
+m4.1$fit <- xfun::cache_rds(
+  {rethinking::quap(m4.1$args$flist, 
+                    data = dataHowel_gte18, 
+                    start = m4.1$args$start)},
   file = "ch04_m04_01")
 ```
 
 which gives us the summary
 
 ```{r}
-precis(m4.1)
+precis(m4.1$fit)
 ```
 
 and the variance covariance matrix is
 
 ```{r}
-vcov(m4.1)
+vcov(m4.1$fit)
 ```
 
 and the correlation matrix
 
 ```{r}
-cov2cor(vcov(m4.1))
+cov2cor(vcov(m4.1$fit))
 ```
 
 #### Using `brms::brm`
@@ -412,7 +446,7 @@ This process takes less than a second. It has been save to the rsd file `b04_01.
 ```{r ch04_b04_01}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 b4.1 <- xfun::cache_rds({
-  brms::brm(data = d2,
+  brms::brm(data = dataHowel_gte18,
             formula = height ~ 1,
             family = gaussian,
             prior = c(prior(normal(178, 20), class = Intercept),
@@ -433,13 +467,20 @@ with the summary
 summary(b4.1)
 ```
 
-which can also be done with tidybayes
+which can also be done with `tidybayes::summarize_draws` which comes from the
+`posterior` package.
 
 ```{r}
-b4.1 |>
-  tidybayes::gather_draws(b_Intercept, sigma) |>
-  tidybayes::median_qi(.width = 0.89)
+# normally we only use summarise_draws() but here we change it to match 
+# the width of 0.89
+tidybayes::summarise_draws(b4.1, mean, median, sd, mad, 
+                           ~quantile2(.x, probs = c(0.055, 0.945)),
+                           default_convergence_measures(),
+                           default_mcse_measures()) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
+
+
 
 and to plot the posteriors we need to know the names of the variables
 
@@ -447,11 +488,15 @@ and to plot the posteriors we need to know the names of the variables
 tidybayes::get_variables(b4.1)
 ```
 
-and we spread the data with one column per variable to be able to plot it. The `tidybayes` package is particularly useful for this. We will use it extensively from now on.
+and we spread the data with one column per variable to be able to plot it. 
+The `tidybayes` package is particularly useful for this. 
+We will use it extensively from now on.
 
-In particular, we can use `tidybayes::spread_draws()` to put variables in separate columns or `tidybayes::gather_draws()` to have them in long format\`\`\`
+In particular, we can use `tidybayes::spread_draws()` to put variables in 
+separate columns or `tidybayes::gather_draws()` to have them in long format.
 
-and we can visualize with `ggdist`. it could be done with `tidybayes` but since `tidybayes` only export `ggsidt` we use it directly.
+We can visualize with `ggdist`. it could be done with `tidybayes` but since 
+`tidybayes` reexport `ggdist` we use it directly.
 
 ```{r}
 p <- list()
@@ -461,7 +506,7 @@ p$qtl <- c(0.89, 1)
 p$b <- b4.1 |>
   tidybayes::spread_draws(b_Intercept, sigma) |>
   ggplot(aes(x = b_Intercept)) +
-  stat_halfeye(aes(fill=stat(cut_cdf_qi(cdf,.width = p$qtl))),
+  stat_halfeye(aes(fill=after_stat(cut_cdf_qi(cdf,.width = p$qtl))),
            point_interval = mean_qi, .width = p$qtl) +
    scale_fill_paletteer_d(palette = "futurevisions::pso", direction = -1,
                          na.translate = FALSE) +
@@ -475,7 +520,7 @@ p$b <- b4.1 |>
 p$sigma <- b4.1 |>
   tidybayes::spread_draws(b_Intercept, sigma) |>
   ggplot(aes(x = sigma)) +
-  stat_halfeye(aes(fill=stat(cut_cdf_qi(cdf, .width = p$qtl))),
+  stat_halfeye(aes(fill=after_stat(cut_cdf_qi(cdf, .width = p$qtl))),
            point_interval = mean_qi, .width = p$qtl) +
    scale_fill_paletteer_d(palette = "futurevisions::pso",
                          na.translate = FALSE) +
@@ -495,24 +540,26 @@ p$b + p$sigma +
 
 #### Using `quap`
 
-Since `map` is a quadratic approximation, how do we simulate 2 variables, $\mu$ and $\sigma$?
+Since `quap` is a quadratic approximation, how do we simulate 2 variables, $\mu$ and $\sigma$?
 
-Simply `map` gives us the variance covariance. Therefore `map` can be used to simulation the bivariate normal distribution of $\mu$ and $\sigma$
+Simply `quap` gives us the variance covariance. Therefore `quap` can be used 
+to simulation the bivariate normal distribution of $\mu$ and $\sigma$
 
 ```{r}
-vcov(m4.1)
+vcov(m4.1$fit)
 ```
 
 from which we can obtain the correlation matrix
 
 ```{r}
-cov2cor(vcov(m4.1))
+cov2cor(vcov(m4.1$fit)) |>
+  round(digits = 3)
 ```
 
 so to simulate using `rethinking` we simply use
 
 ```{r}
-post <- extract.samples(m4.1, n = 1e4)
+post <- extract.samples(m4.1$fit, n = 1e4)
 ```
 
 which gives us a sample of size 10000 of the posterior distribution which can be summarized with the usual `precis()`
@@ -532,10 +579,10 @@ vcov(b4.1)
 So you have to calculate the var-cov matrix by using a sample from the posterior distribution
 
 ```{r}
-post <- posterior_samples(b4.1)
-glimpse(post, 5)
+post <- tidy_draws(b4.1)
 # compute the cov
-cor(post[, c("b_Intercept", "sigma")])
+cor(post[, c("b_Intercept", "sigma")]) |>
+  round(digits = 3)
 ```
 
 > See comment from @kurtz2020b at end of section 4.3.6 to explain that McElreath uses `mvnorm()` from `MASS` to simulate using the varcov whereas with `brms::posterior_samples()` we do it directly.
@@ -560,7 +607,9 @@ $$
 
 $$
 h_i \sim \mathcal{N}(\mu_i, \sigma)
-$$ \#### Linear model
+$$ 
+
+#### Linear model
 
 $$
 \mu_i = \alpha + \beta (x_i - \bar{x})
@@ -580,15 +629,15 @@ The goal is to **simulate the heights from the model, using only the prior**.
 
 ```{r}
 prior <- list()
-prior$n <- 100L
-set.seed(4)
-prior$sim <- with(prior, {
-  data.frame(
+prior <- within(prior, {
+  n <- 100L
+  set.seed(4)
+  sim <- data.frame(
     id = seq_len(n),
     a = rnorm(n = n, mean = 178, sd = 20),
     b = rnorm(n = n, mean = 0, sd = 10)) |>
-    expand(nesting(id, a, b), weight = range(d2$weight)) |>
-    mutate(height = a + b * (weight - mean(d2$weight)))
+    expand(nesting(id, a, b), weight = range(dataHowel_gte18$weight)) |>
+    mutate(height = a + b * (weight - mean(dataHowel_gte18$weight)))
 })
 glimpse(prior$sim)
 ```
@@ -658,12 +707,8 @@ $$
 We add the centralized weight to the data
 
 ```{r}
-data("Howell1")
-d <- Howell1
-d2 <- d |>
-  filter(age >= 18) |>
-  mutate(weight_c = scale(weight, center = TRUE, scale = FALSE))
-rm(Howell1)
+dataHowel_gte18 <- dataHowel_gte18 |>
+  mutate(weight_c = as.numeric(scale(weight, center = TRUE, scale = FALSE)))
 ```
 
 then get the fit using `rethinking::quap`
@@ -671,33 +716,36 @@ then get the fit using `rethinking::quap`
 > Giving start values to `quap` seem to help it significantly and avoiding error, at least when using b \~ dlnorm(0, 1).
 
 ```{r}
-m4.3_args <-list(
- flist = alist(
-    height ~ dnorm(mu, sigma),
-    mu <- a + b * weight_c,
-    a ~ dnorm(178, 20),
-    b ~ dlnorm(0, 1),
-    sigma ~ dunif(0, 50)),
- start = list(
-    a  = mean(d2$height),
-    sigma = sd(d2$height)
-    ))
+m4.3 <- list()
+m4.3 <- within(m4.3, {
+  args <-list(
+    flist = alist(
+      height ~ dnorm(mu, sigma),
+      mu <- a + b * weight_c,
+      a ~ dnorm(178, 20),
+      b ~ dlnorm(0, 1),
+      sigma ~ dunif(0, 50)),
+    start = list(
+      a  = mean(dataHowel_gte18$height),
+      sigma = sd(dataHowel_gte18$height))
+    )
+})
 ```
 
 ```{r ch04_m04_03}
 tictoc::tic()
-m4.3 <- xfun::cache_rds({
+m4.3$fit <- xfun::cache_rds({
   quap(
-    flist=m4.3_args$flist,
-    data = d2,
-    start=m4.3_args$start
+    flist=m4.3$args$flist,
+    data = dataHowel_gte18,
+    start=m4.3$args$start
     )},
   file = "ch04_m04_03")
 tictoc::toc()
 ```
 
 ```{r}
-precis(m4.3)
+precis(m4.3$fit)
 ```
 
 #### Using `brm`
@@ -722,7 +770,7 @@ When using lognormal for a parameter of class b, you should specify lb and ub (l
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 b4.3 <- xfun::cache_rds({
   brms::brm(
-    data = d2,
+    data = dataHowel_gte18,
     family = gaussian,
     formula = height ~ 1 + weight_c,
     prior = c(
@@ -736,8 +784,8 @@ tictoc::toc()
 ```
 
 ```{r}
-plot(b4.3)
-summary(b4.3)
+summarize_draws(b4.3) |>
+  mutate(across(.cols= where(is.numeric), .fns = round, digits = 1))
 ```
 
 ### Using the log tranformation
@@ -753,36 +801,30 @@ log\_b &\sim \mathcal{N}(0,1) \\
 $$
 
 ```{r}
-glimpse(d2)
+glimpse(dataHowel_gte18)
 ```
 
-> TODO: This brm command does not work. It was in kurtz2020b. Section 5.3.2 and 6.2.1 are supposed to have the solution. We will come back.
-
-::: callout-tip
-## TODO
-
-This `brm` command does not work. It was in @kurtz2020b. Section 5.3.2 and 6.2.1 are supposed to have the solution. We will come back.
-:::
 
 ```{r ch04_b04_03b}
-# tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-# b4.3b <- xfun::cache_rds({
-#   brms::brm(
-#   data = d2,
-#   family = gaussian,
-#   formula = bf(height ~ a + exp(lb) * weight_c,
-#                a ~ 1, lb ~ 1, nl = TRUE),
-#   prior = c(
-#     prior(normal(178, 20), class = b, nlpar = a),
-#     prior(normal(0, 1), class = b, nlpar = lb),
-#     prior(exponential(1), class = sigma)),
-#   iter = 2000, warmup = 1000, chains = 4, cores = detectCores(), seed = 4)},
-#   file = "ch04_b04_03b")
-# tictoc::toc()
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+b4.3b <- xfun::cache_rds({
+  brms::brm(
+  data = dataHowel_gte18,
+  family = gaussian,
+  formula = bf(height ~ a + exp(lb) * weight_c,
+               a ~ 1, lb ~ 1, nl = TRUE),
+  prior = c(
+    prior(normal(178, 20), class = b, nlpar = a),
+    prior(normal(0, 1), class = b, nlpar = lb),
+    prior(exponential(1), class = sigma)),
+  iter = 2000, warmup = 1000, chains = 4, cores = detectCores(), seed = 4)},
+  file = "ch04_b04_03b")
+tictoc::toc()
 ```
 
 ```{r}
-# summary(b4.3b)
+summarize_draws(b4.3b) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 ### Interpreting the posterior distribution
@@ -792,11 +834,11 @@ This `brm` command does not work. It was in @kurtz2020b. Section 5.3.2 and 6.2.1
 Using `rethinking` **Important**, the parameters are correlated here, to avoid this one must do **centering** of variables. The following uses **centered** variables.
 
 ```{r}
-precis(m4.3, corr = TRUE)
+precis(m4.3$fit, corr = TRUE)
 ```
 
 ```{r}
-round(vcov(m4.3), 3)
+round(vcov(m4.3$fit), 3)
 ```
 
 Using `brm`
@@ -804,15 +846,20 @@ Using `brm`
 Note: `lp__` stands for *unnormalized log posterior density*.
 
 ```{r}
-posterior_summary(b4.3, probs = c(0.055, 0.975)) |>
-  round(digits = 2)
+# normally we only use summarise_draws() but here we change it to match 
+# the width of 0.89
+tidybayes::summarise_draws(b4.3, mean, median, sd, mad, 
+                           ~quantile2(.x, probs = c(0.055, 0.945)),
+                           default_convergence_measures(),
+                           default_mcse_measures()) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 we get the varcov matrix as follows
 
 ```{r}
-posterior_samples(b4.3) |>
-  select(-lp__) |>
+tidy_draws(b4.3) |>
+  select(!matches("^[.]|__$")) |>
   cov() |>
   round(digits = 3)
 ```
@@ -820,8 +867,8 @@ posterior_samples(b4.3) |>
 and the correlation matrix
 
 ```{r}
-posterior_samples(b4.3) |>
-  select(-lp__) |>
+tidy_draws(b4.3) |>
+  select(!matches("^[.]|__$")) |>
   cor() |>
   round(digits = 3)
 ```
@@ -915,23 +962,11 @@ p$trace
 
 ```{r}
 data("Howell1")
-d <- Howell1 |>
-  mutate(weight_s = scale(as.vector(weight)),
+dataHowel <- Howell1 |>
+  # use as.vector() to keep the attribute
+  mutate(weight_s = as.numeric(scale(weight)),
          weight_s2 = weight_s ^ 2)
 rm(Howell1)
-# str(d)
-
-# A function to inverse transform the data to natural scale
-# will be used in plots below. Normally used with `base::scale()`.
-# If the base::scale function was used originally, the attributes contain 
-# the center and scale values.
-inv.scale <- function(x, 
-                      center = attr(x, which = "scaled:center"),
-                      scale = attr(x, which = "scaled:scale")) {
-  if(!is.finite(center)) center <- 0L
-  if(!is.finite(scale)) scale <- 1L
-  center + x * scale
-}
 ```
 
 ```{r}
@@ -941,11 +976,12 @@ p <- list()
 # to keep it on top
 colr <- unclass(paletteer::paletteer_d("futurevisions::titan"))
 # nice trick: we use the pipe with {} to be able to reuse the data within the plot
-p$basic <- d %>% {
-  ggplot(d, aes(x = weight_s, y = height, color = age)) +
+p$basic <- dataHowel |>
+  (\(.) {
+  ggplot(., aes(x = weight_s, y = height, color = age)) +
   scale_x_continuous(breaks = scales::breaks_extended(n=7),
                      labels = function(x) {
-                       x <- inv.scale(x, mean(.$weight), sd(.$weight))
+                       x <- x * sd(.$weight) + mean(.$weight)
                        label_number(accuracy = 1)(x)
                      }) +
   scale_color_gradientn(colors = colr) +
@@ -954,7 +990,7 @@ p$basic <- d %>% {
         legend.position = c(0.1, 0.8)) +
   labs(title = "Census data for the Dobe area !Kung San",
        subtitle = sprintf("%d individuals", nrow(.)))
-}
+    })()
 
 p$basic +
   geom_point(shape = 20, size = 2, alpha = 2/3)
@@ -982,7 +1018,7 @@ The following code gives a warning about setting lower boundaries. It started to
 ```{r ch04_b04_05}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 b4.5 <- xfun::cache_rds({
-  brm(data = d,
+  brm(data = dataHowel,
       family = gaussian,
       height ~ 1 + weight_s + weight_s2,
       prior = c(prior(normal(178, 20), class = Intercept),
@@ -996,13 +1032,16 @@ tictoc::toc()
 ```
 
 ```{r}
-summary(b4.5)
+summarize_draws(b4.5) |>
+  filter(!grepl(pattern = "__$", x = variable)) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 and to obtain a simplified dataframe we use
 
 ```{r}
-brms::fixef(b4.5)
+brms::fixef(b4.5) |>
+  round(digits = 2)
 ```
 
 ```{r}
@@ -1011,7 +1050,8 @@ tidybayes::get_variables(b4.5)
 
 ```{r}
 p$dens <- 
-  b4.5 |> tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) |>
+  b4.5 |> 
+  tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) |>
   ggplot(aes(x = .value, color = as.factor(.chain))) +
   geom_density() +
   scale_color_paletteer_d(palette = "futurevisions::mars", direction = -1) +
@@ -1026,7 +1066,8 @@ and
 
 ```{r}
 p$trace <- 
-  b4.5 |> tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) |>
+  b4.5 |> 
+  tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) |>
   ggplot(aes(x = .iteration, y = .value, color = as.factor(.chain))) +
   geom_line() +
   scale_color_paletteer_d(palette = "futurevisions::mars", direction = -1) +
@@ -1052,25 +1093,23 @@ Therefore, if we give the same data to `fitted` or `predict` will will obtain se
 We can see it clearly here as `fitd_quad` gives ans estimate about the same as for `predict` since they both report the same `\mu_i`, but `predict` has a wider interval since it uses $\sigma$
 
 ```{r}
-samples <- list()
-# the new data to use for sampling fitted and pedict
-samples$newdata <- data.frame(
-  weight_s=seq_range(d$weight_s, n=30L)) |>
-  mutate(weight_s2=weight_s^2)
-
-samples$fitted <- with(samples, {
-  fitted(b4.5, newdata = newdata) |>
-  data.frame() |>
-  bind_cols(newdata)
+pred <- list()
+pred <- within(pred, {
+  newdata <- data.frame(
+    weight_s=seq_range(dataHowel$weight_s, n = 30L)) |>
+    mutate(weight_s2 = weight_s^2)
+  intrvl <- predicted_draws(b4.5, newdata = newdata, ndraws = 500) |>
+    median_qi()
 })
-# glimpse(samples$fitted)
 
-samples$predict <- with(samples, {
-  predict(b4.5, newdata = newdata) |>
-  data.frame() |>
-  bind_cols(newdata)
+lpred <- list()
+lpred <- within(lpred, {
+  newdata <- data.frame(
+    weight_s=seq_range(dataHowel$weight_s, n = 30L)) |>
+    mutate(weight_s2 = weight_s^2)
+  intrvl <- linpred_draws(b4.5, newdata = newdata, ndraws = 500) |>
+    median_qi()
 })
-# glimpse(samples$predict)
 ```
 
 and we can now create the plot.
@@ -1078,12 +1117,12 @@ and we can now create the plot.
 ```{r}
 p$model <- p$basic +
   # scale_x_continuous(labels = function(x) fnc_nat(x)) +
-  geom_ribbon(data = samples$predict,
-              aes(x = weight_s, ymin = Q2.5, ymax = Q97.5), inherit.aes = FALSE,
-              fill = "lightcyan", alpha = 1) +
-  geom_smooth(data = samples$fitted,
-              aes(x=weight_s, y = Estimate, ymin = Q2.5, ymax = Q97.5), inherit.aes = FALSE,
-              stat = "identity",
+  geom_ribbon(data = pred$intrvl,
+              aes(x = weight_s, ymin = .lower, ymax = .upper), 
+              inherit.aes = FALSE, fill = "lightcyan", alpha = 1) +
+  geom_smooth(data = lpred$intrvl,
+              aes(x=weight_s, y = .linpred, ymin = .lower, ymax = .upper), 
+              inherit.aes = FALSE, stat = "identity",
               fill = "lightcyan3", color = "royalblue", alpha = 1, size = 1/2) +
   geom_point(shape = 20, size = 2, alpha = 2/3)
 p$model
@@ -1093,11 +1132,11 @@ p$model
 
 ```{r}
 data("cherry_blossoms")
-d <- cherry_blossoms
+dataCherry <- cherry_blossoms
 rm(cherry_blossoms)
-d |> skimr::skim()
+dataCherry |> skimr::skim()
 # data without NA
-d2 <- d |>
+dataCherry_nona <- dataCherry |>
   drop_na(doy)
 ```
 
@@ -1106,13 +1145,13 @@ d2 <- d |>
 The knots used here are based on quantiles, other ways are possible,
 
 ```{r}
-knots <- quantile(d2$year, probs = seq(from = 0, to = 1, length.out = 15))
+knots <- quantile(dataCherry_nona$year, probs = seq(from = 0, to = 1, length.out = 15))
 knots
 ```
 
 ```{r}
 colr <- unclass(paletteer::paletteer_d("futurevisions::cancri"))
-ggplot(d2, aes(x = year, y = doy, color = temp)) +
+ggplot(dataCherry_nona, aes(x = year, y = doy, color = temp)) +
   geom_vline(xintercept = knots, color = "slateblue", alpha = 1/2) +
   geom_point(shape = 20, size = 2, alpha = 2/3) +
   scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
@@ -1122,14 +1161,15 @@ ggplot(d2, aes(x = year, y = doy, color = temp)) +
         legend.position = c(0.05, 0.8),
         axis.text.x = element_text(size = rel(0.9))) +
   labs(title = "Cherry Blossom in Japan",
-       subtitle = sprintf("%d observations with %d knots", nrow(d), length(knots)))
+       subtitle = sprintf("%d observations with %d knots", nrow(dataCherry_nona), length(knots)))
 ```
 
 the code `knots[-c(1, nknots)]` is required because `bs` places knots at the boundaries by default, so we have to remove them.
 
 ```{r}
 library(splines)
-B <- splines::bs(x = d2$year, knots = knots[-c(1, length(knots))], degree = 3, intercept = TRUE)
+B <- splines::bs(x = dataCherry_nona$year, 
+                 knots = knots[-c(1, length(knots))], degree = 3, intercept = TRUE)
 # str(B)
 ```
 
@@ -1140,7 +1180,7 @@ and we plot the basis functions
 df_bias <- B |>
   as.data.frame() %>%
   setNames(sprintf("B%02d", seq_len(ncol(.)))) |>
-  mutate(year = d2$year) |>
+  mutate(year = dataCherry_nona$year) |>
   pivot_longer(cols = -year, names_to = "bias_func", values_to = "bias")
 # str(df_bias)
 
@@ -1153,7 +1193,6 @@ ggplot(df_bias, aes(x = year, y = bias, color = bias_func)) +
   ggthemes::theme_tufte() +
   theme(legend.position = "none") +
   labs("The bias functions")
-
 ```
 
 #### Model and fit
@@ -1171,11 +1210,10 @@ $$
 We first create append the matrix to the data in one column. See @kurtz2020b on this data structure.
 
 ```{r}
-d3 <- d2 |>
+dataCherry_nonaB <- dataCherry_nona |>
   mutate(B = B)
 # the last column is a matrix column, with same nb of rows as the other
 # columns but with a column including 17 subcolumns (!)
-# glimpse(d3)
 ```
 
 and the fit
@@ -1183,7 +1221,7 @@ and the fit
 ```{r ch04_b04_08}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 b4.8 <- xfun::cache_rds({
-  brm(data = d3,
+  brm(data = dataCherry_nonaB,
       family = gaussian,
       doy ~ 1 + B,
       prior = c(prior(normal(100, 10), class = Intercept),
@@ -1195,13 +1233,15 @@ tictoc::toc()
 ```
 
 ```{r}
-summary(b4.8)
+summarize_draws(b4.8) |>
+  filter(!grepl(pattern = "__$", x = variable)) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
 ```
 
 #### Plot
 
 ```{r}
-# get_variables(b4.8)
+get_variables(b4.8)
 ```
 
 ```{r}
@@ -1226,22 +1266,37 @@ ggplot(df, aes(x = year, y = bias * weight, color = bias_func)) +
   labs(title = "fitted bias functions")
 ```
 
+
 ```{r}
-df <- fitted(b4.8) |>
-  as.data.frame() |>
-  bind_cols(d2)
+lpred <- list()
+lpred <- within(lpred, {
+  newdata <- dataCherry_nonaB
+  draws <- linpred_draws(b4.8, newdata = newdata)
+  intrvl <- draws |>
+    ungroup() |>
+    select(-B) |>
+    group_by(year) |>
+    mean_qi(.linpred)
+  })
+# glimpse(lpred$draws)
+# glimpse(lpred$intrvl)
+
+
 clrs <- unclass(paletteer::paletteer_d("futurevisions::cancri"))
-ggplot(df, aes(x = year, y = doy)) +
+ggplot(lpred$intrvl, aes(x = year, y = .linpred)) +
   geom_vline(xintercept = knots[-c(1, length(knots))], color = "slateblue", alpha = 1/2) +
-  geom_point(aes(color = temp)) +
-  geom_lineribbon(aes(x = year, y = Estimate, ymin = Q2.5, ymax = Q97.5),
+  geom_point(dataCherry_nonaB, mapping = aes(x = year, y = doy, color = temp),
+             inherit.aes = FALSE) +
+  geom_lineribbon(aes(x = year, y = .linpred, ymin = .lower, ymax = .upper),
                   color = "blueviolet", fill = "cornflowerblue", alpha = 1/2) +
   scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
   scale_color_gradientn(colors = clrs) +
   ggthemes::theme_tufte() +
   theme(legend.position = "none") +
-  labs(title = "Figure 4.12")
+  labs(title = "Figure 4.12",x = "year", y = "doy")
 ```
+
+
 
 ### Smooth functions for a smooth world
 

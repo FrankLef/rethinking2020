@@ -558,7 +558,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_b13_01"</span>)</span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.21 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.16 sec elapsed</code></pre>
 </div>
 </div>
 <p>We will strive to use <code>tidybayes</code> and <code>posterior</code> whenever possible instead of solutions such as <code>coef[]</code>, <code>fixef</code> and <code>ranef</code>. It is the recommended way in documentation from <code>brms</code> and makes the work much easier.</p>
@@ -663,7 +663,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_b13_02"</span>)</span>
 <span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.24 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.16 sec elapsed</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(b13<span class="fl">.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -973,7 +973,7 @@ logit(p_i) &amp;= \alpha_{pond[i]} \\
 <span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_b13_03"</span>)</span>
 <span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.22 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.16 sec elapsed</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(b13<span class="fl">.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -1267,7 +1267,7 @@ $ treatment    &lt;fct&gt; R/N, R/N, L/N, R/N, L/N, L/N, L/N, L/N, R/N, R/N, R/N
 <span id="cb62-17"><a href="#cb62-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_b13_04"</span>)</span>
 <span id="cb62-18"><a href="#cb62-18" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 90 secs., use the cache.: 0.21 sec elapsed</code></pre>
+<pre><code>run time of 90 secs., use the cache.: 0.15 sec elapsed</code></pre>
 </div>
 </div>
 <p>the posterior samples is</p>
@@ -1325,7 +1325,7 @@ $ treatment    &lt;fct&gt; R/N, R/N, L/N, R/N, L/N, L/N, L/N, L/N, R/N, R/N, R/N
 <span id="cb67-15"><a href="#cb67-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_b13_05"</span>)</span>
 <span id="cb67-16"><a href="#cb67-16" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 90 secs., use the cache.: 0.25 sec elapsed</code></pre>
+<pre><code>run time of 90 secs., use the cache.: 0.2 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1355,7 +1355,7 @@ b13.4 -0.5       0.8   </code></pre>
 <span id="cb71-12"><a href="#cb71-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_b13_06"</span>)</span>
 <span id="cb71-13"><a href="#cb71-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 140 secs., use the cache.: 0.28 sec elapsed</code></pre>
+<pre><code>run time of 140 secs., use the cache.: 0.23 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
