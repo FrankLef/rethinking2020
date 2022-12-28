@@ -14,6 +14,7 @@ library(posterior)
 library(ggplot2)
 library(ggdist)
 library(modelr)
+library(splines)
 library(patchwork)
 library(paletteer)
 ```
@@ -23,6 +24,13 @@ library(paletteer)
 options(mc.cores = parallel::detectCores())
 #  To avoid recompilation of unchanged Stan programs
 rstan_options(auto_write = TRUE)
+```
+
+
+```{r}
+# The default theme is by the plot
+ggplot2::theme_set(ggdist::theme_ggdist())
+ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
 
 
@@ -124,7 +132,6 @@ plotPrior$sim1 <- prior$sim1 |>
   (\(.){
     ggplot(data=., aes(x=height)) +
       geom_density(color = "slateblue1", size = 1) +
-      theme_classic() +
       theme(legend.position = c(0.1, 0.8)) +
       labs(
         title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
@@ -159,7 +166,6 @@ plotPrior$normal <- data.frame(mean=178, sd=20) |>
                     color="olivedrab4", size=1) +
       scale_x_continuous(limits = c(.$mean - 3 * .$sd, .$mean  + 3 * .$sd),
                      breaks = scales::breaks_width(width = 25)) +
-  theme_classic() +
   labs(title = bquote(mu ~ .(sprintf("~ dnorm(%.0f, %.0f)", .$mean, .$sd))), 
        x = expression(mu), y = "density") 
   })()
@@ -173,7 +179,6 @@ plotPrior$uniform <- data.frame(min=0, max=50) |>
                     color="rosybrown2", size=1) +
       scale_x_continuous(limits = c(.$min - 2, .$max  + 2),
                          breaks = scales::breaks_width(width=10)) +
-      theme_classic() +
       labs(title = bquote(mu ~ .(sprintf("~ dunif(%.0f, %.0f)", .$min, .$max))), 
            x = expression(sigma), y = "density")
   })()
@@ -310,8 +315,6 @@ p$heat <- ggplot(data = post$grid, aes(x = mu, y = sigma, fill = prob)) +
   scale_y_continuous(limits = c(6.5, 9)) +
   scale_fill_paletteer_c("grDevices::Viridis") +
   coord_fixed() +
-  theme_minimal() +
-  theme(panel.grid = element_blank()) +
   labs(title = "The grid's posterior prob.",
        x=expression(mu), y=expression(sigma))
 p$heat
@@ -330,7 +333,6 @@ and visualizing the density of $\mu$ and $\sigma$
 # plot the density of mu
 p$mu <- ggplot(data = post$draws, mapping = aes(x = mu)) +
   geom_density(color = "blue", linewidth = 1, fill = "lightblue") +
-  theme_minimal() +
   labs(title = expression("distribution of" ~ mu), x = expression(mu))
 # p$mu
 ```
@@ -353,7 +355,6 @@ or, even, mapping them together using `ggExtra`
 p$marg <- ggplot(data = post$draws, mapping = aes(x = mu, y = sigma)) +
   geom_point(color = "mediumorchid", size = 0.8) +
   geom_jitter(color = "mediumorchid", size = 0.8) +
-  theme_minimal() +
   labs(title = expression("distribution of" ~ mu ~ sigma),
        x = expression(mu), y = expression(sigma))
 p$marg <- ggExtra::ggMarginal(p$marg, 
@@ -508,12 +509,9 @@ p$b <- b4.1 |>
   ggplot(aes(x = b_Intercept)) +
   stat_halfeye(aes(fill=after_stat(cut_cdf_qi(cdf,.width = p$qtl))),
            point_interval = mean_qi, .width = p$qtl) +
-   scale_fill_paletteer_d(palette = "futurevisions::pso", direction = -1,
+   scale_fill_paletteer_d(palette = "ggsci::teal_material",
                          na.translate = FALSE) +
-  theme_ggdist() +
-  theme(legend.position = "none",
-        plot.background = element_rect(fill = "palegoldenrod"),
-        panel.background = element_rect(fill = "lightblue")) +
+  theme(legend.position = "none") +
   labs(title = "Posterior probability of Intercept", y = "density")
 
 # plot the posterior dist for sigma
@@ -522,14 +520,12 @@ p$sigma <- b4.1 |>
   ggplot(aes(x = sigma)) +
   stat_halfeye(aes(fill=after_stat(cut_cdf_qi(cdf, .width = p$qtl))),
            point_interval = mean_qi, .width = p$qtl) +
-   scale_fill_paletteer_d(palette = "futurevisions::pso",
+   scale_fill_paletteer_d(palette = "ggsci::pink_material",
                          na.translate = FALSE) +
   theme_ggdist() +
-  theme(legend.position = "none",
-        plot.background = element_rect(fill = "lightblue"),
-        panel.background = element_rect(fill = "palegoldenrod")) +
+  theme(legend.position = "none") +
   labs(title = expression("Posterior probability of " ~ sigma), y = "density")
-p$sigma
+# p$sigma
 
 p$b + p$sigma +
   plot_annotation(title = "Model 4.1",
@@ -649,7 +645,6 @@ ggplot(prior$sim, aes(x = weight, y = height, group = id)) +
   geom_line(alpha = 1/10) +
   geom_hline(yintercept = c(0, 272), linetype = c(2, 1), size = 1/3) +
   coord_cartesian(ylim = c(-100, 400)) +
-  theme_classic() +
   labs(title = "b ~ dnorm(0, 10)")
 ```
 
@@ -666,14 +661,12 @@ p$lnorm <- ggplot(data.frame(x = c(0, 5)), aes(x)) +
                 color = "slategray", size = 1.5) +
   stat_function(geom = "area", fun = dlnorm, args = list(meanlog = 0, sdlog = 1), 
                 fill = "slategray1") +
-  theme_classic() +
   labs(title = "log-normal distribution", x = expression(beta), y = "density")
 p$exp <- ggplot(data.frame(x = c(0, 5)), aes(x)) +
   stat_function(geom = "line", fun = dexp, args = list(rate = 1), 
                 color = "seagreen", size = 1.5) +
   stat_function(geom = "area", fun = dexp, args = list(rate = 1), 
                 fill = "seagreen1") +
-  theme_classic() +
   labs(title = "exponential distribution", x = expression(beta), y = "density")
 wrap_plots(p)
 ```
@@ -894,7 +887,6 @@ p <- list()
 p$hist <- ggplot(post$long, aes(x = .value)) +
   geom_histogram(aes(fill = .variable)) +
   scale_fill_paletteer_d(palette = "futurevisions::atomic_orange") +
-  theme_minimal() +
   theme(legend.position = "none") +
   facet_wrap(. ~ .variable, ncol = 1, scales = "free")
 p$hist
@@ -906,8 +898,6 @@ and density plots by chains
 p$dens <- ggplot(post$long, aes(x = .value, color = as.factor(.chain))) +
   geom_density() +
   scale_color_paletteer_d(palette = "futurevisions::atomic_clock") +
-  theme_minimal() +
-  # theme(legend.position = "none") +
   labs(x = NULL, color = "chain") +
   facet_wrap(. ~ .variable, ncol = 1, scales = "free")
 p$dens
@@ -926,7 +916,6 @@ p$pairs <- GGally::ggscatmat(post$wide,
                                 columns = c("b_Intercept", "b_weight_c", "sigma"),
                                 color = ".chain", alpha = 0.8) +
   scale_color_paletteer_d(palette = "futurevisions::atomic_clock") +
-  theme_minimal()
 p$pairs
 ```
 
@@ -949,7 +938,6 @@ and for added extra, the trace plot
 p$trace <- ggplot(post$long, aes(x = .iteration, y = .value, color = as.factor(.chain))) +
   geom_line() +
   scale_color_paletteer_d(palette = "futurevisions::atomic_clock", direction = 1) +
-  theme_minimal() +
   theme(legend.position = "none") +
   labs(x = NULL, y = NULL) +
   facet_wrap(. ~ .variable, ncol = 1, scales = "free")
@@ -985,9 +973,7 @@ p$basic <- dataHowel |>
                        label_number(accuracy = 1)(x)
                      }) +
   scale_color_gradientn(colors = colr) +
-  theme_classic() +
-  theme(title = element_text(color = "midnightblue"),
-        legend.position = c(0.1, 0.8)) +
+  theme(legend.position = c(0.1, 0.8)) +
   labs(title = "Census data for the Dobe area !Kung San",
        subtitle = sprintf("%d individuals", nrow(.)))
     })()
@@ -1055,7 +1041,6 @@ p$dens <-
   ggplot(aes(x = .value, color = as.factor(.chain))) +
   geom_density() +
   scale_color_paletteer_d(palette = "futurevisions::mars", direction = -1) +
-  theme_minimal() +
   theme(legend.position = "none") +
   labs(x = NULL, color = "chain") +
   facet_wrap(. ~ .variable, ncol = 1, scales = "free")
@@ -1071,7 +1056,6 @@ p$trace <-
   ggplot(aes(x = .iteration, y = .value, color = as.factor(.chain))) +
   geom_line() +
   scale_color_paletteer_d(palette = "futurevisions::mars", direction = -1) +
-  theme_minimal() +
   theme(legend.position = "none") +
   labs(x = NULL, y = NULL) +
   facet_wrap(. ~ .variable, ncol = 1, scales = "free")
@@ -1156,20 +1140,19 @@ ggplot(dataCherry_nona, aes(x = year, y = doy, color = temp)) +
   geom_point(shape = 20, size = 2, alpha = 2/3) +
   scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
   scale_color_gradientn(colors = colr) +
-  theme_classic() +
-  theme(title = element_text(color = "midnightblue"),
-        legend.position = c(0.05, 0.8),
+  theme(legend.position = c(0.05, 0.8),
         axis.text.x = element_text(size = rel(0.9))) +
   labs(title = "Cherry Blossom in Japan",
        subtitle = sprintf("%d observations with %d knots", nrow(dataCherry_nona), length(knots)))
 ```
 
-the code `knots[-c(1, nknots)]` is required because `bs` places knots at the boundaries by default, so we have to remove them.
+the code `knots[-c(1, nknots)]` is required because `bs` places knots at 
+the boundaries by default, so we have to remove them.
 
 ```{r}
-library(splines)
 B <- splines::bs(x = dataCherry_nona$year, 
-                 knots = knots[-c(1, length(knots))], degree = 3, intercept = TRUE)
+                 knots = knots[-c(1, length(knots))], 
+                 degree = 3, intercept = TRUE)
 # str(B)
 ```
 
@@ -1186,11 +1169,10 @@ df_bias <- B |>
 
 clrs <- paletteer::paletteer_c("pals::jet", n = length(unique(df_bias$bias_func)))
 ggplot(df_bias, aes(x = year, y = bias, color = bias_func)) +
-  geom_vline(xintercept = knots, color = "grey60", linestyle = "longdash", alpha = 1/2) +
+  geom_vline(xintercept = knots, color = "grey60", linetype = "longdash", alpha = 1/2) +
   geom_line() +
   scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
   scale_color_manual(values = clrs) +
-  ggthemes::theme_tufte() +
   theme(legend.position = "none") +
   labs("The bias functions")
 ```
@@ -1207,7 +1189,7 @@ w_j &\sim \mathcal{N}(0, 10) \\
 \end{align*}
 $$
 
-We first create append the matrix to the data in one column. See @kurtz2020b on this data structure.
+We first append the matrix to the data in one column. See @kurtz2020b on this data structure.
 
 ```{r}
 dataCherry_nonaB <- dataCherry_nona |>
@@ -1257,15 +1239,14 @@ df <- tidybayes::gather_draws(b4.8, !!sym("^b_B.+"), regex = TRUE) |>
 
 clrs <- paletteer::paletteer_c("pals::jet", n = length(unique(df_bias$bias_func)))
 ggplot(df, aes(x = year, y = bias * weight, color = bias_func)) +
-  geom_vline(xintercept = knots, color = "grey60", linestyle = "longdash", alpha = 1/2) +
+  geom_vline(xintercept = knots, color = "grey60", linetype = "longdash", alpha = 1/2) +
   geom_line(size = 1) +
   scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
   scale_color_manual(values = clrs) +
-  ggthemes::theme_tufte() +
   theme(legend.position = "none") +
   labs(title = "fitted bias functions")
 ```
-
+the fitted values
 
 ```{r}
 lpred <- list()
@@ -1278,10 +1259,12 @@ lpred <- within(lpred, {
     group_by(year) |>
     mean_qi(.linpred)
   })
-# glimpse(lpred$draws)
-# glimpse(lpred$intrvl)
+```
+
+and the plot
 
 
+```{r}
 clrs <- unclass(paletteer::paletteer_d("futurevisions::cancri"))
 ggplot(lpred$intrvl, aes(x = year, y = .linpred)) +
   geom_vline(xintercept = knots[-c(1, length(knots))], color = "slateblue", alpha = 1/2) +
@@ -1291,7 +1274,6 @@ ggplot(lpred$intrvl, aes(x = year, y = .linpred)) +
                   color = "blueviolet", fill = "cornflowerblue", alpha = 1/2) +
   scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
   scale_color_gradientn(colors = clrs) +
-  ggthemes::theme_tufte() +
   theme(legend.position = "none") +
   labs(title = "Figure 4.12",x = "year", y = "doy")
 ```
