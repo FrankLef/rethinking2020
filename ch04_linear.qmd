@@ -28,7 +28,7 @@ rstan_options(auto_write = TRUE)
 
 
 ```{r}
-# The default theme is by the plot
+# The default theme used by ggplot2
 ggplot2::theme_set(ggdist::theme_ggdist())
 ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
@@ -106,71 +106,44 @@ $$
 We do the prior predictive simulation with the prior $\mu \sim \mathcal{N}(178, 20)$
 
 ```{r}
-prior <- list()
-prior$sim1 <- data.frame(id = seq_len(1e4)) |>
-  mutate(mu=rnorm(n=n(), mean=178, sd=20),
-         sigma=runif(n=n(), min=0, max=50),
-         height = rnorm(n=n(), mean=mu, sd=sigma))
+priorHowel_gte18 <- list()
+priorHowel_gte18 <- within(priorHowel_gte18, {
+  n <- 1e3
+  sim1 <- data.frame(id = seq_len(n)) |>
+  mutate(mu = rnorm(n = n(), mean = 178, sd = 20),
+         sigma = runif(n = n(), min = 0, max = 50),
+         height = rnorm(n = n(), mean = mu, sd = sigma))
+  })
 ```
 
 and we do the prior predictive simulation with the prior $\mu \sim \mathcal{N}(178, 100)$
 
 ```{r}
-prior$sim2 <- data.frame(id=seq_len(1e4)) %>%
-  mutate(mu=rnorm(n=n(), mean=178, sd=100),
-         sigma=runif(n=n(), min=0, max=50),
-         height = rnorm(n=n(), mean=mu, sd=sigma))
+priorHowel_gte18 <- within(priorHowel_gte18, {
+  n <- 1e4
+  sim2 <- data.frame(id=seq_len(1e4)) %>%
+    mutate(mu = rnorm(n = n(), mean = 178, sd = 100),
+           sigma = runif(n = n(), min = 0, max = 50),
+           height = rnorm(n = n(), mean = mu, sd = sigma))
+  })
 ```
 
-and we visualize using `ggplot`
+and we visualize using `ggplot`. We first create the 2 plots of 
+analytical distribution plots
 
 ```{r}
 plotPrior <- list()
-# NOTE: we use (\(.){})() with |>
-# https://towardsdatascience.com/understanding-the-native-r-pipe-98dea6d8b61b
-plotPrior$sim1 <- prior$sim1 |>
-  (\(.){
-    ggplot(data=., aes(x=height)) +
-      geom_density(color = "slateblue1", size = 1) +
-      theme(legend.position = c(0.1, 0.8)) +
-      labs(
-        title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
-        subtitle = sprintf("sample size = %d", nrow(.)),
-        fill = "quantile")})()
-# plotPrior$sim1
-```
-
-```{r}
-plotPrior$sim2 <- prior$sim2 |>
-  (\(.){
-    ggplot(data=., aes(x = height)) +
-      geom_density(color = "peru", size = 1) +
-      geom_vline(xintercept = 0, linetype = "dotted", color = "navy") +
-      theme_classic() +
-      theme(legend.position = c(0.1, 0.8)) +
-      labs(
-        title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
-        subtitle = sprintf("sample size = %d", nrow(.)),
-        fill = "quantile")
-  })()
-# plotPrior$sim2
-```
-
-and we generate the 2 plots of analytical distribution
-
-```{r}
-plotPrior$normal <- data.frame(mean=178, sd=20) |>
+plotPrior$normal <- data.frame(mean = 178, sd = 20) |>
   (\(.){
     ggplot(data=.) +
-      geom_function(fun=dnorm, args=list(mean=.$mean, sd=.$sd),
-                    color="olivedrab4", size=1) +
+      geom_function(fun=dnorm, args=list(mean = .$mean, sd = .$sd),
+                    color = "olivedrab4", size = 1) +
       scale_x_continuous(limits = c(.$mean - 3 * .$sd, .$mean  + 3 * .$sd),
                      breaks = scales::breaks_width(width = 25)) +
   labs(title = bquote(mu ~ .(sprintf("~ dnorm(%.0f, %.0f)", .$mean, .$sd))), 
        x = expression(mu), y = "density") 
   })()
 # plotPrior$normal
-
 
 plotPrior$uniform <- data.frame(min=0, max=50) |>
   (\(.){
@@ -185,8 +158,67 @@ plotPrior$uniform <- data.frame(min=0, max=50) |>
 # plotPrior$uniform
 ```
 
+we add the actual plot of height to the plots created by McElreath to facilitate
+the understanding of priors. McElreath suggests that priors should follows the
+scientific knowledge. See the interesting discussion at the end of section 4.3.2
+on p. 84.
+
 ```{r}
-patchwork::wrap_plots(plotPrior)
+plotPrior <- within(plotPrior, {
+  # the density of actual data used for comparisons
+  actual <- 
+      geom_density(data = dataHowel_gte18, aes(x=height),
+                   color = "navy", linewidth = 1, linetype = "dashed")
+})
+```
+
+
+
+```{r}
+plotPrior <- within(plotPrior, {
+  # NOTE: we use (\(.){})() with |>
+  # https://towardsdatascience.com/understanding-the-native-r-pipe-98dea6d8b61b
+  sim1 <- priorHowel_gte18$sim1 |>
+  (\(.){
+    ggplot(data=., aes(x=height)) +
+      geom_density(color = "slateblue1", linewidth = 1) +
+      theme(legend.position = c(0.1, 0.8)) +
+      labs(
+        title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
+        subtitle = sprintf("sample size = %d", nrow(.)),
+        fill = "quantile")})()
+  sim1 <- sim1 + actual  # add the actual data (not in McElreath's curve)
+})
+# plotPrior$sim1
+```
+
+```{r}
+plotPrior <- within(plotPrior, {
+  sim2 <- priorHowel_gte18$sim2 |>
+  (\(.){
+    ggplot(data=., aes(x = height)) +
+      geom_density(color = "peru", linewidth = 1) +
+      geom_vline(xintercept = 0, linetype = "dotted", color = "navy") +
+      theme_classic() +
+      theme(legend.position = c(0.1, 0.8)) +
+      labs(
+        title = expression(paste("h ~ dnorm(", mu, ",", sigma ,")")),
+        subtitle = sprintf("sample size = %d", nrow(.)),
+        fill = "quantile")
+    })()
+  sim2 <- sim2 + actual  # add the actual data (not in McElreath's curve)
+})
+# plotPrior$sim2
+```
+
+and putting the plots together with `patchwork` we obtain
+
+```{r}
+patchwork::wrap_plots(list(plotPrior$normal, plotPrior$uniform,
+                           plotPrior$sim1, plotPrior$sim2)) + 
+  plot_annotation(
+  title = "Prior Predictive Simulation for the Height Model."
+)
 ```
 
 ### Grid approximation of posterior distribution
@@ -194,14 +226,9 @@ patchwork::wrap_plots(plotPrior)
 First create the grid.
 
 ```{r}
-
-```
-
-
-```{r}
 # create grid of mu and sigma
-post <- list()
-post <- within(post, {
+postHowel_gte18 <- list()
+postHowel_gte18 <- within(postHowel_gte18, {
   ngrid <- 200L
   grid <- data.frame(
     mu = seq(from = 140, to = 160, length.out = ngrid),
@@ -247,7 +274,7 @@ as follows
 
 ```{r}
 # The likelihood on the log scale
-post <- within(post, {
+postHowel_gte18 <- within(postHowel_gte18, {
   grid <- grid %>%
     mutate(LL = sapply(
       X = seq_len(nrow(.)), 
@@ -259,7 +286,7 @@ post <- within(post, {
         })
       )
   })
-# glimpse(post$grid)
+# glimpse(postHowel_gte18$grid)
 ```
 
 then the remaining 2 elements of the summation are the priors
@@ -276,7 +303,7 @@ which we add to the likelihood to obtain the posterior distribution on the log s
 ```{r}
 # add the priors to the likelihood  on the log scales to obtain the
 # log of the posterior
-post$grid <- post$grid |>
+postHowel_gte18$grid <- postHowel_gte18$grid |>
   mutate(prob =
            LL + 
            dnorm(x = mu, mean = 178, sd = 20, log = TRUE) +
@@ -302,14 +329,16 @@ $$
 ```{r}
 # convert back to real scale
 # attention: see endnote 73 on using max(prob)
-post$grid$prob <- with(post$grid, {exp(prob - max(prob))})
+postHowel_gte18 <- within(postHowel_gte18, {
+  grid$prob <- with(grid, {exp(prob - max(prob))})
+})
 ```
 
 plot the results on a heatmap
 
 ```{r}
-p <- list()
-p$heat <- ggplot(data = post$grid, aes(x = mu, y = sigma, fill = prob)) +
+plotPost <- list()
+plotPost$heat <- ggplot(data = postHowel_gte18$grid, aes(x = mu, y = sigma, fill = prob)) +
   geom_raster() +
   scale_x_continuous(limits = c(153, 156)) +
   scale_y_continuous(limits = c(6.5, 9)) +
@@ -317,52 +346,31 @@ p$heat <- ggplot(data = post$grid, aes(x = mu, y = sigma, fill = prob)) +
   coord_fixed() +
   labs(title = "The grid's posterior prob.",
        x=expression(mu), y=expression(sigma))
-p$heat
+plotPost$heat
 ```
 
 ### Sampling from the grid's posterior
 
 ```{r}
-post$draws <- post$grid |>
+postHowel_gte18$draws <- postHowel_gte18$grid |>
   slice_sample(n=1e4, weight_by = prob, replace = TRUE)
 ```
 
-and visualizing the density of $\mu$ and $\sigma$
+and visualizing the density of $\mu$ and $\sigma$ together using `ggExtra`
 
 ```{r}
-# plot the density of mu
-p$mu <- ggplot(data = post$draws, mapping = aes(x = mu)) +
-  geom_density(color = "blue", linewidth = 1, fill = "lightblue") +
-  labs(title = expression("distribution of" ~ mu), x = expression(mu))
-# p$mu
-```
-
-```{r}
-# plot the density of sigma
-p$sigma <- ggplot(data = post$draws, mapping = aes(x = sigma)) +
-  geom_density(color = "darkgreen", linewidth = 1, fill = "lightgreen") +
-  theme_minimal() +
-  labs(title = expression("distribution of" ~ sigma), x = expression(sigma))
-```
-
-```{r}
-p$mu + p$sigma
-```
-
-or, even, mapping them together using `ggExtra`
-
-```{r}
-p$marg <- ggplot(data = post$draws, mapping = aes(x = mu, y = sigma)) +
+plotPost$marg <- ggplot(data = postHowel_gte18$draws, 
+                        mapping = aes(x = mu, y = sigma)) +
   geom_point(color = "mediumorchid", size = 0.8) +
   geom_jitter(color = "mediumorchid", size = 0.8) +
-  labs(title = expression("distribution of" ~ mu ~ sigma),
+  labs(title = expression("Distribution of" ~ mu ~"and" ~ sigma ~ " using a grid."),
        x = expression(mu), y = expression(sigma))
-p$marg <- ggExtra::ggMarginal(p$marg, 
+plotPost$marg <- ggExtra::ggMarginal(plotPost$marg, 
                     xparams = list(colour = "blue", fill = "lightblue", 
                                    linewidth = 1),
                     yparams = list(colour="darkgreen", fill = "lightgreen", 
                                    linewidth = 1))
-p$marg
+plotPost$marg
 ```
 
 
@@ -386,42 +394,38 @@ $$
 
 and the fit is
 
-```{r ch04_m04_01}
-# see Overthinking in section 4.3.5 for the difference between alist() and list()
-m4.1 <- list()
-m4.1$args <- list(
-    flist = alist(
-      height ~ dnorm(mu, sigma),
-      mu ~ dnorm(178, 28),
-      sigma ~ dunif(0, 50)),
-    start = list(
-      mu  = mean(dataHowel_gte18$height),
-      sigma = sd(dataHowel_gte18$height)
-      ))
-# fit the data to the model
-m4.1$fit <- xfun::cache_rds(
-  {rethinking::quap(m4.1$args$flist, 
-                    data = dataHowel_gte18, 
-                    start = m4.1$args$start)},
-  file = "ch04_m04_01")
+```{r ch04_04_01quap}
+fit04_01quap <- xfun::cache_rds(
+    {rethinking::quap(
+      data = dataHowel_gte18,
+      flist = alist(
+        height ~ dnorm(mu, sigma),
+        mu ~ dnorm(178, 28),
+        sigma ~ dunif(0, 50)),
+      start = list(
+        mu  = mean(dataHowel_gte18$height),
+        sigma = sd(dataHowel_gte18$height))
+      )},
+  file = "ch04_04_01quap")
 ```
+
 
 which gives us the summary
 
 ```{r}
-precis(m4.1$fit)
+precis(fit04_01quap)
 ```
 
 and the variance covariance matrix is
 
 ```{r}
-vcov(m4.1$fit)
+vcov(fit04_01quap)
 ```
 
 and the correlation matrix
 
 ```{r}
-cov2cor(vcov(m4.1$fit))
+cov2cor(vcov(fit04_01quap))
 ```
 
 #### Using `brms::brm`
@@ -444,9 +448,9 @@ $$
 
 This process takes less than a second. It has been save to the rsd file `b04_01.rds`
 
-```{r ch04_b04_01}
+```{r ch04_04_01brm}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b4.1 <- xfun::cache_rds({
+fit04_01brm <- xfun::cache_rds({
   brms::brm(data = dataHowel_gte18,
             formula = height ~ 1,
             family = gaussian,
@@ -454,18 +458,18 @@ b4.1 <- xfun::cache_rds({
                       prior(cauchy(0, 1), class = sigma)),
             iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
             seed = 4)},
-  file = "ch04_b04_01")
+  file = "ch04_04_01brm")
 tictoc::toc()
 ```
 
 ```{r}
-plot(b4.1)
+plot(fit04_01brm)
 ```
 
 with the summary
 
 ```{r}
-summary(b4.1)
+summary(fit04_01brm)
 ```
 
 which can also be done with `tidybayes::summarize_draws` which comes from the
@@ -474,10 +478,8 @@ which can also be done with `tidybayes::summarize_draws` which comes from the
 ```{r}
 # normally we only use summarise_draws() but here we change it to match 
 # the width of 0.89
-tidybayes::summarise_draws(b4.1, mean, median, sd, mad, 
-                           ~quantile2(.x, probs = c(0.055, 0.945)),
-                           default_convergence_measures(),
-                           default_mcse_measures()) |>
+tidybayes::summarise_draws(fit04_01brm, mean, median, sd, mad, 
+                           ~quantile2(.x, probs = c(0.055, 0.945))) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
@@ -486,7 +488,7 @@ tidybayes::summarise_draws(b4.1, mean, median, sd, mad,
 and to plot the posteriors we need to know the names of the variables
 
 ```{r}
-tidybayes::get_variables(b4.1)
+tidybayes::get_variables(fit04_01brm)
 ```
 
 and we spread the data with one column per variable to be able to plot it. 
@@ -500,34 +502,55 @@ We can visualize with `ggdist`. it could be done with `tidybayes` but since
 `tidybayes` reexport `ggdist` we use it directly.
 
 ```{r}
-p <- list()
-# quantiles used in the plots
-p$qtl <- c(0.89, 1)
-# plot the posterior dist for b
-p$b <- b4.1 |>
-  tidybayes::spread_draws(b_Intercept, sigma) |>
-  ggplot(aes(x = b_Intercept)) +
-  stat_halfeye(aes(fill=after_stat(cut_cdf_qi(cdf,.width = p$qtl))),
-           point_interval = mean_qi, .width = p$qtl) +
-   scale_fill_paletteer_d(palette = "ggsci::teal_material",
-                         na.translate = FALSE) +
-  theme(legend.position = "none") +
-  labs(title = "Posterior probability of Intercept", y = "density")
+widths <- c(0.89, 1)
+probs <- (1 - widths) / 2
+probs <- sort(c(probs, 0.5, 1 - probs))
+probs
+```
 
-# plot the posterior dist for sigma
-p$sigma <- b4.1 |>
-  tidybayes::spread_draws(b_Intercept, sigma) |>
-  ggplot(aes(x = sigma)) +
-  stat_halfeye(aes(fill=after_stat(cut_cdf_qi(cdf, .width = p$qtl))),
-           point_interval = mean_qi, .width = p$qtl) +
-   scale_fill_paletteer_d(palette = "ggsci::pink_material",
+
+```{r}
+plot04_01 <- list()
+
+plot04_01 <- within(plot04_01, {
+  widths <- c(0.89, 1)
+  probs <- (1 - widths) / 2
+  probs <- sort(c(probs, 0.5, 1 - probs))
+  post <- tidy_draws(fit04_01brm)
+})
+
+plot04_01 <- within(plot04_01, {
+  breaks <- quantile(post$b_Intercept, probs = probs, names = FALSE)
+  intercept <- post |>
+    ggplot(aes(x = b_Intercept)) +
+    stat_halfeye(aes(fill=after_stat(cut_cdf_qi(cdf, .width = widths))),
+                 point_interval = mean_qi, .width = widths) +
+    scale_x_continuous(breaks = breaks,
+                       labels = scales::label_number(accuracy = 0.1)) +
+    scale_y_continuous(labels = scales::label_percent()) +
+    scale_fill_paletteer_d(palette = "ggsci::teal_material",
+                           na.translate = FALSE) +
+    theme(legend.position = "none") +
+    labs(title = "Posterior probability of Intercept", y = "density")
+})
+
+
+plot04_01 <- within(plot04_01, {
+  breaks <- quantile(post$sigma, probs = probs, names = FALSE)
+  sigma <- post |> 
+    ggplot(aes(x = sigma)) +
+    stat_halfeye(aes(fill = after_stat(cut_cdf_qi(cdf, .width = widths))),
+                 point_interval = mean_qi, .width = widths) +
+    scale_x_continuous(breaks = breaks,
+                       labels = scales::label_number(accuracy = 0.1)) +
+    scale_y_continuous(labels = scales::label_percent()) +
+    scale_fill_paletteer_d(palette = "ggsci::pink_material",
                          na.translate = FALSE) +
-  theme_ggdist() +
   theme(legend.position = "none") +
   labs(title = expression("Posterior probability of " ~ sigma), y = "density")
-# p$sigma
+})
 
-p$b + p$sigma +
+plot04_01$intercept + plot04_01$sigma +
   plot_annotation(title = "Model 4.1",
                   theme = theme(title = element_text(color = "midnightblue")))
 ```
@@ -542,46 +565,49 @@ Simply `quap` gives us the variance covariance. Therefore `quap` can be used
 to simulation the bivariate normal distribution of $\mu$ and $\sigma$
 
 ```{r}
-vcov(m4.1$fit)
+vcov(fit04_01quap)
 ```
 
 from which we can obtain the correlation matrix
 
 ```{r}
-cov2cor(vcov(m4.1$fit)) |>
+cov2cor(vcov(fit04_01quap)) |>
   round(digits = 3)
 ```
 
 so to simulate using `rethinking` we simply use
 
 ```{r}
-post <- extract.samples(m4.1$fit, n = 1e4)
+post04_01m <- extract.samples(fit04_01quap, n = 1e4)
 ```
 
 which gives us a sample of size 10000 of the posterior distribution which can be summarized with the usual `precis()`
 
 ```{r}
-precis(post)
+precis(post04_01m)
 ```
 
 #### Using `brm`
 
-Using `brm` however we are not given the variance covariance, it is only available for the intercept (first-level parameter)
+Using `brm` however we are not given the variance covariance, it is only 
+available for the intercept (first-level parameter)
 
 ```{r}
-vcov(b4.1)
+vcov(fit04_01brm)
 ```
 
 So you have to calculate the var-cov matrix by using a sample from the posterior distribution
 
 ```{r}
-post <- tidy_draws(b4.1)
+post04_01b <- tidy_draws(fit04_01brm)
 # compute the cov
-cor(post[, c("b_Intercept", "sigma")]) |>
+cor(post04_01b[, c("b_Intercept", "sigma")]) |>
   round(digits = 3)
 ```
 
-> See comment from @kurtz2020b at end of section 4.3.6 to explain that McElreath uses `mvnorm()` from `MASS` to simulate using the varcov whereas with `brms::posterior_samples()` we do it directly.
+> See comment from @kurtz2020b at end of section 4.3.6 to explain that 
+McElreath uses `mvnorm()` from `MASS` to simulate using the varcov whereas with 
+`brms::tidy_draws()` we do it directly.
 
 Also @kurtz2020b has a nice discussion on how to create summary with histogram.
 
@@ -624,8 +650,8 @@ $$
 The goal is to **simulate the heights from the model, using only the prior**.
 
 ```{r}
-prior <- list()
-prior <- within(prior, {
+priorHeights <- list()
+priorHeights <- within(priorHeights, {
   n <- 100L
   set.seed(4)
   sim <- data.frame(
@@ -635,13 +661,13 @@ prior <- within(prior, {
     expand(nesting(id, a, b), weight = range(dataHowel_gte18$weight)) |>
     mutate(height = a + b * (weight - mean(dataHowel_gte18$weight)))
 })
-glimpse(prior$sim)
+# glimpse(priorHeights$sim)
 ```
 
 and we plot if
 
 ```{r}
-ggplot(prior$sim, aes(x = weight, y = height, group = id)) +
+ggplot(priorHeights$sim, aes(x = weight, y = height, group = id)) +
   geom_line(alpha = 1/10) +
   geom_hline(yintercept = c(0, 272), linetype = c(2, 1), size = 1/3) +
   coord_cartesian(ylim = c(-100, 400)) +
@@ -650,25 +676,32 @@ ggplot(prior$sim, aes(x = weight, y = height, group = id)) +
 
 ##### Adjusting the priors
 
-since we know that the effect ($\beta$) of the weight on height, i.e. the relation between the 2 should be positive and very large value unlikely we can use the *log-normal* as a prior on $beta$.
+Since we know that the effect ($\beta$) of the weight on height, 
+i.e. the relation between the 2 should be positive and very large value 
+unlikely we can use the *log-normal* as a prior on $beta$.
 
-In addition, sigma can also very often be better modeled with the exponential or HalfCauchy distribution. See section 9.5.3 in the text. We will use the exponential distribution for $\sigma$ in this work.
+In addition, sigma can also very often be better modeled with the exponential
+or HalfCauchy distribution. See section 9.5.3 in the text. 
+We will use the exponential distribution for $\sigma$ in this work.
 
 ```{r}
-p <- list()
-p$lnorm <- ggplot(data.frame(x = c(0, 5)), aes(x)) +
-  stat_function(geom = "line", fun = dlnorm, args = list(meanlog = 0, sdlog = 1), 
-                color = "slategray", size = 1.5) +
-  stat_function(geom = "area", fun = dlnorm, args = list(meanlog = 0, sdlog = 1), 
+priorHeights <- within(priorHeights, {
+  lnorm <- ggplot(data.frame(x = c(0, 5)), aes(x)) +
+    stat_function(geom = "line", fun = dlnorm, args = list(meanlog = 0, sdlog = 1), 
+                color = "slategray", linewidth = 1.5) +
+    stat_function(geom = "area", fun = dlnorm, args = list(meanlog = 0, sdlog = 1), 
                 fill = "slategray1") +
-  labs(title = "log-normal distribution", x = expression(beta), y = "density")
-p$exp <- ggplot(data.frame(x = c(0, 5)), aes(x)) +
-  stat_function(geom = "line", fun = dexp, args = list(rate = 1), 
-                color = "seagreen", size = 1.5) +
-  stat_function(geom = "area", fun = dexp, args = list(rate = 1), 
+    scale_y_continuous(labels = scales::label_percent()) +
+    labs(title = "log-normal distribution", x = expression(beta), y = "density")
+  exp <- ggplot(data.frame(x = c(0, 5)), aes(x)) +
+    stat_function(geom = "line", fun = dexp, args = list(rate = 1), 
+                color = "seagreen", linewidth = 1.5) +
+    stat_function(geom = "area", fun = dexp, args = list(rate = 1), 
                 fill = "seagreen1") +
-  labs(title = "exponential distribution", x = expression(beta), y = "density")
-wrap_plots(p)
+    scale_y_continuous(labels = scales::label_percent()) +
+    labs(title = "exponential distribution", x = expression(sigma), y = "density")
+})
+priorHeights$lnorm + priorHeights$exp
 ```
 
 $$
@@ -706,13 +739,16 @@ dataHowel_gte18 <- dataHowel_gte18 |>
 
 then get the fit using `rethinking::quap`
 
-> Giving start values to `quap` seem to help it significantly and avoiding error, at least when using b \~ dlnorm(0, 1).
+> Giving start values to `quap` seem to help it significantly and avoiding error, 
+at least when using b \~ dlnorm(0, 1).
 
-```{r}
-m4.3 <- list()
-m4.3 <- within(m4.3, {
-  args <-list(
-    flist = alist(
+
+```{r ch04_04_03quap}
+tictoc::tic()
+fit04_03quap <- xfun::cache_rds(
+    {rethinking::quap(
+      data = dataHowel_gte18,
+      flist = alist(
       height ~ dnorm(mu, sigma),
       mu <- a + b * weight_c,
       a ~ dnorm(178, 20),
@@ -721,24 +757,13 @@ m4.3 <- within(m4.3, {
     start = list(
       a  = mean(dataHowel_gte18$height),
       sigma = sd(dataHowel_gte18$height))
-    )
-})
-```
-
-```{r ch04_m04_03}
-tictoc::tic()
-m4.3$fit <- xfun::cache_rds({
-  quap(
-    flist=m4.3$args$flist,
-    data = dataHowel_gte18,
-    start=m4.3$args$start
     )},
-  file = "ch04_m04_03")
+  file = "ch04_04_03quap")
 tictoc::toc()
 ```
 
 ```{r}
-precis(m4.3$fit)
+precis(fit04_03quap)
 ```
 
 #### Using `brm`
@@ -759,9 +784,9 @@ $$
 
 When using lognormal for a parameter of class b, you should specify lb and ub (lower bound and upper bound) to avoid error message and accelerate the computations with `brm`.
 
-```{r ch04_b04_03}
+```{r ch04_04_03brm}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b4.3 <- xfun::cache_rds({
+fit04_03brm <- xfun::cache_rds({
   brms::brm(
     data = dataHowel_gte18,
     family = gaussian,
@@ -772,12 +797,12 @@ b4.3 <- xfun::cache_rds({
       prior(exponential(1), class = sigma)),
     iter = 2000, warmup = 1000, cores = detectCores(), chains = detectCores(),
     seed = 4)},
-  file = "ch04_b04_03")
+  file = "ch04_04_03brm")
 tictoc::toc()
 ```
 
 ```{r}
-summarize_draws(b4.3) |>
+summarize_draws(fit04_03brm) |>
   mutate(across(.cols= where(is.numeric), .fns = round, digits = 1))
 ```
 
@@ -798,9 +823,9 @@ glimpse(dataHowel_gte18)
 ```
 
 
-```{r ch04_b04_03b}
+```{r ch04_04_03brm_b}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b4.3b <- xfun::cache_rds({
+fit04_03brm_b <- xfun::cache_rds({
   brms::brm(
   data = dataHowel_gte18,
   family = gaussian,
@@ -811,12 +836,12 @@ b4.3b <- xfun::cache_rds({
     prior(normal(0, 1), class = b, nlpar = lb),
     prior(exponential(1), class = sigma)),
   iter = 2000, warmup = 1000, chains = 4, cores = detectCores(), seed = 4)},
-  file = "ch04_b04_03b")
+  file = "ch04_04_03brm_b")
 tictoc::toc()
 ```
 
 ```{r}
-summarize_draws(b4.3b) |>
+summarize_draws(fit04_03brm_b) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
@@ -824,14 +849,16 @@ summarize_draws(b4.3b) |>
 
 #### Tables of marginal distributions
 
-Using `rethinking` **Important**, the parameters are correlated here, to avoid this one must do **centering** of variables. The following uses **centered** variables.
+Using `rethinking` **Important**, the parameters are correlated here, 
+to avoid this one must do **centering** of variables. 
+The following uses **centered** variables.
 
 ```{r}
-precis(m4.3$fit, corr = TRUE)
+precis(fit04_03quap, corr = TRUE)
 ```
 
 ```{r}
-round(vcov(m4.3$fit), 3)
+round(vcov(fit04_03quap), 3)
 ```
 
 Using `brm`
@@ -841,7 +868,7 @@ Note: `lp__` stands for *unnormalized log posterior density*.
 ```{r}
 # normally we only use summarise_draws() but here we change it to match 
 # the width of 0.89
-tidybayes::summarise_draws(b4.3, mean, median, sd, mad, 
+tidybayes::summarise_draws(fit04_03brm, mean, median, sd, mad, 
                            ~quantile2(.x, probs = c(0.055, 0.945)),
                            default_convergence_measures(),
                            default_mcse_measures()) |>
@@ -851,7 +878,7 @@ tidybayes::summarise_draws(b4.3, mean, median, sd, mad,
 we get the varcov matrix as follows
 
 ```{r}
-tidy_draws(b4.3) |>
+tidy_draws(fit04_03brm) |>
   select(!matches("^[.]|__$")) |>
   cov() |>
   round(digits = 3)
@@ -860,7 +887,7 @@ tidy_draws(b4.3) |>
 and the correlation matrix
 
 ```{r}
-tidy_draws(b4.3) |>
+tidy_draws(fit04_03brm) |>
   select(!matches("^[.]|__$")) |>
   cor() |>
   round(digits = 3)
@@ -871,77 +898,82 @@ tidy_draws(b4.3) |>
 With `brms` we use the `ggmcmc` package to illustrate the results from the markov chain
 
 ```{r}
-tidybayes::get_variables(b4.3)
+tidybayes::get_variables(fit04_03brm)
 ```
 
 ```{r}
-post <- list()
-post$long <- b4.3 |>
+post04_03brm <- list()
+post04_03brm$long <- fit04_03brm |>
   tidybayes::gather_draws(b_Intercept, b_weight_c, sigma)
 ```
 
 with the histogram
 
 ```{r}
-p <- list()
-p$hist <- ggplot(post$long, aes(x = .value)) +
+plot04_03brm <- list()
+plot04_03brm$hist <- ggplot(post04_03brm$long, aes(x = .value)) +
   geom_histogram(aes(fill = .variable)) +
   scale_fill_paletteer_d(palette = "futurevisions::atomic_orange") +
   theme(legend.position = "none") +
   facet_wrap(. ~ .variable, ncol = 1, scales = "free")
-p$hist
+plot04_03brm$hist
 ```
 
 and density plots by chains
 
 ```{r}
-p$dens <- ggplot(post$long, aes(x = .value, color = as.factor(.chain))) +
+plot04_03brm$dens <- ggplot(post04_03brm$long, 
+                            aes(x = .value, color = as.factor(.chain))) +
   geom_density() +
   scale_color_paletteer_d(palette = "futurevisions::atomic_clock") +
   labs(x = NULL, color = "chain") +
   facet_wrap(. ~ .variable, ncol = 1, scales = "free")
-p$dens
+plot04_03brm$dens
 ```
 
 and the paired plots with `ggally`
 
 ```{r}
-post$wide <- b4.3 |>
+post04_03brm$wide <- fit04_03brm |>
   tidybayes::spread_draws(b_Intercept, b_weight_c, sigma)
-# glimpse(post$wide)
+# glimpse(post04_03brm$wide)
 ```
 
 ```{r}
-p$pairs <- GGally::ggscatmat(post$wide, 
+plot04_03brm$pairs <- GGally::ggscatmat(post04_03brm$wide, 
                                 columns = c("b_Intercept", "b_weight_c", "sigma"),
                                 color = ".chain", alpha = 0.8) +
-  scale_color_paletteer_d(palette = "futurevisions::atomic_clock") +
-p$pairs
+  scale_color_paletteer_d(palette = "futurevisions::atomic_clock")
+plot04_03brm$pairs
 ```
+
+
 
 and the correlation matrix
 
 ```{r}
-p$corr <- GGally::ggcorr(post$wide[, c("b_Intercept", "b_weight_c", "sigma")],
-                            color = "darkgreen",
-                            nbreaks = 10, label = TRUE, label_round = 2,
-                            label_color = "midnightblue") +
+plot04_03brm$corr <- post04_03brm$wide |>
+  select(b_Intercept, b_weight_c, sigma) |>
+  GGally::ggcorr(color = "darkgreen",
+                 nbreaks = 10, label = TRUE, label_round = 2,
+                 label_color = "midnightblue") +
   scale_fill_paletteer_d(palette = "futurevisions::venus") +
   theme(legend.position = "none") +
   labs(title = "Correlations between parameters")
-p$corr
+plot04_03brm$corr
 ```
 
 and for added extra, the trace plot
 
 ```{r}
-p$trace <- ggplot(post$long, aes(x = .iteration, y = .value, color = as.factor(.chain))) +
+plot04_03brm$trace <- post04_03brm$long |>
+  ggplot(aes(x = .iteration, y = .value, color = as.factor(.chain))) +
   geom_line() +
   scale_color_paletteer_d(palette = "futurevisions::atomic_clock", direction = 1) +
   theme(legend.position = "none") +
   labs(x = NULL, y = NULL) +
   facet_wrap(. ~ .variable, ncol = 1, scales = "free")
-p$trace
+plot04_03brm$trace
 ```
 
 ## Curves from lines
@@ -958,28 +990,24 @@ rm(Howell1)
 ```
 
 ```{r}
-p <- list()
-
-# add geom after because in later plot we need to keep geom_point() again
-# to keep it on top
-colr <- unclass(paletteer::paletteer_d("futurevisions::titan"))
-# nice trick: we use the pipe with {} to be able to reuse the data within the plot
-p$basic <- dataHowel |>
-  (\(.) {
-  ggplot(., aes(x = weight_s, y = height, color = age)) +
-  scale_x_continuous(breaks = scales::breaks_extended(n=7),
+plotHowel <- list()
+plotHowel <- within(plotHowel, {
+  colr <- unclass(paletteer::paletteer_d("futurevisions::titan"))
+  basic <- dataHowel |>
+    (\(.) {
+      ggplot(., aes(x = weight_s, y = height, color = age)) +
+        scale_x_continuous(breaks = scales::breaks_extended(n=7),
                      labels = function(x) {
                        x <- x * sd(.$weight) + mean(.$weight)
                        label_number(accuracy = 1)(x)
                      }) +
-  scale_color_gradientn(colors = colr) +
-  theme(legend.position = c(0.1, 0.8)) +
-  labs(title = "Census data for the Dobe area !Kung San",
+        scale_color_gradientn(colors = colr) +
+        geom_point(shape = 20, size = 2, alpha = 2/3) +
+        theme(legend.position = c(0.1, 0.8)) +
+        labs(title = "Census data for the Dobe area !Kung San",
        subtitle = sprintf("%d individuals", nrow(.)))
-    })()
-
-p$basic +
-  geom_point(shape = 20, size = 2, alpha = 2/3)
+      })()
+})
 ```
 
 and the model used is
@@ -1001,9 +1029,9 @@ https://discourse.mc-stan.org/t/error-with-gamma-prior/16420
 The following code gives a warning about setting lower boundaries. It started to show with `R 4.2`. Paul Buerkner advises to ignore it. See [advice](https://discourse.mc-stan.org/t/error-with-gamma-prior/16420)
 :::
 
-```{r ch04_b04_05}
+```{r ch04_04_05brm}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b4.5 <- xfun::cache_rds({
+fit04_05brm <- xfun::cache_rds({
   brm(data = dataHowel,
       family = gaussian,
       height ~ 1 + weight_s + weight_s2,
@@ -1013,12 +1041,12 @@ b4.5 <- xfun::cache_rds({
                 prior(exponential(1), class = sigma)),
       iter = 4000, warmup = 2000, chains = 4, cores = detectCores(),
       seed = 4)},
-  file = "ch04_b04_05")
+  file = "ch04_04_05brm")
 tictoc::toc()
 ```
 
 ```{r}
-summarize_draws(b4.5) |>
+summarize_draws(fit04_05brm) |>
   filter(!grepl(pattern = "__$", x = variable)) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
@@ -1026,17 +1054,18 @@ summarize_draws(b4.5) |>
 and to obtain a simplified dataframe we use
 
 ```{r}
-brms::fixef(b4.5) |>
+brms::fixef(fit04_05brm) |>
   round(digits = 2)
 ```
 
 ```{r}
-tidybayes::get_variables(b4.5)
+tidybayes::get_variables(fit04_05brm)
 ```
 
 ```{r}
-p$dens <- 
-  b4.5 |> 
+plot04_05brm <- list()
+plot04_05brm$dens <- 
+  fit04_05brm |> 
   tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) |>
   ggplot(aes(x = .value, color = as.factor(.chain))) +
   geom_density() +
@@ -1050,8 +1079,8 @@ p$dens <-
 and
 
 ```{r}
-p$trace <- 
-  b4.5 |> 
+plot04_05brm$trace <- 
+  fit04_05brm |> 
   tidybayes::gather_draws(b_Intercept, b_weight_s, b_weight_s, sigma) |>
   ggplot(aes(x = .iteration, y = .value, color = as.factor(.chain))) +
   geom_line() +
@@ -1063,7 +1092,7 @@ p$trace <-
 ```
 
 ```{r}
-p$dens + p$trace
+plot04_05brm$dens + plot04_05brm$trace
 ```
 
 And we look at the fitted and predicted values to understand and interpret the result.
@@ -1077,21 +1106,21 @@ Therefore, if we give the same data to `fitted` or `predict` will will obtain se
 We can see it clearly here as `fitd_quad` gives ans estimate about the same as for `predict` since they both report the same `\mu_i`, but `predict` has a wider interval since it uses $\sigma$
 
 ```{r}
-pred <- list()
-pred <- within(pred, {
+pred04_05brm <- list()
+pred04_05brm <- within(pred04_05brm, {
   newdata <- data.frame(
     weight_s=seq_range(dataHowel$weight_s, n = 30L)) |>
     mutate(weight_s2 = weight_s^2)
-  intrvl <- predicted_draws(b4.5, newdata = newdata, ndraws = 500) |>
+  intrvl <- predicted_draws(fit04_05brm, newdata = newdata, ndraws = 500) |>
     median_qi()
 })
 
-lpred <- list()
-lpred <- within(lpred, {
+lpred04_05brm <- list()
+lpred04_05brm <- within(lpred04_05brm, {
   newdata <- data.frame(
     weight_s=seq_range(dataHowel$weight_s, n = 30L)) |>
     mutate(weight_s2 = weight_s^2)
-  intrvl <- linpred_draws(b4.5, newdata = newdata, ndraws = 500) |>
+  intrvl <- linpred_draws(fit04_05brm, newdata = newdata, ndraws = 500) |>
     median_qi()
 })
 ```
@@ -1099,17 +1128,16 @@ lpred <- within(lpred, {
 and we can now create the plot.
 
 ```{r}
-p$model <- p$basic +
-  # scale_x_continuous(labels = function(x) fnc_nat(x)) +
-  geom_ribbon(data = pred$intrvl,
-              aes(x = weight_s, ymin = .lower, ymax = .upper), 
+plot04_05brm$model <- plotHowel$basic +
+  geom_ribbon(data = pred04_05brm$intrvl,
+              aes(x = weight_s, ymin = .lower, ymax = .upper),
               inherit.aes = FALSE, fill = "lightcyan", alpha = 1) +
-  geom_smooth(data = lpred$intrvl,
-              aes(x=weight_s, y = .linpred, ymin = .lower, ymax = .upper), 
+  geom_smooth(data = lpred04_05brm$intrvl,
+              aes(x=weight_s, y = .linpred, ymin = .lower, ymax = .upper),
               inherit.aes = FALSE, stat = "identity",
               fill = "lightcyan3", color = "royalblue", alpha = 1, size = 1/2) +
   geom_point(shape = 20, size = 2, alpha = 2/3)
-p$model
+plot04_05brm$model
 ```
 
 ### Splines
@@ -1200,9 +1228,9 @@ dataCherry_nonaB <- dataCherry_nona |>
 
 and the fit
 
-```{r ch04_b04_08}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b4.8 <- xfun::cache_rds({
+```{r ch04_04_08brm}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit04_08brm <- xfun::cache_rds({
   brm(data = dataCherry_nonaB,
       family = gaussian,
       doy ~ 1 + B,
@@ -1210,12 +1238,12 @@ b4.8 <- xfun::cache_rds({
                 prior(normal(0, 10), class = b),
                 prior(exponential(1), class = sigma)),
       cores = detectCores(), seed = 4)},
-  file = "ch04_b04_08")
+  file = "ch04_04_08brm")
 tictoc::toc()
 ```
 
 ```{r}
-summarize_draws(b4.8) |>
+summarize_draws(fit04_08brm) |>
   filter(!grepl(pattern = "__$", x = variable)) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
 ```
@@ -1223,12 +1251,12 @@ summarize_draws(b4.8) |>
 #### Plot
 
 ```{r}
-get_variables(b4.8)
+get_variables(fit04_08brm)
 ```
 
 ```{r}
 # Source: https://github.com/mjskay/tisdybayes/issues/38
-df <- tidybayes::gather_draws(b4.8, !!sym("^b_B.+"), regex = TRUE) |>
+post04_08brm <- tidybayes::gather_draws(fit04_08brm, !!sym("^b_B.+"), regex = TRUE) |>
   mutate(.variable = as.integer(sub("^b_B", replacement = "", x = .variable)),
          .variable = sprintf("B%02d", .variable)) |>
   rename("bias_func" = .variable) |>
@@ -1237,22 +1265,26 @@ df <- tidybayes::gather_draws(b4.8, !!sym("^b_B.+"), regex = TRUE) |>
   full_join(y = df_bias, by = "bias_func")
 # glimpse(df)
 
-clrs <- paletteer::paletteer_c("pals::jet", n = length(unique(df_bias$bias_func)))
-ggplot(df, aes(x = year, y = bias * weight, color = bias_func)) +
-  geom_vline(xintercept = knots, color = "grey60", linetype = "longdash", alpha = 1/2) +
-  geom_line(size = 1) +
-  scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
-  scale_color_manual(values = clrs) +
-  theme(legend.position = "none") +
-  labs(title = "fitted bias functions")
+plot04_08brm <- list()
+plot04_08brm <- within(plot04_08brm, {
+  clrs <- paletteer::paletteer_c("pals::jet", n = length(unique(post04_08brm$bias_func)))
+  bias <- ggplot(post04_08brm, aes(x = year, y = bias * weight, color = bias_func)) +
+    geom_vline(xintercept = knots, color = "grey60", linetype = "longdash", alpha = 1/2) +
+    geom_line(size = 1) +
+    scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
+    scale_color_manual(values = clrs) +
+    theme(legend.position = "none") +
+    labs(title = "fitted bias functions")
+})
+plot04_08brm$bias
 ```
 the fitted values
 
 ```{r}
-lpred <- list()
-lpred <- within(lpred, {
+lpred04_08brm <- list()
+lpred04_08brm <- within(lpred04_08brm, {
   newdata <- dataCherry_nonaB
-  draws <- linpred_draws(b4.8, newdata = newdata)
+  draws <- linpred_draws(fit04_08brm, newdata = newdata)
   intrvl <- draws |>
     ungroup() |>
     select(-B) |>
@@ -1265,17 +1297,20 @@ and the plot
 
 
 ```{r}
-clrs <- unclass(paletteer::paletteer_d("futurevisions::cancri"))
-ggplot(lpred$intrvl, aes(x = year, y = .linpred)) +
-  geom_vline(xintercept = knots[-c(1, length(knots))], color = "slateblue", alpha = 1/2) +
-  geom_point(dataCherry_nonaB, mapping = aes(x = year, y = doy, color = temp),
+plot04_08brm <- within(plot04_08brm, {
+  clrs <- unclass(paletteer::paletteer_d("futurevisions::cancri"))
+  lpred <- ggplot(lpred04_08brm$intrvl, aes(x = year, y = .linpred)) +
+    geom_vline(xintercept = knots[-c(1, length(knots))], color = "slateblue", alpha = 1/2) +
+    geom_point(dataCherry_nonaB, mapping = aes(x = year, y = doy, color = temp),
              inherit.aes = FALSE) +
-  geom_lineribbon(aes(x = year, y = .linpred, ymin = .lower, ymax = .upper),
+    geom_lineribbon(aes(x = year, y = .linpred, ymin = .lower, ymax = .upper),
                   color = "blueviolet", fill = "cornflowerblue", alpha = 1/2) +
-  scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
-  scale_color_gradientn(colors = clrs) +
-  theme(legend.position = "none") +
-  labs(title = "Figure 4.12",x = "year", y = "doy")
+    scale_x_continuous(breaks = knots, labels = scales::label_number(big.mark = "")) +
+    scale_color_gradientn(colors = clrs) +
+    theme(legend.position = "none") +
+    labs(title = "Figure 4.12",x = "year", y = "doy")
+})
+plot04_08brm$lpred
 ```
 
 
@@ -1286,4 +1321,6 @@ See @kurtz2020b for much more details on this topic.
 
 ## Summary
 
-This was an important chapter. Most of the plots and basic coding tools are exemplified here. It is an important reference chapter. The `brms` package will be exclusively used from now on.
+This was an important chapter. Most of the plots and basic coding tools are 
+exemplified here. It is an important reference chapter. 
+The `brms` package will be exclusively used from now on.
