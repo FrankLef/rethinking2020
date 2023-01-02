@@ -362,13 +362,13 @@ d <- WaffleDivorce |>
 ```
 
 ```{r}
-fn <- list.files(path=here::here("cache"), pattern="ch05_b05_01_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch05_fit05_01_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b5.1 <- readRDS(here::here("cache", fn))
-fn <- list.files(path=here::here("cache"), pattern="ch05_b05_02_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch05_fit05_02_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b5.2 <- readRDS(here::here("cache", fn))
-fn <- list.files(path=here::here("cache"), pattern="ch05_b05_03_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch05_fit05_03_f.*[.]rds$")
 stopifnot(length(fn) == 1)
 b5.3 <- readRDS(here::here("cache", fn))
 ```

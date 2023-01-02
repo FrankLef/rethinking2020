@@ -17,23 +17,63 @@ library(patchwork)
 library(paletteer)
 ```
 
-As mentioned in the summary of chapter 4, from hereon, the `brms` package will be used instead of `rethinking`. In addition, we might change the `exponential(1)` prior for the `cauchy(0, 1)` when it improves the performance of the fit.
+Some options to facilitate the computations
+
+```{r}
+#  For execution on a local, multicore CPU with excess RAM
+options(mc.cores = parallel::detectCores())
+#  To avoid recompilation of unchanged Stan programs
+rstan_options(auto_write = TRUE)
+```
+
+
+The default theme used by `ggplot2`
+
+```{r}
+# The default theme used by ggplot2
+ggplot2::theme_set(ggthemes::theme_tufte(base_size = 11, base_family = "serif", ticks = TRUE))
+ggplot2::theme_update(title = element_text(color = "midnightblue"))
+```
+
+
+Some custom functions used in this following code
+
+```{r}
+# Convert widths to probabilities. Useful when plotting.
+width2probs <- function(x, add = NULL) {
+  stopifnot(is.finite(x),x >= 0.5, x <= 1)
+  probs <- (1 - x) / 2
+  probs <- c(probs, 1 - probs)
+  if (!is.null(add)) probs <- c(probs, add)
+  sort(unique(probs))
+}
+# test the function
+stopifnot(all.equal(width2probs(c(0.89, 1), add = 0.5), c(0, 0.055, 0.5, 0.945, 1)))
+```
+
+
+As mentioned in the summary of chapter 4, from hereon, the `brms` package 
+will be used instead of `rethinking`. In addition, we might change the 
+`exponential(1)` prior for the `cauchy(0, 1)` when it improves the performance
+of the fit.
+
 
 ## Spurious association
 
 Get the data and standardize the variables
 
+
 ```{r}
 # load data
 data("WaffleDivorce")
-d <- WaffleDivorce
-# standardize the variables
-d <- d |>
-  mutate(A = round(scale(MedianAgeMarriage), 4),
-         M = round(scale(Marriage), 4),
-         D = round(scale(Divorce), 4))
-skimr::skim(d)
-str(d)
+dataWaffle <- WaffleDivorce |>
+  # standardize the variables
+  mutate(A = scale(as.vector(MedianAgeMarriage)),
+         M = scale(as.vector(Marriage)),
+         D = scale(as.vector(Divorce)))
+skimr::skim(dataWaffle) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
+# str(dataWaffle)
 ```
 
 and plot the data
@@ -41,52 +81,34 @@ and plot the data
 ```{r}
 plot_waffles <- function(data, x_var = "WaffleHouses", y_var = "Divorce",
                          color_var = "South",
-                         the_labs = labs(title = "Waffle Houses",
+                         titles = list(title = "Waffle Houses",
                                      x = "Waffle Houses per million",
                                      y = "Divorce rate",
                                      color = "South")) {
   ggplot(data, aes(x = .data[[x_var]], y = .data[[y_var]])) +
     geom_point(aes(color = as.logical(.data[[color_var]]))) +
     scale_color_paletteer_d("fishualize::Bodianus_rufus", direction = -1) + 
-    theme_classic() +
-    theme(title = element_text(color = "midnightblue")) +
-    the_labs
+    labs(title = titles$title, x = titles$x, y = titles$y, color = titles$color)
 }
 ```
 
 ```{r}
-p <- lapply(X = c("MedianAgeMarriage", "Marriage", "WaffleHouses"),
+plotWaffle <- lapply(X = c("MedianAgeMarriage", "Marriage", "WaffleHouses"),
             FUN = function(x) {
-              plot_waffles(d, x_var = x) +
+              plot_waffles(dataWaffle, x_var = x) +
                 stat_smooth(method = "lm", fullrange = TRUE,
                             fill = "darkolivegreen", color = "darkgreen") +
                 labs(x = x)
             })
-wrap_plots(p, guides = "collect") &
+wrap_plots(plotWaffle, guides = "collect") &
   theme(legend.position = "bottom")
 ```
 
-```{r}
-GGally::ggscatmat(d, columns = c("A", "M", "D")) +
-  # scale_color_paletteer_d(palette = "calecopal::buow") +
-  theme_minimal()
-```
-
-We will be using this function in the plots to show the natural scales.
 
 ```{r}
-# A function to inverse transform the data to natural scale
-# will be used in plots below. Normally used with `base::scale()`.
-# If the base::scale function was used originally, the attributes contain 
-# the center and scale values.
-inv.scale <- function(x, 
-                      center = attr(x, which = "scaled:center"),
-                      scale = attr(x, which = "scaled:scale")) {
-  if(!is.finite(center)) center <- 0L
-  if(!is.finite(scale)) scale <- 1L
-  center + x * scale
-}
+GGally::ggscatmat(dataWaffle, columns = c("A", "M", "D"))
 ```
+
 
 The model for regressing the divorce rate $D$ on the median age $A$ is
 
@@ -102,11 +124,11 @@ $$
 
 and the fit, **take note of the argument `sample_prior = TRUE`** which is important for the rest of the exercise
 
-```{r ch05_b05_01}
+```{r ch05_fit05_01}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b5.1 <- xfun::cache_rds({
+fit05_01 <- xfun::cache_rds({
   out <- brm(
-    data = d,
+    data = dataWaffle,
     formula = D ~ 1 + A,
     family = gaussian,
     prior = c(
@@ -118,62 +140,56 @@ b5.1 <- xfun::cache_rds({
     core = detectCores(), seed = 5)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   },
-  file = "ch05_b05_01")
+  file = "ch05_fit05_01")
 tictoc::toc()
 ```
 
 and we can investigate the priors as follows
 
 ```{r}
-b5.1_prior <- brms::prior_draws(b5.1)
-glimpse(b5.1_prior)
+prior05_01 <- brms::prior_draws(fit05_01)
 ```
 
 get the fitted $\mu_i$ by using a sequence of median age marriage of length 30 from the `min(MedianAgeMarriage)` to `max(MedianAgeMarriage)`.
 
 ```{r}
-fitted <- list()
-fitted$newdata <- data.frame(
-  A = seq_range(d$A, n = 30, pretty = TRUE)
-)
-fitted$data <- fitted$newdata %>%
-  fitted(object = b5.1, newdata = ., probs = c(0.055, 0.945)) |>
-  as_tibble() |>
-  bind_cols(fitted$newdata)
+lpred05_01 <- data.frame(
+    A = seq_range(dataWaffle$A, n = 30, pretty = TRUE)) |>
+    add_linpred_draws(fit05_01, ndraws = 500) |>
+    mean_qi(.width = 0.89)
 ```
 
 and plot them
 
 ```{r}
-p <- list()
-p$age <- ggplot(data = d, mapping = aes(x = A, y = D)) +
-  geom_smooth(data = fitted$data,
-              aes(y = Estimate, ymin = Q5.5, ymax = Q94.5),
+plot05_01 <- list()
+plot05_01 <- within(plot05_01, {
+  age <- ggplot(data = dataWaffle, mapping = aes(x = A, y = D)) +
+  geom_smooth(data = lpred05_01,
+              aes(y = .linpred, ymin = .lower, ymax = .upper),
               stat = "identity",
               fill = "olivedrab1", color = "olivedrab4", alpha = 1, size = 1/2) +
   geom_point(aes(color = as.logical(South))) +
   scale_x_continuous(breaks = scales::breaks_extended(n = 7),
                      labels = function(x) {
-                       out <- inv.scale(x, 
-                                      center = mean(d$MedianAgeMarriage), 
-                                      scale = sd(d$MedianAgeMarriage))
-                       scales::label_number(accuracy = 0.1)(out)
+                       center <- mean(dataWaffle$MedianAgeMarriage)
+                       scale <- sd(dataWaffle$MedianAgeMarriage)
+                       scales::label_number(accuracy = 0.1)(x * scale + center)
                      }) +
   scale_y_continuous(breaks = scales::breaks_extended(n = 7),
                      labels = function(x) {
-                       out <- inv.scale(x, 
-                                      center = mean(d$Divorce), 
-                                      scale = sd(d$Divorce))
-                       scales::label_number(accuracy = 0.1)(out)
+                       center <- mean(dataWaffle$Divorce) 
+                       scale <- sd(dataWaffle$Divorce)
+                       scales::label_number(accuracy = 0.1)(x * scale + center)
                      }) +
   scale_color_paletteer_d("calecopal::kelp1", direction = -1) +
-  theme_minimal() +
   theme(legend.position = c(0.85, 0.85),
         title = element_text(color = "midnightblue")) +
   labs(title = "Divorce rate vs Median Marriage age",
        color = "South",
-       x = "Median age", y = "Divorce rate")
-# p$age
+       x = "Median age of marriage", y = "Divorce rate")
+})
+# plot05_01
 ```
 
 The model for regressing the divorce rate $D$ on the marriage rate $M$ is
@@ -188,11 +204,11 @@ D_i &\sim \mathcal{N}(\mu_i, \sigma) \\
 \end{align*}
 $$
 
-```{r ch05_b05_02}
+```{r ch05_fit05_02}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
-b5.2 <- xfun::cache_rds({
+fit05_02 <- xfun::cache_rds({
   out <- brm(
-    data = d,
+    data = dataWaffle,
     formula = D ~ 1 + M,
     family = gaussian,
     prior = c(
@@ -204,104 +220,107 @@ b5.2 <- xfun::cache_rds({
     core = detectCores(), seed = 5)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   },
-  file = "ch05_b05_02")
+  file = "ch05_fit05_02")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b5.2)
+summary(fit05_02)
 ```
 
 
 ```{r}
-fitted <- list()
-fitted$newdata <- data.frame(
-  M = seq_range(d$M, n = 30, pretty = TRUE)
-)
-fitted$data <- fitted$newdata %>%
-  fitted(object = b5.2, newdata = ., probs = c(0.055, 0.945)) |>
-  as_tibble() |>
-  bind_cols(fitted$newdata)
+lpred05_02 <- list()
+lpred05_02 <- data.frame(
+  M = seq_range(dataWaffle$M, n = 30, pretty = TRUE)) |>
+  add_linpred_draws(fit05_02, ndraws = 500) |>
+  mean_qi(.width = 0.89)
 ```
 
 and plot them
 
 ```{r}
-p$marriage <- ggplot(data = d, mapping = aes(x = M, y = D)) +
-  geom_smooth(data = fitted$data,
-              aes(y = Estimate, ymin = Q5.5, ymax = Q94.5),
+plot05_02 <- list()
+plot05_02 <- within(plot05_02, {
+  marriage <- ggplot(data = dataWaffle, mapping = aes(x = M, y = D)) +
+  geom_smooth(data = lpred05_02,
+              aes(y = .linpred, ymin = .lower, ymax = .upper),
               stat = "identity",
               fill = "springgreen1", color = "springgreen4", alpha = 1, size = 1/2) +
   geom_point(aes(color = as.logical(South))) +
   scale_x_continuous(breaks = scales::breaks_extended(n = 7),
                      labels = function(x) {
-                       out <- inv.scale(x,
-                                      center = mean(d$Marriage),
-                                      scale = sd(d$Marriage))
-                       scales::label_number(accuracy = 0.1)(out)
+                       center <- mean(dataWaffle$Marriage)
+                       scale <- sd(dataWaffle$Marriage)
+                       scales::label_number(accuracy = 0.1)(x * scale + center)
                      }) +
   scale_y_continuous(breaks = scales::breaks_extended(n = 7),
                      labels = function(x) {
-                       out <- inv.scale(x,
-                                      center = mean(d$Divorce),
-                                      scale = sd(d$Divorce))
-                       scales::label_number(accuracy = 0.1)(out)
+                       center <- mean(dataWaffle$Divorce) 
+                       scale <- sd(dataWaffle$Divorce)
+                       scales::label_number(accuracy = 0.1)(x * scale + center)
                      }) +
   scale_color_paletteer_d("calecopal::kelp1", direction = -1) +
-  theme_minimal() +
   theme(legend.position = c(0.85, 0.85),
         title = element_text(color = "midnightblue")) +
   labs(title = "Divorce rate vs Marriage rate",
        color = "South",
        x = "Marriage rate", y = "Divorce rate")
-# p$marriage
+})
+# plot05_02$marriage
 ```
 
+
 ```{r}
-wrap_plots(p, guides = "collect") &
+plot05_01$age + plot05_02$marriage +
+  plot_layout(guides = "collect") &
   theme(legend.position = "bottom")
 ```
 
 ### Think before you regress
 
 ```{r}
-p <- list()
-p$coord <- data.frame(
-  name = c("A", "D", "M"),
-  x = c(1, 2, 3),
-  y = c(2, 1, 2)
-)
-p$dag1 <- ggdag::dagify(M ~ A,
+dagWaffle <- list()
+dagWaffle <- within(dagWaffle, {
+  coord <- data.frame(
+    name = c("A", "D", "M"),
+    x = c(1, 2, 3),
+    y = c(2, 1, 2))
+  
+  dag1 <- ggdag::dagify(M ~ A,
                       D ~ A + M,
-                      coords = p$coord) |>
-  ggdag::ggdag(node_size = 8) +
-  ggthemes::theme_solid(fill = "snow2")
-p$plot1 <- ggplot(p$dag1$data, aes(x = x, y = y, xend = xend, yend = yend)) +
-  geom_dag_point(aes(color = name)) +
-  scale_color_paletteer_d("calecopal::kelp1") +
-  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
-  scale_y_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
-  geom_dag_text(color = "midnightblue") +
-  geom_dag_edges(edge_color = "midnightblue") +
-  ggthemes::theme_solid(fill = "snow2") +
-  theme(legend.position = "none")
+                      coords = coord)
+  
+  plot1 <- ggplot(dag1, aes(x = x, y = y, xend = xend, yend = yend)) +
+    geom_dag_point(aes(color = name), size = 10) +
+    geom_dag_text(color = "midnightblue") +
+    geom_dag_edges(edge_color = "midnightblue") +
+    scale_color_paletteer_d("calecopal::kelp1") +
+    scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+    scale_y_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+    ggthemes::theme_solid(fill = "snow2") +
+    theme(legend.position = "none")
 
-p$dag2 <- ggdag::dagify(M ~ A,
+  dag2 <- ggdag::dagify(M ~ A,
                       D ~ A,
-                      coords = p$coord) |>
-  ggdag::ggdag(node_size = 8) +
-  ggthemes::theme_solid(fill = "snow2")
-p$plot2 <- ggplot(p$dag2$data, aes(x = x, y = y, xend = xend, yend = yend)) +
-  geom_dag_point(aes(color = name)) +
-  scale_color_paletteer_d("calecopal::kelp1") +
-  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
-  scale_y_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
-  geom_dag_text(color = "midnightblue") +
-  geom_dag_edges(edge_color = "midnightblue") +
-  ggthemes::theme_solid(fill = "snow2") +
-  theme(legend.position = "none")
+                      coords = coord)
+  
+  plot2 <- ggplot(dag2, aes(x = x, y = y, xend = xend, yend = yend)) +
+    geom_dag_point(aes(color = name), size = 10) +
+    geom_dag_text(color = "midnightblue") +
+    geom_dag_edges(edge_color = "midnightblue") +
+    scale_color_paletteer_d("calecopal::kelp1") +
+    scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+    scale_y_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+    ggthemes::theme_solid(fill = "snow2") +
+    theme(legend.position = "none")})
+```
 
-p$plot1 | p$plot2
+```{r}
+with(dagWaffle, {plot1 | plot2}) +
+  plot_annotation(
+    title = "Testable Implications of the Waffle Data"
+  )
 ```
 
 ### Testable implications
@@ -338,11 +357,11 @@ $$
 
 ### Approximating the posterior
 
-```{r ch05_b05_03}
+```{r ch05_fit05_03}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
-b5.3 <- xfun::cache_rds({
+fit05_03 <- xfun::cache_rds({
   out <- brm(
-    data = d,
+    data = dataWaffle,
     formula = D ~ 1 + M + A,
     family = gaussian,
     prior = c(
@@ -350,34 +369,33 @@ b5.3 <- xfun::cache_rds({
       prior(normal(0, 0.5), class = b, coef = "M"),
       prior(normal(0, 0.5), class = b, coef = "A"),
       prior(exponential(1), class = sigma)),
-    iter = 2000, warmup = 1000, chains = detectCores(),
+    iter = 2000, warmup = 1000, chains = 4,
     core = detectCores(), seed = 5)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   },
-  file = "ch05_b05_03")
+  file = "ch05_fit05_03")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b5.3)
-```
-
-
-```{r}
-tidybayes::get_variables(b5.3)
+summary(fit05_03)
 ```
 
 ```{r}
-b5.3 |>
-  gather_draws(b_Intercept, b_M, b_A) |>
+tidybayes::get_variables(fit05_03)
+```
+
+```{r}
+fit05_03 |>
+  gather_draws(b_Intercept, b_M, b_A, ndraws = 500) |>
   ggplot(aes(x = .value, y = .variable)) +
   stat_pointinterval(point_interval = mean_qi,
-                     .width = c(0, 0.055, 0.945, 1),
-                     fatten_point = 2,
+                     .width = 0.89,
+                     fatten_point = 3,
+                     size = 10,
                      color = "tan4") +
-  ggthemes::theme_hc() +
-  labs(title = deparse1(b5.3$formula$formula),
-       y = NULL)
+  labs(title = deparse1(fit05_03$formula$formula),
+       x = NULL, y = NULL)
 ```
 
 ### Plotting multivariate posteriors
@@ -391,18 +409,6 @@ b5.3 |>
 #### Predictor residual plots
 
 ##### Marriage rate residuals
-
-```{r}
-# load data
-data("WaffleDivorce")
-d <- WaffleDivorce
-# standardize the variables
-d <- d |>
-  mutate(A = scale(as.vector(MedianAgeMarriage)),
-         M = scale(as.vector(Marriage)),
-         D = scale(as.vector(Divorce)))
-# glimpse(d)
-```
 
 We compute marriage rate in *terms of median age of marriage* which is the model
 
@@ -418,156 +424,266 @@ $$
 
 fit this model
 
-```{r ch05_b05_04}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b5.4 <- xfun::cache_rds({brm(
-  data = d,
+```{r ch05_fit05_04m}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit05_04m <- xfun::cache_rds({brm(
+  data = dataWaffle,
   formula = M ~ 1 + A,
   family = gaussian,
   prior = c(
     prior(normal(0, 0.2), class = Intercept),
     prior(normal(0, 0.5), class = b),
-    prior(exponential(1), class = sigma)
-  ),
-  iter = 2000, warmup = 100, chains = 4, core = 4,
+    prior(exponential(1), class = sigma)),
+  iter = 2000, warmup = 100, chains = 4, core = detectCores(),
   seed = 5)
   },
-  file = "ch05_b05_04")
+  file = "ch05_fit05_04m")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b5.4)
+summary(fit05_04m)
 ```
-
-
-and again we get the fitted $\mu_i$ to plot them
 
 ```{r}
-# get the fit on the original data and
-# add columns to original data to prepare for the plot
-fitted <- list()
-fitted$data <- fitted(b5.4) |>
-  as.data.frame() |>
-  bind_cols(d[, c("D", "A", "M")]) |>
-  mutate(resid = M - Estimate)
-# str(fitted$data)
+lpred05_04m <- dataWaffle |>
+  select(Loc, M, A) |>
+  add_linpred_draws(fit05_04m, ndraws = 500) |>
+  mean_qi()
+
+plot05_04 <- list()
+plot05_04 <- within(plot05_04, {
+  marriage <- lpred05_04m |>
+    ggplot(aes(x = A, y = M)) +
+    geom_point() +
+    geom_segment(aes(xend = A, yend = .linpred), size = 0.5, color = "green") +
+    geom_line(aes(x = A, y = .linpred), color = "purple") +
+    geom_text(aes(label = Loc), size = 3, color = "darkblue") +
+    labs(x = "Median age of marriage (standardized)",
+         y = "Marriage rate (standardized)")
+})
 ```
 
-and plot the divorce against the marriage rate residuals, free from the age effect
+##### Age of Marriage residuals
+
+We compute age of marriage in *terms of rate of marriage* which is the model
+
+$$
+\begin{align*}
+A_i &\sim \mathcal{N}(\mu_i, \sigma) \\
+\mu_i &= \alpha + \beta \cdot M_i \\
+\alpha &\sim \mathcal{N}(0, 0.2) \\
+\beta &\sim \mathcal{N}(0, 0.5) \\
+\sigma &\sim \mathcal{Exp}(1)
+\end{align*}
+$$
+
+fit this model
+
+```{r ch05_fit05_04a}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit05_04a <- xfun::cache_rds({brm(
+  data = dataWaffle,
+  formula = A ~ 1 + M,
+  family = gaussian,
+  prior = c(
+    prior(normal(0, 0.2), class = Intercept),
+    prior(normal(0, 0.5), class = b),
+    prior(exponential(1), class = sigma)),
+  iter = 2000, warmup = 100, chains = 4, core = detectCores(),
+  seed = 5)
+  },
+  file = "ch05_fit05_04a")
+tictoc::toc()
+```
+
 
 ```{r}
-p <- list()
-colr <- unclass(paletteer::paletteer_d("calecopal::buow"))
-p$A <- ggplot(data = fitted$data, aes(x = A, y = M)) +
-  geom_point(aes(color = D)) +
-  geom_segment(aes(xend = A, yend = Estimate), size = 0.5, color = "pink") +
-  geom_line(aes(y = Estimate), color = "pink4") +
-  scale_color_gradientn(colors = colr) +
-  theme_classic() +
-  theme(legend.position = "none") +
-  labs(x = "Median age (standardized)",
-       y = "Marriage rate (standardized)",
-       title = "Residual plot:  Marriage rate vs Median age")
-# p$A
+lpred05_04a <- dataWaffle |>
+  select(Loc, M, A) |>
+  add_linpred_draws(fit05_04a, ndraws = 500) |>
+  mean_qi()
+
+plot05_04 <- within(plot05_04, {
+  age <- lpred05_04a |>
+    ggplot(aes(x = M, y = A)) +
+    geom_point() +
+    geom_segment(aes(xend = M, yend = .linpred), size = 0.5, color = "orchid") +
+    geom_line(aes(x = M, y = .linpred), color = "darkgoldenrod") +
+    geom_text(aes(label = Loc), size = 3, color = "darkblue") +
+    labs(x = "Marriage rate (standardized)",
+         y = "Median age of marriage (standardized)")
+  })
 ```
 
-so now we use the residuals of the marriage rate to represent marriage **free of any influence by the median age of marriage**
-
-We use the `residuals()` function which is an alias of `predictive_error()` but **don't use `predictive_error()`** as it return the error for every posterior sample and every observation. We just want the **expected** for every initial observations of $D$.
-
-and so we can now plot the divorce against the *marriage rate residuals*
+which gives us the 2 top plots of figure 5.4
 
 ```{r}
-colr <- unclass(paletteer::paletteer_d("calecopal::buow"))
-p$B <- ggplot(data = fitted$data, aes(x = resid, y = D)) +
-  stat_smooth(method = "lm", fullrange = TRUE, fill = "wheat") +
-  geom_point(aes(color = D)) +
-  scale_color_gradientn(colors = colr) +
-  scale_x_continuous(breaks = scales::breaks_width(width = 0.5)) +
-  theme_classic() +
-  theme(legend.position = "none") +
-  labs(x = "residual of marriage rate",
-       y = "divorce",
-       title = "Predictor residual plot: Divorce vs Marriage rate")
-# p$B
+wrap_plots(plot05_04[c("marriage", "age")])
 ```
 
-which allows us to conclude that the \*marriage rate seems to have little impact on the divorce rate.
+
+##### Using residuals as predictors
+
+Now we use the residuals of the marriage rate to represent marriage 
+**free of any influence by the median age of marriage**. We use the 
+`residual_draws()` function to extract the residuals.
 
 ```{r}
-# cowplot::plot_grid(b5.4_pA , b5.4_pB)
-(p$A | p$B) +
-  plot_annotation("Fig 5.4: Divorce vs Residual marriage rate") &
-  theme(title = element_text(color = "midnightblue"))
+res05_04m <- dataWaffle |>
+  select(Loc, D, M, A) |>
+  add_residual_draws(fit05_04m, ndraws = 500) |>
+  ungroup() |>
+  select(D, .residual) |>
+  group_by(D) |>
+  mean_qi() |>
+  select(D, resM = .residual)
 ```
+
+
+
+```{r ch05_fit05_04dm}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+fit05_04dm <- xfun::cache_rds({brm(
+  data = res05_04m,
+  formula = D ~ 1 + resM,
+  family = gaussian,
+  prior = c(
+    prior(normal(0, 0.5), class = Intercept),
+    prior(normal(0, 0.5), class = b),
+    prior(exponential(1), class = sigma)),
+  iter = 2000, warmup = 100, chains = 4, core = detectCores(),
+  seed = 5)
+  },
+  file = "ch05_fit05_04dm")
+tictoc::toc()
+```
+
+```{r}
+lpred_05_04dm <- res05_04m |>
+  add_linpred_draws(fit05_04dm, ndraws = 500) |>
+  median_qi(.width = 0.89) |>
+  identity()
+
+plot05_04 <- within(plot05_04, {
+  marriage_res <- lpred_05_04dm |>
+    ggplot(mapping = aes(x = resM, y = D)) +
+    geom_point() +
+    geom_smooth(mapping = aes(y = .linpred, ymin = .lower, ymax = .upper),
+                stat = "identity", fill = "powderblue", color = "darkblue") +
+    labs(x = "Marriage rate (standardized)",
+         y = "Divorce rate (standardized)")
+  })
+```
+
+
+
+```{r}
+res05_04a <- dataWaffle |>
+  select(Loc, D, M, A) |>
+  add_residual_draws(fit05_04a, ndraws = 500) |>
+  ungroup() |>
+  select(D, .residual) |>
+  group_by(D) |>
+  mean_qi() |>
+  select(D, resA = .residual)
+```
+
+
+
+```{r ch05_fit05_04da}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit05_04da <- xfun::cache_rds({brm(
+  data = res05_04a,
+  formula = D ~ 1 + resA,
+  family = gaussian,
+  prior = c(
+    prior(normal(0, 0.5), class = Intercept),
+    prior(normal(0, 0.5), class = b),
+    prior(exponential(1), class = sigma)),
+  iter = 2000, warmup = 100, chains = 4, core = detectCores(),
+  seed = 5)
+  },
+  file = "ch05_fit05_04da")
+tictoc::toc()
+```
+
+```{r}
+lpred_05_04da <- res05_04a |>
+  add_linpred_draws(fit05_04da, ndraws = 500) |>
+  median_qi(.width = 0.89) |>
+  identity()
+
+plot05_04 <- within(plot05_04, {
+  age_res <- lpred_05_04da |>
+    ggplot(mapping = aes(x = resA, y = D)) +
+    geom_point() +
+    geom_smooth(mapping = aes(y = .linpred, ymin = .lower, ymax = .upper),
+                stat = "identity", fill = "powderblue", color = "darkblue") +
+    labs(x = "Median age of marriage (standardized)",
+         y = "Divorce rate (standardized)")
+  })
+```
+
+which gives the bottom part of figure 5.1
+
+```{r}
+wrap_plots(plot05_04[c("marriage_res", "age_res")]) +
+  plot_annotation("Fig 5.4: Divorce vs Residual marriage rate and median age of marriage")
+```
+
+We conclude that the marriage rate seems to have little impact on the divorce rate once
+we remove the effect of the median age of marriage.
+
 
 #### Posterior prediction plots
 
-The textbook mentions posterior predictions but the plot in figure 5.5 sems to have the intervals of the *fitted* values.
+The textbook mentions posterior predictions. So we use `add_epred_draws()` to
+get the expected predictions.
 
 ```{r}
-predict <- list()
-predict$data <- predict(b5.3) |>
-  as.data.frame() |>
-  mutate(D = d$D)
-# str(predict$data)
-```
+epred05_03 <- dataWaffle |>
+  add_epred_draws(fit05_03, ndraws = 500) |>
+  mean_qi()
+epred05_03
 
-```{r}
-ggplot(data = predict$data, aes(x = D, y = Estimate)) +
-  geom_point(color = "firebrick4") +
-  geom_linerange(aes(ymin = Estimate - Est.Error, ymax = Estimate + Est.Error),
-                 color = "firebrick3") +
+ggplot(data = epred05_03, aes(x = D, y = .epred)) +
   geom_abline(slope = 1, linetype = "dashed", color = "darkorchid") +
-  theme_classic() +
-  labs(title = "Posterior Predictive Plot: Divorce rate",
+  geom_point(color = "firebrick4") +
+  geom_linerange(aes(ymin = .lower, ymax = .upper), color = "firebrick3") +
+  geom_text(aes(label = Loc), size = 3, color = "midnightblue") +
+  labs(title = "Figure 5.5: Posterior Predictive (expected) Plot: Divorce rate",
        x = "observed divorce",
        y = "predicted divorce")
 ```
+
 
 #### Counterfactual plots
 
 We are using the same DAG as above
 
 ```{r}
-p <- list()
-p$coord <- data.frame(
-  name = c("A", "D", "M"),
-  x = c(1, 2, 3),
-  y = c(2, 1, 2)
-)
-p$dag <- ggdag::dagify(M ~ A,
-                       D ~ A + M,
-                      coords = p$coord) |>
-  ggdag::ggdag(node_size = 8) +
-  ggthemes::theme_solid(fill = "snow2")
-ggplot(p$dag$data, aes(x = x, y = y, xend = xend, yend = yend)) +
-  geom_dag_point(aes(color = name)) +
-  scale_color_paletteer_d("calecopal::kelp1") +
-  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
-  scale_y_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
-  geom_dag_text(color = "midnightblue") +
-  geom_dag_edges(edge_color = "midnightblue") +
-  ggthemes::theme_solid(fill = "aliceblue") +
-  theme(legend.position = "none")
+dagWaffle$plot1
 ```
 
-**IMPORTANT**: The full model implies 2 effects, $A$ on $M$ and $D$ and $A$ on $M$. In other words 2 structural equations are involved or expressed differently, 2 formulas in `brms`.
+**IMPORTANT**: The full model implies 2 effects, $A$ on $M$ and $D$ and $A$ on $M$. 
+In other words 2 structural equations are involved or expressed differently, 
+2 formulas in `brms`.
 
 ```{r}
 d_model <- brms::bf(D ~ 1 + A + M)
 m_model <- brms::bf(M ~ 1 + A)
 ```
 
-The `set_rescor(FALSE)` indicates that we do not want `brms` to add the residual correlation between $D$ and $M$.
+The `set_rescor(FALSE)` indicates that we do not want `brms` to add 
+the residual correlation between $D$ and $M$.
 
 Also the argument `resp` is used to identify the response.
 
-```{r ch05_b05_03a}
+```{r ch05_fit05_03_A}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b5.3a <- xfun::cache_rds({brm(
-  data = d, 
+fit05_03_A <- xfun::cache_rds({brm(
+  data = dataWaffle, 
   family = gaussian,
   d_model + m_model + set_rescor(FALSE),
       prior = c(prior(normal(0, 0.2), class = Intercept, resp = D),
@@ -578,58 +694,88 @@ b5.3a <- xfun::cache_rds({brm(
                 prior(exponential(1), class = sigma, resp = M)),
       iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
       seed = 5)
-  }, file = "ch05_b05_03a")
+  }, file = "ch05_fit05_03_A")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b5.3a)
+summary(fit05_03_A)
 ```
-
 
 We manipulate $M$ $M=0$ and predicting $D$ with $A$ with this new counterfactual $M$.
 
 ```{r}
-predict <- list()
-predict$newdata <- data.frame(
-  A = seq_range(d$A, n = 30L, pretty = TRUE),
-  M = 0)
-# NOTE: the argument resp = "D" is important to select the right model
-predict$data <- predict(b5.3a, resp = "D", newdata = predict$newdata) |>
-  data.frame() |>
-  bind_cols(predict$newdata)
-# str(predict$data)
-p <- list()
-p$D <- ggplot(predict$data,
-              aes(x = A, y = Estimate, ymin = Q2.5, ymax = Q97.5)) +
-  # coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2)) +
-  geom_smooth(stat = "identity", fill = "palegoldenrod", color = "peru") +
-  # coord_cartesian(ylim = c(-2, 2)) +
-  ggthemes::theme_clean() +
+pred05_03_A <- list()
+pred05_03_A$doA <- data.frame(
+  A = seq_range(dataWaffle$A, n = 30, pretty = TRUE),
+  M = 0) |>
+  add_predicted_draws(fit05_03_A, ndraws = 500) |>
+  mean_qi()
+```
+
+```{r}
+glimpse(pred05_03_A$doA)
+```
+
+
+
+```{r}
+plot05_03_A <- list()
+plot05_03_A$doAonD <- pred05_03_A$doA |>
+  filter(.category == "D") |>
+  ggplot(aes(x = A, y = .prediction)) +
+  geom_smooth(aes(ymin = .lower, ymax = .upper), stat = "identity",
+              color = "indianred4", fill = "indianred1") +
   labs(title = "Total counterfactual effect of A on D",
        x = "Manipulated A", y = "Counterfactual D")
-p$D
+# plot05_03_A$doAonD
 ```
 
-To estimate the influence of $A$ on $M$ we only need to regress $A$ on $M$ as there is no other known factor influencing $M$.
 
-```{r}
-predict <- list()
-predict$newdata <- data.frame(A = seq_range(d$A, n = 30L, pretty = TRUE))
-predict$data <- predict(b5.3a, resp = "M", newdata = predict$newdata) |>
-  data.frame() |>
-  bind_cols(predict$newdata)
-p$M <- ggplot(predict$data, aes(x = A, y = Estimate, ymin = Q2.5, ymax = Q97.5)) +
-  geom_smooth(stat = "identity", fill = "khaki", color = "khaki4") +
-  # coord_cartesian(ylim = c(-2, 2)) +
-  ggthemes::theme_clean() +
-  labs(title = "Single effect of A on M",
-       x = "A", y = "M") 
-```
 
 ```{r}
-wrap_plots(p)
+plot05_03_A$doAonM <- pred05_03_A$doA |>
+  filter(.category == "M") |>
+  ggplot(aes(x = A, y = .prediction)) +
+  geom_smooth(aes(ymin = .lower, ymax = .upper), stat = "identity",
+              color = "darkorange4", fill = "darkorange1") +
+  labs(title = "Total counterfactual effect of A on M",
+       x = "Manipulated A", y = "Counterfactual M")
+# plot05_03_A$doAonM
 ```
+
+
+```{r }
+#| fig-cap: Figure 5.6
+plot05_03_A$doAonD + plot05_03_A$doAonM
+```
+
+The counterfactual effect of manipulating average rate effect $M$ on divorce rate
+$D$ is done as follows
+
+
+```{r}
+pred05_03_A$doM <- data.frame(
+  M = seq_range(dataWaffle$M, n = 30, pretty = TRUE),
+  A = 0) |>
+  add_predicted_draws(fit05_03_A, ndraws = 500) |>
+  mean_qi()
+# glimpse(pred05_03_A$doM)
+```
+
+
+```{r}
+#| fig-cap: Figure 5.7
+plot05_03_A$doMonD <- pred05_03_A$doM |>
+  filter(.category == "D") |>
+  ggplot(aes(x = M, y = .prediction)) +
+  geom_smooth(aes(ymin = .lower, ymax = .upper), stat = "identity",
+              color = "khaki4", fill = "khaki1") +
+  labs(title = "Total counterfactual effect of M on D",
+       x = "Manipulated M", y = "Counterfactual D")
+plot05_03_A$doMonD
+```
+
 
 ## Masked relationship
 
@@ -639,24 +785,23 @@ But first, as mentioned on p. 136, we need to remove missing values which cause 
 
 ```{r}
 data(milk)
-d <- milk |>
+dataMilk <- milk |>
   as.data.frame() |>
   tidyr::drop_na() |>
   mutate(K = as.vector(scale(kcal.per.g)),
          N = as.vector(scale(neocortex.perc)),
          M = as.vector(scale(log(mass))))
-skimr::skim(d)
+skimr::skim(dataMilk)
 # it should give us a dataframe with 17 rows
-stopifnot(nrow(d) == 17)
-# glimpse(d)
+stopifnot(nrow(dataMilk) == 17)
+# glimpse(dataMilk)
 ```
 
 ```{r}
-GGally::ggpairs(d[, c("K", "N", "M")]) +
+GGally::ggpairs(dataMilk, columns = c("K", "N", "M")) +
   ggthemes::theme_fivethirtyeight()
 ```
 
-the model
 
 ### Model 5.5
 
@@ -672,10 +817,10 @@ $$
 
 and the fit is
 
-```{r ch05_b05_05}
+```{r ch05_fit05_05}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b5.5 <- xfun::cache_rds({brm(
-  data = d,
+fit05_05 <- xfun::cache_rds({brm(
+  data = dataMilk,
   formula = K ~ 1 + N,
   family = gaussian,
   prior = c(
@@ -685,72 +830,61 @@ b5.5 <- xfun::cache_rds({brm(
   ),
   iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
   seed = 5)
-  }, file = "ch05_b05_05")
+  }, file = "ch05_fit05_05")
 tictoc::toc()
 ```
 
 ```{r}
-print(b5.5, digits = 3)
+print(fit05_05, digits = 3)
 ```
-
 
 and show the coefficient plot
 
 ```{r}
-tidybayes::get_variables(b5.5)
+tidybayes::get_variables(fit05_05)
 ```
 
 ```{r}
-post <- list()
-post$long <- b5.5 |>
+post05_05 <- fit05_05 |>
   tidybayes::gather_draws(b_Intercept, b_N, sigma)
-ggplot(post$long, aes(x = .value)) +
-  stat_halfeye(aes(fill = .variable), point_interval = mean_hdi, .width = 0.89) +
-  scale_fill_paletteer_d(palette = "calecopal::dudleya") +
-  scale_x_continuous(breaks = scales::breaks_width(width = 0.25)) +
-  theme_minimal() +
-  theme(legend.position = "none") +
-  facet_wrap(. ~ .variable, ncol = 1, scales = "fixed")
 ```
+
+```{r}
+# source: https://cran.r-project.org/web/packages/ggdist/vignettes/slabinterval.html
+plot05_05 <- post05_05 |>
+    ggplot(aes(x = .value, y = .variable)) +
+    stat_halfeye(aes(fill = stat(level)), .width = c(0.89, 1)) +
+    scale_x_continuous(breaks = scales::breaks_extended(n = 7),
+                       labels = scales::label_number(accuracy = 0.1)) +
+    scale_fill_paletteer_d(palette = "calecopal::dudleya",
+                           na.translate = FALSE) +
+    theme(legend.position = "none") +
+    labs(title = "Model 5.5: Posterior Distribution of Parameters", x = NULL, y = NULL)
+plot05_05
+```
+
 
 fit for different confidence intervals
 
 ```{r}
-fitted <- list()
-fitted$newdata <- data.frame(N = seq_range(d$N, n = 30L, pretty = TRUE))
-fitted$data <- fitted$newdata %>%
-  fitted(object = b5.5, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) |>
-  as_tibble() |>
-  bind_cols(fitted$newdata)
+lpred05_05 <- dataMilk |>
+  add_linpred_draws(fit05_05, ndraws = 500)
+# glimpse(lpred05_05)
 ```
 
-and plot the fits with different variables and counterfactuals. We use this plotting function
 
 ```{r}
-plot_milk <- function(original, fitted, x_var = "N", y_var = "Estimate",
-                      clrs = list(fill1 = "steelblue1", fill2 = "steelblue",
-                                  line = "steelblue4", point = "plum4")) {
-  ggplot(fitted, aes(x = .data[[x_var]], y = .data[[y_var]])) +
-    geom_ribbon(aes(ymin = Q2.5, ymax = Q97.5), fill = clrs$fill1) +
-    geom_ribbon(aes(ymin = Q25, ymax = Q75), fill = clrs$fill2) +
-    geom_line(color = clrs$line, size = 1) +
-    geom_point(data = original, aes(x = .data[[x_var]], y = K), 
-             color = clrs$point, size = 2) +
-    scale_x_continuous(breaks = scales::breaks_width(width = 0.5)) +
-    scale_y_continuous(breaks = scales::breaks_width(width = 0.5)) +
-    coord_fixed(ratio = 9/16) +
-    ggthemes::theme_few()
-  }
+plot05_05 <- lpred05_05 |>
+  ggplot(aes(x = N, y = .linpred)) +
+  stat_lineribbon(color = "purple") +
+  scale_fill_paletteer_d("ggthemes::Classic_Cyclic") +
+  coord_cartesian(xlim = c(-2, 1.5), ylim = c(-2, 2)) +
+  theme(legend.position = "none") +
+  labs(x = "neocortex.perc (standardized)", y = "kcal.per.g (standardized)")
+# plot05_05
 ```
 
-```{r}
-p <- list()
-p$N <- plot_milk(original = b5.5$data, fitted = fitted$data, x_var = "N",
-                 clrs = list(fill1 = "steelblue1", fill2 = "steelblue",
-                                  line = "steelblue4", point = "plum4")) +
-  labs(title = "Model 5.5", subtitle = deparse1(b5.5$formula$formula),
-       x = "neocrotex percent (std)", y = "kilocal per g (std)")
-```
+
 
 ### Model 5.6
 
@@ -766,10 +900,10 @@ $$
 
 and the fit is
 
-```{r ch05_b05_06}
+```{r ch05_fit05_06}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b5.6 <- xfun::cache_rds({brm(
-  data = d,
+fit05_06 <- xfun::cache_rds({brm(
+  data = dataMilk,
   formula = K ~ 1 + M,
   family = gaussian,
   prior = c(
@@ -778,35 +912,42 @@ b5.6 <- xfun::cache_rds({brm(
     prior(exponential(1), class = sigma)),
   iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
   seed = 5)
-  }, file = "ch05_b05_06")
+  }, file = "ch05_fit05_06")
 tictoc::toc()
 ```
 
 ```{r}
-print(b5.6, digits = 3)
+print(fit05_06, digits = 3)
 ```
-
 
 and the plot for the kilo vs mass
 
 ```{r}
-tidybayes::get_variables(b5.6)
+tidybayes::get_variables(fit05_06)
 ```
 
 ```{r}
-fitted <- list()
-fitted$newdata <- data.frame(M = seq_range(d$M, n = 30L, pretty = TRUE))
-fitted$data <- fitted$newdata %>%
-  fitted(object = b5.6, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) |>
-  as_tibble() |>
-  bind_cols(fitted$newdata)
-
-p$M <- plot_milk(original = b5.6$data, fitted = fitted$data, x_var = "M",
-                 clrs = list(fill1 = "plum1", fill2 = "plum",
-                                  line = "plum4", point = "steelblue4")) +
-    labs(title = "Model 5.6", subtitle = deparse1(b5.6$formula$formula),
-       x = "body mass (std of log)", y = "kilocal per g (std)")
+lpred05_06 <- dataMilk |>
+  select(K, M) |>
+  add_linpred_draws(fit05_06, ndraws = 500) |>
+  mean_qi(.width = 0.89)
+glimpse(lpred05_06)
 ```
+
+
+```{r}
+plot05_06 <- ggplot(dataMilk, aes(x = M, y = K)) +
+  geom_point() +
+  geom_smooth(lpred05_06, 
+              mapping = aes(x = M, y = .linpred, ymin = .lower, ymax = .upper),
+              stat = "identity", inherit.aes = FALSE,
+              color = "darkslategray4", fill = "darkslategray1") +
+  coord_cartesian(xlim = c(-1.9, 1.9), ylim = c(-2, 2)) +
+  theme(legend.position = c(0.8, 0.2)) +
+  labs(x = "mass (log)", y = "kcal.per.g (standardized)")
+# plot05_06
+```
+
 
 ### Model 5.7
 
@@ -825,10 +966,10 @@ $$
 
 and the fit is
 
-```{r ch05_b05_07}
+```{r ch05_fit05_07}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
-b5.7 <- xfun::cache_rds({brm(
-  data = d,
+fit05_07 <- xfun::cache_rds({brm(
+  data = dataMilk,
   formula = K ~ 1 + N + M,
   family = gaussian,
   prior = c(
@@ -838,67 +979,70 @@ b5.7 <- xfun::cache_rds({brm(
   ),
   iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
   seed = 5)
-  }, file = "ch05_b05_07")
+  }, file = "ch05_fit05_07")
 tictoc::toc()
 ```
 
 ```{r}
-print(b5.7, digits = 3)
+print(fit05_07, digits = 3)
 ```
 
+get the counterfactual data **holding** $M = 0$
 
-get the conterfactual data **holding** $M = 0$
 
 ```{r}
-fitted <- list()
-fitted$newdata <- data.frame(
-  N = seq_range(d$N, n = 30L, pretty = TRUE),
-  M = 0
-)
-fitted$data <- fitted$newdata %>%
-  fitted(object = b5.7, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) |>
-  as_tibble() |>
-  bind_cols(fitted$newdata)
+lpred05_07 <- list()
+lpred05_07 <- within(lpred05_07, {
+  doM <- dataMilk |>
+    select(K, M, N) |>
+    mutate(M = 0) |>
+    add_linpred_draws(fit05_07, ndraws = 500) |>
+    mean_qi(.width = 0.89)
+  
+  doN <- dataMilk |>
+    select(K, M, N) |>
+    mutate(N = 0) |>
+    add_linpred_draws(fit05_07, ndraws = 500) |>
+    mean_qi(.width = 0.89)
+})
+glimpse(lpred05_07)
 ```
 
-and the plot
 
 ```{r}
-p$N_counter <- plot_milk(original = b5.7$data, fitted = fitted$data, x_var = "N",
-                 clrs = list(fill1 = "steelblue1", fill2 = "steelblue",
-                                  line = "steelblue4", point = "plum4")) +
-  labs(title = "Model 5.7 - Holding M = 0", 
-       subtitle = deparse1(b5.7$formula$formula),
-       x = "neocrotex percent (std)", y = "kilocal per g (std)")
+plot05_07 <- list()
+plot05_07 <- within(plot05_07, {
+  doM <- ggplot(dataMilk, aes(x = N, y = K)) +
+    geom_point() +
+    geom_smooth(lpred05_07$doM, 
+                mapping = aes(x = N, y = .linpred, ymin = .lower, ymax = .upper),
+                stat = "identity", inherit.aes = FALSE,
+              color = "chartreuse4", fill = "chartreuse1") +
+    coord_cartesian(xlim = c(-1.9, 1.9), ylim = c(-2, 2)) +
+    theme(legend.position = c(0.8, 0.2)) +
+    labs(title = "Counterfactual holding M = 0",
+         x = "neocortex.perc (standardized)", y = "kcal.per.g (standardized)")
+  
+  doN <- ggplot(dataMilk, aes(x = M, y = K)) +
+  geom_point() +
+  geom_smooth(lpred05_07$doN, 
+              mapping = aes(x = M, y = .linpred, ymin = .lower, ymax = .upper),
+              stat = "identity", inherit.aes = FALSE,
+              color = "burlywood4", fill = "burlywood1") +
+  coord_cartesian(xlim = c(-1.9, 1.9), ylim = c(-2, 2)) +
+  theme(legend.position = c(0.8, 0.2)) +
+  labs(title = "Counterfactual holding N = 0",
+       x = "mass (log)", y = "kcal.per.g (standardized)")
+})
 ```
 
-get the conterfactual data **holding** $N = 0$
 
 ```{r}
-fitted <- list()
-fitted$newdata <- data.frame(
-  M = seq_range(d$M, n = 30L, pretty = TRUE),
-  N = 0
-)
-fitted$data <- fitted$newdata %>%
-  fitted(object = b5.7, newdata = ., probs = c(0.025, 0.975, 0.25, 0.75)) |>
-  as_tibble() |>
-  bind_cols(fitted$newdata)
+#| fig-cap: Figure 5.9
+((plot05_05 | plot05_06) / (plot05_07$doM | plot05_07$doN)) +
+  plot_annotation(title = "Milk Energy and Neocortex Among Primates")
 ```
 
-and the plot
-
-```{r}
-p$M_counter <- plot_milk(original = b5.7$data, fitted = fitted$data, x_var = "M",
-                 clrs = list(fill1 = "plum1", fill2 = "plum",
-                                  line = "plum4", point = "steelblue4")) +
-    labs(title = "Model 5.7 - Holding N = 0", subtitle = deparse1(b5.7$formula$formula),
-       x = "body mass (std of log)", y = "kilocal per g (std)")
-```
-
-```{r}
-wrap_plots(p)
-```
 
 ## Categorical variables
 
@@ -908,12 +1052,12 @@ Load data
 
 ```{r}
 data("Howell1")
-d <- Howell1 |>
+dataHowel <- Howell1 |>
   mutate(sex = factor(male))
-glimpse(d)
+# glimpse(dataHowel)
 ```
 
-the model 
+the model
 
 $$
 \begin{align*}
@@ -925,11 +1069,10 @@ h_i &\sim \mathcal{N}(\mu_i, \sigma) \\
 \end{align*}
 $$
 
-
-```{r ch05_b05_08}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b5.8 <- xfun::cache_rds({brm(
-  data = d,
+```{r ch05_fit05_08}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit05_08 <- xfun::cache_rds({brm(
+  data = dataHowel,
   formula = height ~ 0 + sex,
   family = gaussian,
   prior = c(
@@ -937,31 +1080,33 @@ b5.8 <- xfun::cache_rds({brm(
     prior(exponential(1), class = sigma)),
   iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
   seed = 5)
-  }, file = "ch05_b05_08")
+  }, file = "ch05_fit05_08")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b5.8)
+summary(fit05_08)
 ```
 
-
-
-
-> Read the important comment in section 5.3.1 when using $\alpha$. $\alpha$ now represents the average of women and the male heights is more variable because it relates to 2 parameters instead of 1.
+> Read the important comment in section 5.3.1 when using $\alpha$. $\alpha$ 
+now represents the average of women and the male heights is more variable 
+because it relates to 2 parameters instead of 1.
 
 ### Many categories
 
 > See the overthinking box in section 5.3.2 on how to reparametrize. Very nice.
 
-Load data, standardize and make sure *clade* is a factor. \> With `brms` there is no need to create the contrasts. We simply make sure that `*clade* is a factor.`brms\` will create the contrasts by itself.
+Load data, standardize and make sure *clade* is a factor.
+
+> With `brms` there is no need to create the contrasts. We simply make sure 
+that `*clade* is a factor.`brms` will create the contrasts by itself.
 
 ```{r}
 data("milk")
-d <- milk |> 
+dataMilk <- milk |> 
   mutate(K = as.vector(scale(kcal.per.g)))
 # skimr::skim(d)
-stopifnot(is.factor(d$clade))
+stopifnot(is.factor(dataMilk$clade))
 ```
 
 the model
@@ -975,10 +1120,10 @@ K_i &\sim \mathcal{N}(\mu_i, \sigma) \\
 \end{align*}
 $$
 
-```{r ch05_b05_09}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b5.9 <- xfun::cache_rds({brm(
-  data = d,
+```{r ch05_fit05_09}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit05_09 <- xfun::cache_rds({brm(
+  data = dataMilk,
   formula = K ~ 0 + clade,
   family = gaussian,
   prior = c(
@@ -986,30 +1131,29 @@ b5.9 <- xfun::cache_rds({brm(
     prior(exponential(1), class = sigma)),
   iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
   seed = 5)
-  }, file = "ch05_b05_09")
+  }, file = "ch05_fit05_09")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b5.9)
+summary(fit05_09)
 ```
 
-
 ```{r}
-tidybayes::get_variables(b5.9)
+tidybayes::get_variables(fit05_09)
 ```
 
 and plot the result
 
 ```{r}
-tidybayes::gather_draws(b5.9, b_cladeApe, b_cladeNewWorldMonkey, 
+tidybayes::gather_draws(fit05_09, b_cladeApe, b_cladeNewWorldMonkey, 
                         b_cladeOldWorldMonkey, b_cladeStrepsirrhine) |>
   mean_hdi(.width = 0.89) |>
   ggplot(aes(x = .value, xmin = .lower, xmax = .upper, y = .variable)) +
   geom_vline(xintercept = 0, colour = "darkgoldenrod") +
   geom_pointinterval(fatten_point = 2.5, color = "yellowgreen", size = 5) +
-  ggthemes::theme_clean() + 
-  labs(title = "Expected kcal by clade", x = "kcal (std)", y = NULL)
+  theme(panel.grid.major.y = element_line(linetype = "dotted", linewidth = 1)) +
+  labs(title = "Expected kcal by clade with 89% CI", x = "kcal (std)", y = NULL)
 ```
 
 ## Other ways to modify categorical variables
