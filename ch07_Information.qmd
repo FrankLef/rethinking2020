@@ -273,13 +273,13 @@ PSIS and WAIC perform very similarly in the context of prdinary linear models.
 ## Model comparison
 
 ```{r}
-fn <- list.files(path=here::here("cache"), pattern="ch06_b06_06_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch06_fit06_06_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b6.6 <- readRDS(here::here("cache", fn))
-fn <- list.files(path=here::here("cache"), pattern="ch06_b06_07_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch06_fit06_07_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b6.7 <- readRDS(here::here("cache", fn))
-fn <- list.files(path=here::here("cache"), pattern="ch06_b06_08_.*[.]rds$")
+fn <- list.files(path=here::here("cache"), pattern="ch06_fit06_08_.*[.]rds$")
 stopifnot(length(fn) == 1)
 b6.8 <- readRDS(here::here("cache", fn))
 ```

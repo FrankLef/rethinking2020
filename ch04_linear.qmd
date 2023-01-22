@@ -36,23 +36,6 @@ ggplot2::theme_set(ggdist::theme_ggdist())
 ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
 
-Some custom functions used in this following code
-
-```{r}
-# Convert widths to probabilities. Useful when plotting.
-width2probs <- function(x, add = NULL) {
-  stopifnot(is.finite(x), x >= 0.5, x <= 1)
-  probs <- (1 - x) / 2
-  probs <- c(probs, 1 - probs)
-  if (!is.null(add)) probs <- c(probs, add)
-  sort(unique(probs))
-}
-# test the function
-stopifnot(all.equal(width2probs(c(0.89, 1), add = 0.5), c(0, 0.055, 0.5, 0.945, 1)))
-```
-
-
-
 
 
 ## Why normal distributions are normal

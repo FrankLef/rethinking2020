@@ -9,14 +9,9 @@ This book is a study project of Statistical Rethinking, second edition, by Richa
 
 ## Prerequisites {.unumbered}
 
-:::{.callout-important}
-To use the `rethinking` you must install it as advised by Richard McElreath
-as described in [rethinking](https://github.com/rmcelreath/rethinking). You
-need to pay attention when it is done, but it works fine. Make sure you verify
-the installation with `example(stan_model, package = "rstan", run.dontrun = TRUE)`
-as described in the guides.
+::: {.callout-important}
+To use the `rethinking` you must install it as advised by Richard McElreath as described in [rethinking](https://github.com/rmcelreath/rethinking). You need to pay attention when it is done, but it works fine. Make sure you verify the installation with `example(stan_model, package = "rstan", run.dontrun = TRUE)` as described in the guides.
 :::
-
 
 ## Session info {.unumbered}
 

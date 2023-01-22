@@ -853,7 +853,7 @@ post05_05 <- fit05_05 |>
 # source: https://cran.r-project.org/web/packages/ggdist/vignettes/slabinterval.html
 plot05_05 <- post05_05 |>
     ggplot(aes(x = .value, y = .variable)) +
-    stat_halfeye(aes(fill = stat(level)), .width = c(0.89, 1)) +
+    stat_halfeye(aes(fill = after_stat(level)), .width = c(0.89, 1)) +
     scale_x_continuous(breaks = scales::breaks_extended(n = 7),
                        labels = scales::label_number(accuracy = 0.1)) +
     scale_fill_paletteer_d(palette = "calecopal::dudleya",
