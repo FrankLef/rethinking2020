@@ -17,9 +17,32 @@ library(patchwork)
 library(paletteer)
 ```
 
+
+Some options to facilitate the computations
+
+```{r}
+#  For execution on a local, multicore CPU with excess RAM
+options(mc.cores = parallel::detectCores())
+#  To avoid recompilation of unchanged Stan programs
+rstan_options(auto_write = TRUE)
+```
+
+The default theme used by `ggplot2`
+
+```{r}
+# The default theme used by ggplot2
+ggplot2::theme_set(ggthemes::theme_gdocs())
+ggplot2::theme_update(title = element_text(color = "midnightblue"))
+```
+
+
+
 An important point to remember is mentioned in @elreath2020, introduction of chapter 7.
 
-> ... Whatever you think about null hypothesis significance testing in general, using it to select among structurally diferent models is a mistake. *p-value* are not designed to help you navigate between underfitting and overfitting.
+> ... Whatever you think about null hypothesis significance testing in general, 
+using it to select among structurally diferent models is a mistake. 
+*p-value* are not designed to help you navigate between underfitting 
+and overfitting.
 
 ## The problem with parameters
 
@@ -37,7 +60,7 @@ $$
 
 Get the data and standardize it. In section 7.1.1 @elreath2020 explains that 
 we rescale brain size instead of standardizing it because 
-*we wnat to preserve zero* as a reference point.
+*we want to preserve zero* as a reference point.
 
 ```{r}
 dataBrains <- tibble(
@@ -52,7 +75,7 @@ dataBrains <- tibble(
 
 plot the raw data
 
-```{r ch07_ggpBrains}
+```{r ch07_plotBrains}
 # we do a plot with fancy background
 plotBrains <- list()
 plotBrains <- within(plotBrains, {
@@ -256,7 +279,9 @@ The is the basis for the $AIC$, the **Akaike Information Criteria**
 
 $$
 AIC = D_{train} + 2 \cdot p = -2\cdot lppd + 2 \cdot p
-$$ AIC is used when
+$$ 
+
+AIC is used when
 
 1.  Priors are flat or overwhelmed by the likelihood
 2.  The posterior distribution is approximately multivariate Gaussian
@@ -306,10 +331,10 @@ fit06_08 <- readRDS(here::here("cache", fn))
 ```{r}
 fit06_07_waic <- loo::waic(fit06_07)
 # can also use this function if you need to manipulate the data
-fit06_07_waic$estimates
+fit06_07_waic$estimates |> round(digits = 4)
 ```
 
-The `waic` is $-2 * elpd$ which is not what Kurtz says in his version of the textbook. I think he is mistaken. McElreath on the other is conistent with his previous definitions.
+The `waic` is $-2 * elpd$ which is not what Kurtz says in his version of the textbook. I think he is mistaken. McElreath on the other is consistent with his previous definitions.
 
 ```{r}
 near(fit06_07_waic$estimates["elpd_waic", "Estimate"] * -2,
@@ -349,11 +374,8 @@ w <- loo::loo_compare(fit06_06, fit06_07, fit06_08, criterion = "waic") |>
     tibble::rownames_to_column("model_name") |>
     mutate(model_name = forcats::fct_reorder(model_name, waic, .desc = TRUE))
 ggplot(w, aes(x = waic, y = model_name, xmin = waic - se_waic, xmax = waic + se_waic)) +
-    geom_pointrange(shape = 19, size = 0.75, color = "mediumseagreen") +
+    geom_pointrange(shape = 19, linewidth = 2, fatten = 8, color = "mediumseagreen") +
     ggrepel::geom_text_repel(aes(label = round(waic, 0))) +
-    ggthemes::theme_few() +
-    theme(title = element_text(color = "midnightblue"),
-          panel.border = element_blank()) +
     labs(title = "WAIC plot", x = "waic", y = NULL)
 ```
 
@@ -403,16 +425,16 @@ dp <- tibble(pareto_k = fit05_03$criteria$loo$diagnostics$pareto_k,
        Loc      = dataWaffle$Loc,
        South = dataWaffle$South)
 ggplot(dp, aes(x = pareto_k, y = p_waic, color = Loc == "ID")) +
-    geom_vline(xintercept = .5, linetype = 2, color = "black", alpha = 1/2) +
+    geom_vline(xintercept = .5, linetype = 2, linewidth = 1, 
+               color = "magenta") +
     geom_point(aes(shape = Loc == "ID")) +
     geom_text(data = . %>% filter(p_waic > 0.5),
               aes(x = pareto_k - 0.03, label = Loc),
               hjust = 1) +
     scale_color_manual(values = c("darkgreen", "violetred")) +
     scale_shape_manual(values = c(19, 19)) +
-    theme_minimal() +
     theme(legend.position = "none") +
-    labs(title = "Gaussian model (b5.3)",
+    labs(title = "Gaussian model (fit05_03)",
          subtitle = deparse1(fit05_03$formula$formula),
          caption = "Different than McElreath but ok with Kurtz (same conclusions for both)")
 ```
@@ -452,16 +474,15 @@ dp <- tibble(pareto_k = b5.3t$criteria$loo$diagnostics$pareto_k,
        Loc      = dataWaffle$Loc,
        South = dataWaffle$South)
 ggplot(dp, aes(x = pareto_k, y = p_waic, color = Loc == "ID")) +
-    geom_vline(xintercept = .5, linetype = 2, color = "black", alpha = 1/2) +
+    geom_vline(xintercept = .5, linetype = 2, linewidth = 1, 
+               color = "magenta") +
     geom_point(aes(shape = Loc == "ID")) +
     geom_text(data = . %>% filter(Loc %in% c("ID", "ME")),
               aes(x = pareto_k - 0.01, label = Loc),
               hjust = 1) +
     scale_color_manual(values = c("darkgreen", "violetred")) +
     scale_shape_manual(values = c(19, 19)) +
-    theme_minimal() +
-    theme(legend.position = "none",
-          title = element_text(color = "midnightblue")) +
+    theme(legend.position = "none") +
     labs(title = "Student-t model (b5.3)",
          subtitle = "using brms (see Kurtz)",
          caption = "See Kurtz comments")
