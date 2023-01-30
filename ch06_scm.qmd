@@ -351,6 +351,7 @@ dataHappy_gt17 <- dataHappy |>
 # glimpse(dataHappy_gt17)
 ```
 
+
 ```{r ch06_fit06_09}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit06_09 <- xfun::cache_rds({

@@ -16,14 +16,32 @@ library(patchwork)
 library(paletteer)
 ```
 
+Some options to facilitate the computations
+
+```{r}
+#  For execution on a local, multicore CPU with excess RAM
+options(mc.cores = parallel::detectCores())
+#  To avoid recompilation of unchanged Stan programs
+rstan_options(auto_write = TRUE)
+```
+
+The default theme used by `ggplot2`
+
+```{r}
+# The default theme used by ggplot2
+ggplot2::theme_set(ggthemes::theme_pander())
+ggplot2::theme_update(title = element_text(color = "midnightblue"))
+```
+
+
 
 ## Building an interaction
 
 Load the data, log transform the gdp measure, remove incomplete cases and create a character column for Africa or Not Africa.
 
-```{r}
+```{r ch08_dataRugged}
 data(rugged)
-d <- rugged |>
+dataRugged <- rugged |>
   filter(complete.cases(rgdppc_2000)) |>
   mutate(log_gdp = log(rgdppc_2000),
          is_africa = if_else(cont_africa == 1, "Africa", "Not Africa"),
@@ -33,62 +51,62 @@ rm(rugged)
 #       Otherwise it keeps the vector as an array and causes all sort of little
 #       problems.  In particular, a very obscure, fine error message
 #       in doing brms fit for b8.2.
-dd <- d |>
+dataRugged_nona <- dataRugged |>
   drop_na(rgdppc_2000) |>
   mutate(log_gdp_s = log_gdp / mean(log_gdp),
          rugged_s = scales::rescale(rugged),
          rugged_sc = as.vector(scale(rugged_s, center = TRUE, scale = FALSE)))
-# glimpse(dd)
 ```
 
 and we use the following DAG, see overthinking box in introduction of section 8.1 for another possible DAG.
 
-```{r}
-dag <- list()
-dag$coords <- tibble(name = c("C", "G", "R", "U"),
+```{r dagRugged}
+dagRugged <- list()
+dagRugged <- within(dagRugged, {
+  coords <- tibble(name = c("C", "G", "R", "U"),
                      x = c(3, 2, 1, 2),
                      y = c(2, 2, 2, 1))
-dag$g <- dagify(
-  G ~ C + R + U,
-  R ~ U,
-  latent = "U",
-  outcome = "G",
-  coords = dag$coords)
-p <- list()
-p$g <- dag$g |>
-  ggdag_status(aes(color = status), as_factor = TRUE, node_size = 14,
-               text_size = 4, text_col = "midnightblue") +
-  # geom_dag_point(aes(color = status), size = 3, text = FALSE) +
-  # geom_dag_text(color = "midnightblue") +
-  scale_color_paletteer_d("khroma::light", 
+  dag <- dagify(G ~ C + R + U,
+                R ~ U,
+                latent = "U",
+                outcome = "G",
+                coords = coords)
+  p <- dag |>
+    ggdag_status(aes(color = status), as_factor = TRUE, node_size = 14,
+                 text_size = 4, text_col = "midnightblue") +
+    scale_color_paletteer_d("khroma::light", 
                           na.value = "honeydew3",
                           direction = 1) +
-  theme_dag() +
-  theme(legend.position = c(0.8, 0.2)) +
-  labs(title = "African nations", 
-       subtitle = "Section 8.1")
-p$g
+    theme_dag() +
+    theme(legend.position = c(0.8, 0.2)) +
+    labs(title = "African nations", subtitle = "Section 8.1")
+})
+dagRugged$p
+
 ```
 
-```{r}
-p1 <- dd |>
-  filter(grepl("^africa$", x = is_africa, ignore.case = TRUE)) |>
-  ggplot(aes(x = rugged_s, y = log_gdp_s)) +
-  geom_smooth(method = "lm", formula = y ~ x, fill = "lightblue", color = "royalblue") +
-  geom_point(color = "burlywood4") +
-  theme_minimal() +
-  labs(title = "African nations", x = "ruggedness (rescale)", 
-       y = "log GDP (prop of mean)")
-p2 <- dd |>
-  filter(!grepl("^africa$", x = is_africa, ignore.case = TRUE)) |>
-  ggplot(aes(x = rugged_s, y = log_gdp_s)) +
-  geom_smooth(method = "lm", formula = y ~ x, fill = "burlywood1", color = "burlywood4") +
-  geom_point(color = "royalblue") +
-  theme_minimal() +
-  labs(title = "Non-African nations", x = "ruggedness (rescale)",
-       y = "log GDP (prop of mean)")
-msg <- "Figure 8.2. Separate linear regressions inside and outside of Africa"
-p1 + p2 + plot_annotation(title = msg)
+```{r plotRugged}
+plotRugged <- list()
+plotRugged <- within(plotRugged, {
+  Africa <- dataRugged_nona |>
+    filter(grepl("^africa$", x = is_africa, ignore.case = TRUE)) |>
+    ggplot(aes(x = rugged_s, y = log_gdp_s)) +
+    geom_smooth(method = "lm", formula = y ~ x, fill = "lightblue", color = "royalblue") +
+    geom_point(color = "burlywood4") +
+    labs(title = "African nations", x = "ruggedness (rescale)", 
+         y = "log GDP (prop of mean)")
+  
+  notAfrica <- dataRugged_nona |>
+    filter(!grepl("^africa$", x = is_africa, ignore.case = TRUE)) |>
+    ggplot(aes(x = rugged_s, y = log_gdp_s)) +
+    geom_smooth(method = "lm", formula = y ~ x, fill = "burlywood1", color = "burlywood4") +
+    geom_point(color = "royalblue") +
+    labs(title = "Non-African nations", x = "ruggedness (rescale)",
+         y = "log GDP (prop of mean)")
+  title <- "Figure 8.2. Separate linear regressions inside and outside of Africa"
+})
+wrap_plots(plotRugged[c("Africa", "notAfrica")]) + 
+  plot_annotation(title = plotRugged$title)
 ```
 
 ### Making a rugged model
@@ -96,8 +114,8 @@ p1 + p2 + plot_annotation(title = msg)
 and split the data into countries from Africa and not.
 
 ```{r}
-lst <- d |>
-  split(d$is_africa)
+# lst <- d |>
+#   split(d$is_africa)
 # str(lst)
 ```
 
@@ -113,13 +131,14 @@ $$
 \end{align*}
 $$
 
-Now fit the model. Get the **prior samples** by using `sample_prior = TRUE`
+Now fit the model. Get the **prior samples** by using `sample_prior = TRUE`.
 
-```{r ch08_b08_01a}
+
+```{r ch08_fit08_01a}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b8.1a <- xfun::cache_rds({
+fit08_01a <- xfun::cache_rds({
   out <- brm(
-    data = dd,
+    data = dataRugged_nona,
     family = gaussian,
     log_gdp_s ~ 1 + rugged_sc,
     prior = c(
@@ -127,104 +146,126 @@ b8.1a <- xfun::cache_rds({
       prior(normal(0, 1), class = b),
       prior(exponential(1), class = sigma)),
     sample_prior = TRUE,
-    iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-    seed = 8)
+    iter = 1000, warmup = 500, chains = 4, cores = detectCores(),
+    seed = 809)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch08_b08_01a")
+  file = "ch08_fit08_01a")
 tictoc::toc()
 ```
 
 
-```{r}
-posterior_summary(b8.1a)
+```{r ch08_b08_01a}
+# tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+# b8.1a <- xfun::cache_rds({
+#   out <- brm(
+#     data = dd,
+#     family = gaussian,
+#     log_gdp_s ~ 1 + rugged_sc,
+#     prior = c(
+#       prior(normal(1, 1), class = Intercept),
+#       prior(normal(0, 1), class = b),
+#       prior(exponential(1), class = sigma)),
+#     sample_prior = TRUE,
+#     iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+#     seed = 8)
+#   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
+#   file = "ch08_b08_01a")
+# tictoc::toc()
 ```
 
-
+```{r}
+posterior_summary(fit08_01a) |>
+  round(digits = 3)
+```
 
 the estimates are described in section 8.1.1 of McElreath but he seems to have
 
 ```{r}
-set.seed(8)
-b8.1a_prior <- prior_samples(b8.1a)
-pd <-
-  b8.1a_prior |>
-  slice_sample(n = 50) |>
-  tibble::rownames_to_column() |>
-  expand(nesting(rowname, Intercept, b), rugged_sc = c(-2, 2)) |>
-  mutate(log_gdp_s = Intercept + b * rugged_sc,
-         rugged_s  = rugged_sc + mean(dd$rugged_s))
-# glimpse(pd)
-
-pd_estimate_fixed <- min(dd$log_gdp_s)
-pd_estimate_b <- diff(range(dd$log_gdp_s))
-
-p1 <- ggplot(pd, aes(x = rugged_s, y = log_gdp_s, group = rowname)) +
-  geom_line(color = "lavender") +
-  geom_hline(yintercept = range(dd$log_gdp_s), 
-             size = 1, linetype = 2, color = "royalblue") +
-  geom_abline(intercept = pd_estimate_fixed, slope = pd_estimate_b,
-              color = "purple", size = 1) +
-  coord_cartesian(xlim = c(0, 1), ylim = c(0.5, 1.5)) +
-  labs(
-    subtitle = "Intercept ~ dnorm(1, 1)\nb ~ dnorm(0, 1)",
-    x = "ruggedness (rescaled)",
-    y = "log GDP (prop of mean)") +
-  ggthemes::theme_hc()
-# p1
+prior08_01a <- list()
+prior08_01a <- within(prior08_01a, {
+  draws <- prior_draws(fit08_01a)
+  df <- draws |>
+    slice_sample(n = 50) |>
+    tibble::rownames_to_column(var = "id") |>
+    expand(nesting(id, Intercept, b), rugged_sc = c(-2, 2)) |>
+    mutate(log_gdp_s = Intercept + b * rugged_sc,
+         rugged_s  = rugged_sc + mean(dataRugged_nona$rugged_s))
+  est <- c("fixed" = min(dataRugged_nona$log_gdp_s), "b" = diff(range(dataRugged_nona$log_gdp_s)))
+  
+  p <- ggplot(df, aes(x = rugged_s, y = log_gdp_s, group = id)) +
+    geom_line(color = "lavender") +
+    geom_hline(yintercept = range(dataRugged_nona$log_gdp_s), 
+               size = 1, linetype = 2, color = "royalblue") +
+    geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
+    coord_cartesian(xlim = c(0, 1), ylim = c(0.5, 1.5)) +
+    labs(
+      subtitle = "Intercept ~ dnorm(1, 1)\nb ~ dnorm(0, 1)",
+      x = "ruggedness (rescaled)",
+      y = "log GDP (prop of mean)")
+})
+# prior08_01a$p
 ```
 
-Now using the prior where we want the intercept to be around 1 with extremes from 0.8 to 1.2 (i.e. a mean of 1 and sd of 0.1) and the slope to have extremes about $\pm 0.6$, that is a mean of 0 with sd of 0.3 (i.e. 2 sd with sd = 3 from a mean of 0).
+Now using the prior where we want the intercept to be around 1 with extremes 
+from 0.8 to 1.2 (i.e. a mean of 1 and sd of 0.1) and the slope to have extremes 
+about $\pm 0.6$, that is a mean of 0 with sd of 0.3 
+(i.e. 2 sd with sd = 3 from a mean of 0).
 
-```{r ch08_b08_01b}
+
+```{r ch08_fit08_01b}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b8.1b <- xfun::cache_rds({
+fit08_01b <- xfun::cache_rds({
   out <- update(
-    b8.1a,
-    newdata = dd,
+    fit08_01a,
+    newdata = dataRugged_nona,
     prior = c(
       prior(normal(1, 0.1), class = Intercept),
       prior(normal(0, 0.3), class = b),
       prior(exponential(1), class = sigma)),
     sample_prior = TRUE,
-    seed = 8)
+    seed = 809)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch08_b08_01b")
+  file = "ch08_fit08_01b")
 tictoc::toc()
 ```
 
+
 ```{r}
-posterior_summary(b8.1b)
+posterior_summary(fit08_01b) |>
+  round(digits = 3)
 ```
 
 
 ```{r}
-set.seed(8)
-b8.1b_prior <- prior_samples(b8.1b)
-pd <-
-  b8.1b_prior |>
-  slice_sample(n = 50) |>
-  tibble::rownames_to_column() |>
-  expand(nesting(rowname, Intercept, b), rugged_sc = c(-2, 2)) |>
-  mutate(log_gdp_s = Intercept + b * rugged_sc,
-         rugged_s  = rugged_sc + mean(dd$rugged_s))
-# glimpse(pd)
-
-p2 <- ggplot(pd, aes(x = rugged_s, y = log_gdp_s, group = rowname)) +
-  geom_line(color = "lavender") +
-  geom_hline(yintercept = range(dd$log_gdp_s), 
-             size = 1, linetype = 2, color = "royalblue") +
-  coord_cartesian(xlim = c(0, 1), ylim = c(0.5, 1.5)) +
-  labs(
-    subtitle = "Intercept ~ dnorm(0, 0.1)\nb ~ dnorm(0, 0.3)",
-    x = "ruggedness (rescaled)",
-    y = "log GDP (prop of mean)") +
-  ggthemes::theme_hc()
-# p2
+prior08_01b <- list()
+prior08_01b <- within(prior08_01b, {
+  draws <- prior_draws(fit08_01b)
+  df <- draws |>
+    slice_sample(n = 50) |>
+    tibble::rownames_to_column(var = "id") |>
+    expand(nesting(id, Intercept, b), rugged_sc = c(-2, 2)) |>
+    mutate(log_gdp_s = Intercept + b * rugged_sc,
+         rugged_s  = rugged_sc + mean(dataRugged_nona$rugged_s))
+  est <- c("fixed" = min(dataRugged_nona$log_gdp_s), "b" = diff(range(dataRugged_nona$log_gdp_s)))
+  
+  p <- ggplot(df, aes(x = rugged_s, y = log_gdp_s, group = id)) +
+    geom_line(color = "lavender") +
+    geom_hline(yintercept = range(dataRugged_nona$log_gdp_s), 
+               size = 1, linetype = 2, color = "royalblue") +
+    geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
+    coord_cartesian(xlim = c(0, 1), ylim = c(0.5, 1.5)) +
+    labs(
+      subtitle = "Intercept ~ dnorm(1, 1)\nb ~ dnorm(0, 1)",
+      x = "ruggedness (rescaled)",
+      y = "log GDP (prop of mean)")
+})
+# prior08_01b$p
 ```
 
 ```{r}
-msg <- "Figure 8.3. Simulating different priors to evaluate their fit"
-p1 + p2 + plot_annotation(title = msg)
+prior08_01a$p + prior08_01b$p + 
+  plot_annotation(
+    title = "Figure 8.3. Simulating different priors to evaluate their fit")
 ```
 
 ### Adding an indicator variable isn't enough
@@ -232,7 +273,7 @@ p1 + p2 + plot_annotation(title = msg)
 We add the `cid` variable to identify the continent.
 
 ```{r}
-dd <- dd |>
+dataRugged_nona <- dataRugged_nona |>
   mutate(cid = as.factor(if_else(cont_africa == 1, "1", "2")))
 ```
 
@@ -248,11 +289,12 @@ $$
 \end{align*}
 $$
 
-```{r ch08_b08_02}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b8.2 <- xfun::cache_rds({
+
+```{r ch08_fit08_02}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit08_02 <- xfun::cache_rds({
   out <- brm(
-    data = dd,
+    data = dataRugged_nona,
     family = gaussian,
     log_gdp_s ~ 0 + cid + rugged_sc,
     prior = c(
@@ -261,60 +303,64 @@ b8.2 <- xfun::cache_rds({
       prior(normal(0, 0.3), class = b, coef = rugged_sc),
       prior(exponential(1), class = sigma)),
     sample_prior = TRUE,
-    iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-    seed = 8)
+    iter = 1000, warmup = 500, chains = 4, cores = detectCores(),
+    seed = 811)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch08_b08_02")
+  file = "ch08_fit08_02")
 tictoc::toc()
 ```
 
+
+
 ```{r}
-summary(b8.2)
+posterior_summary(fit08_02) |>
+  round(digits = 3)
 ```
+
 
 
 and measuring the models' performance
 
 ```{r}
-loo::loo_compare(b8.1b, b8.2, criterion = "waic") |> print(simplify = FALSE)
+loo::loo_compare(fit08_01b, fit08_02, criterion = "waic") |> 
+  print(simplify = FALSE)
 ```
 
 with thew model weights
 
 ```{r}
-brms::model_weights(b8.1b, b8.2) |>
+brms::model_weights(fit08_01b, fit08_02) |>
   round(digits = 2)
 ```
 
 and create the fitted data used for the plot
 
 ```{r}
-tidybayes::get_variables(b8.2)
+tidybayes::get_variables(fit08_02)
 ```
-
-```{r}
-b8.2_seq <- crossing(cid = as.factor(1:2),
-                     rugged_sc = seq(from = -0.2, to = 1.2, length.out = 30)) |>
-  mutate(rugged_sc = as.vector(scale(rugged_sc)))
-# glimpse(b8.2_seq)
-b8.2_fitted <- fitted(b8.2, newdata = b8.2_seq, probs = c(0.015, 0.985)) |>
-  data.frame() |>
-  bind_cols(b8.2_seq) |>
+```{r ch08_lpred08_02}
+# get the fitted values
+lpred08_02 <- crossing(
+  cid = as.factor(1:2),
+  rugged_sc = seq(from = -0.2, to = 1.2, length.out = 30)) |>
+  mutate(rugged_sc = as.vector(scale(rugged_sc))) |>
+  add_linpred_draws(fit08_02, ndraws = 50) |>
+  mean_qi() |>
   mutate(is_africa = if_else(cid == 1, "Africa", "Not Africa")) |>
   mutate(is_africa = as.factor(is_africa))
-# glimpse(b8.2_fitted)
+# glimpse(lpred08_02)
 ```
 
-```{r}
-ggplot(dd, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, color = is_africa)) +
-  geom_smooth(data = b8.2_fitted, aes(x = rugged_sc, y = Estimate, ymin = Q1.5, ymax = Q98.5),
+
+```{r ch08_plot08_02}
+ggplot(dataRugged_nona, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, color = is_africa)) +
+  geom_smooth(data = lpred08_02, aes(x = rugged_sc, y = .linpred, ymin = .lower, ymax = .upper),
               stat = "identity",
               alpha = 1/4, size = 1/2) +
   geom_point(size = 1) +
   scale_fill_manual(values = c("Africa" = "springgreen2", "Not Africa" = "violet")) +
   scale_color_manual(values = c("Africa" = "springgreen2", "Not Africa" = "violet")) +
   coord_cartesian(xlim = c(0, 1)) +
-  theme_minimal() +
   theme(legend.position = c(.80, .90),
         legend.title = element_blank()) +
   labs(title = "Figure 8.4",
@@ -335,10 +381,12 @@ $$
 \end{align*}
 $$
 
-```{r ch08_b08_03}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b8.3 <- xfun::cache_rds({
-  out <- brm(data = dd,
+
+
+```{r ch08_fit08_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit08_03 <- xfun::cache_rds({
+  out <- brm(data = dataRugged_nona,
       family = gaussian,
       formula = bf(log_gdp_s ~ 0 + a + b * rugged_sc,
          a ~ 0 + cid,
@@ -349,54 +397,57 @@ b8.3 <- xfun::cache_rds({
                 prior(normal(0, 0.3), class = b, coef = cid1, nlpar = b),
                 prior(normal(0, 0.3), class = b, coef = cid2, nlpar = b),
                 prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      seed = 8)
+      iter = 1000, warmup = 500, chains = 4, cores = detectCores(),
+      seed = 821)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch08_b08_03")
+  file = "ch08_fit08_03")
 tictoc::toc()
 ```
 
+
+
 ```{r}
-summary(b8.3)
+posterior_summary(fit08_03) |>
+  round(digits = 3)
 ```
 
-
 ```{r}
-loo::loo_compare(b8.1b, b8.2, b8.3, criterion = "waic") |> print(simplify = FALSE)
+loo::loo_compare(fit08_01b, fit08_02, fit08_03, criterion = "waic") |> 
+  print(simplify = FALSE)
 ```
 
 with thew model weights
 
 ```{r}
-brms::model_weights(b8.1b, b8.2, b8.3) |>
+brms::model_weights(fit08_01b, fit08_02, fit08_03) |>
   round(digits = 2)
 ```
 
 ### Plotting the interaction
 
-```{r}
-b8.3_seq <- crossing(cid = as.factor(1:2),
-                     rugged_sc = seq(from = -0.2, to = 1.2, length.out = 30)) |>
-  mutate(rugged_sc = as.vector(scale(rugged_sc)))
-glimpse(b8.3_seq)
-b8.3_fitted <- fitted(b8.3, newdata = b8.3_seq, probs = c(0.015, 0.985)) |>
-  data.frame() |>
-  bind_cols(b8.3_seq) |>
+```{r ch08_lpred08_03}
+lpred08_03 <- crossing(
+  cid = as.factor(1:2),
+  rugged_sc = seq(from = -0.2, to = 1.2, length.out = 30)) |>
+  mutate(rugged_sc = as.vector(scale(rugged_sc))) |>
+  add_linpred_draws(fit08_03, ndraws = 50) |>
+  mean_qi() |>
   mutate(is_africa = if_else(cid == 1, "Africa", "Not Africa")) |>
   mutate(is_africa = as.factor(is_africa))
-glimpse(b8.3_fitted)
+# glimpse(lpred08_03)
 ```
 
-```{r}
-ggplot(dd, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, color = is_africa)) +
-  geom_smooth(data = b8.3_fitted, aes(x = rugged_sc, y = Estimate, ymin = Q1.5, ymax = Q98.5),
+
+
+```{r ch08_plot08_03}
+ggplot(dataRugged_nona, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, color = is_africa)) +
+  geom_smooth(data = lpred08_03, aes(x = rugged_sc, y = .linpred, ymin = .lower, ymax = .upper),
               stat = "identity",
               alpha = 1/4, size = 1/2) +
   geom_point(size = 1) +
   scale_fill_manual(values = c("Africa" = "springgreen2", "Not Africa" = "violet")) +
   scale_color_manual(values = c("Africa" = "springgreen2", "Not Africa" = "violet")) +
   coord_cartesian(xlim = c(0, 1)) +
-  theme_minimal() +
   theme(legend.position = "none") +
   labs(title = "Figure 8.5",
        subtitle = "model b8.3",
@@ -404,6 +455,7 @@ ggplot(dd, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, color = is_africa
        y = "log GDP (as proportion of mean)") +
   facet_wrap(~ is_africa)
 ```
+
 
 ## Symmetry of interactions
 
@@ -413,7 +465,7 @@ ggplot(dd, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, color = is_africa
 
 ```{r}
 data(tulips, package = "rethinking")
-d <- tulips |>
+dataTulips <- tulips |>
   mutate(blooms_r = scales::rescale(blooms),
          water_c = as.vector(scale(water, scale = FALSE)),
          shade_c = as.vector(scale(shade, scale = FALSE)))
@@ -440,10 +492,11 @@ $$
 When looking at the data with `skimr::skim()` to evaluate the priors we obtain
 
 ```{r}
-skimr::skim(d)
+skimr::skim(dataTulips)
 ```
 
-We see that `blooms_r` must be between 0 and 1. The prior used assigns most probability outside of that range
+We see that `blooms_r` must be between 0 and 1. The prior used assign most 
+probability outside of that range
 
 ```{r}
 m <- 0.5
@@ -451,7 +504,8 @@ s <- 1
 pnorm(q = 0, mean = m, sd = s) + pnorm(q = 1, mean = m, sd = s, lower.tail = FALSE)
 ```
 
-lets say that we we want only 5% of the values outside the range (2.5% on each side) then, going with trial an error, the boundaries would be about
+lets say that we we want only 5% of the values outside the range 
+(2.5% on each side) then, going with trial an error, the boundaries would be about
 
 ```{r}
 m <- 0.5
@@ -463,7 +517,9 @@ Therefore we will use
 
 $$
 \alpha \sim \mathcal{N}(0.5, 0.25)
-$$ and since the range for `water_c` and `shade_c` is -1 to 1 then we can use the same logic for both as follows
+$$ 
+and since the range for `water_c` and `shade_c` is -1 to 1 then we can use the 
+same logic for both as follows
 
 ```{r}
 m <- 0
@@ -471,7 +527,9 @@ s <- 0.25
 pnorm(q = -1, mean = m, sd = s) + pnorm(q = 1, mean = m, sd = s, lower.tail = FALSE)
 ```
 
-which means virtually almost all values will be between -1 and 1. When looking at the `skimr::skim()` summary we see that there are many extreme values so this prior covers this situation well.
+which means virtually almost all values will be between -1 and 1. When looking 
+at the `skimr::skim()` summary we see that there are many extreme values so 
+this prior covers this situation well.
 
 Therefore, our model with a little more informative priors is
 
@@ -488,26 +546,25 @@ $$
 
 and we fit that model to the data
 
-```{r ch08_b08_04}
+```{r ch08_fit08_04}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
-b8.4 <- xfun::cache_rds({
-  out <- brm(data = d,
+fit08_04 <- xfun::cache_rds({
+  out <- brm(data = dataTulips,
       family = gaussian,
       formula = blooms_r ~ 1 + water_c + shade_c,
       prior = c(prior(normal(0.5, 0.25), class = Intercept),
                 prior(normal(0, 0.25), class = b),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      seed = 8)
+      seed = 823)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch08_b08_04")
+  file = "ch08_fit08_04")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b8.4)
+posterior_summary(fit08_04)
 ```
-
 
 #### Adding an interaction
 
@@ -530,10 +587,10 @@ $$
 
 and now fitting the model with interaction
 
-```{r ch08_b08_05}
+```{r ch08_fit08_05}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b8.5 <- xfun::cache_rds({
-  out <- brm(data = d,
+fit08_05 <- xfun::cache_rds({
+  out <- brm(data = dataTulips,
       family = gaussian,
       formula = blooms_r ~ 1 + water_c + shade_c + water_c:shade_c,
       prior = c(prior(normal(0.5, 0.25), class = Intercept),
@@ -542,133 +599,15 @@ b8.5 <- xfun::cache_rds({
                 prior(normal(0, 0.25), class = b, coef = "water_c:shade_c"),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      seed = 8)
+      seed = 827)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch08_b08_05")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b8.5)
+posterior_summary(fit08_05)
 ```
 
-
-### Plotting posterior predictions
-
-See the very good details in Kurtz
-
-```{r}
-# augment the data
-points <-
-  d |>
-  expand(fit = c("b8.4", "b8.5"),
-         nesting(shade_c, water_c, blooms_r)) |>
-  mutate(x_grid = paste("shade_c =", shade_c),
-         y_grid = fit)
-
-# redefine `nd`
-nd <- crossing(shade_c = -1:1, 
-               water_c = c(-1, 1))
-
-# use `fitted()`
-set.seed(8)
-
-df <- rbind(fitted(b8.4, newdata = nd, summary = F, nsamples = 20),
-            fitted(b8.5, newdata = nd, summary = F, nsamples = 20)) |>
-  data.frame() |>
-  rlang::set_names(mutate(nd, name = paste(shade_c, water_c, sep = "_")) |> 
-                     pull()) |>
-  mutate(row = 1:n(),
-         fit = rep(c("b8.4", "b8.5"), each = n() / 2)) |>
-  pivot_longer(-c(row:fit), values_to = "blooms_r") |>
-  separate(name, into = c("shade_c", "water_c"), sep = "_") |>
-  mutate(shade_c = shade_c |> as.double(),
-         water_c = water_c |> as.double()) |>
-  # these will come in handy for `ggplot2::facet_grid()`
-  mutate(x_grid = paste("shade_c =", shade_c),
-         y_grid = fit)
-# glimpse(df)
-  
-
-ggplot(df, aes(x = water_c, y = blooms_r)) +
-  geom_line(aes(group = row), color = "steelblue", alpha = 1/5, size = 1/2) +
-  geom_point(data = points, color = "steelblue") +
-  scale_x_continuous(breaks = c(-1, 0, 1)) +
-  scale_y_continuous(breaks = c(0, .5, 1)) +
-  coord_cartesian(xlim = c(-1, 1), ylim = c(0, 1)) +
-  theme_minimal() +
-  theme(legend.position = "none",
-        strip.background = element_rect(fill = "pink")) +
-  labs(title = "Posterior predicted blooms",
-       x = "Water (centered)", y = "Blooms (recaled)") +
-  facet_grid(y_grid ~ x_grid)
-```
-
-### Plotting prior predictions
-
-
-```{r ch08_b08_04p}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "20 secs."))
-b8.4p <- xfun::cache_rds({
-  out <- update(b8.4,
-         sample_prior = "only",
-         iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-         seed = 8)
-  out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch08_b08_04p")
-tictoc::toc()
-```
-
-
-
-```{r ch08_b08_05p}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "20 secs."))
-b8.5p <- xfun::cache_rds({
-  out <- update(b8.5,
-         sample_prior = "only",
-         iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-         seed = 8)
-  out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch08_b08_05p")
-tictoc::toc()
-```
-
-
-
-```{r}
-set.seed(8)
-
-df <- rbind(fitted(b8.4p, newdata = nd, summary = F, nsamples = 20),
-            fitted(b8.5p, newdata = nd, summary = F, nsamples = 20)) |>
-  data.frame() |>
-  rlang::set_names(mutate(nd, name = paste(shade_c, water_c, sep = "_")) |> pull()) |>
-  mutate(row = rep(1:20, times = 2),
-         fit = rep(c("b8.4", "b8.5"), each = n() / 2)) |>
-  pivot_longer(-c(row:fit), values_to = "blooms_r") |>
-  separate(name, into = c("shade_c", "water_c"), sep = "_") |>
-  mutate(shade_c = shade_c |> as.double(),
-         water_c = water_c |> as.double()) |>
-  # these will come in handy for `ggplot2::facet_grid()`
-  mutate(x_grid = paste("shade_c =", shade_c),
-         y_grid = fit)
-# glimpse(df)
-
-ggplot(df, aes(x = water_c, y = blooms_r, group = row)) +
-  geom_hline(yintercept = 0:1, linetype = 2) +
-  geom_line(aes(alpha = row == 1, size = row == 1),
-          color = "steelblue") +
-  scale_size_manual(values = c(1/2, 1)) +
-  scale_alpha_manual(values = c(1/3, 1)) +
-  scale_x_continuous(breaks = c(-1, 0, 1)) +
-  scale_y_continuous(breaks = c(0, .5, 1)) +
-  coord_cartesian(xlim = c(-1, 1),
-                ylim = c(-0.5, 1.5)) +
-  theme_minimal() +
-  theme(legend.position = "none",
-        strip.background = element_rect(fill = "pink")) +
-  labs(title = "Posterior predicted blooms",
-       x = "Water (centered)", y = "Blooms (recaled)") +
-facet_grid(y_grid ~ x_grid)
-```
 
 ## Summary
