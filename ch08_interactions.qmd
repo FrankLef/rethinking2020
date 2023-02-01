@@ -7,6 +7,7 @@ library(tidyr)
 library(tidybayes)
 library(rethinking)
 library(brms)
+library(modelr)
 library(loo)
 library(ggplot2)
 library(dagitty)
@@ -193,7 +194,7 @@ prior08_01a <- within(prior08_01a, {
   est <- c("fixed" = min(dataRugged_nona$log_gdp_s), "b" = diff(range(dataRugged_nona$log_gdp_s)))
   
   p <- ggplot(df, aes(x = rugged_s, y = log_gdp_s, group = id)) +
-    geom_line(color = "lavender") +
+    geom_line(color = "orchid") +
     geom_hline(yintercept = range(dataRugged_nona$log_gdp_s), 
                size = 1, linetype = 2, color = "royalblue") +
     geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
@@ -239,23 +240,24 @@ posterior_summary(fit08_01b) |>
 ```{r}
 prior08_01b <- list()
 prior08_01b <- within(prior08_01b, {
-  draws <- prior_draws(fit08_01b)
+  draws <- prior_draws(fit08_01b) |>
+    mutate(.draw = seq_len(n())) |>
+    relocate(.draw)
   df <- draws |>
     slice_sample(n = 50) |>
-    tibble::rownames_to_column(var = "id") |>
-    expand(nesting(id, Intercept, b), rugged_sc = c(-2, 2)) |>
+    expand(nesting(.draw, Intercept, b), rugged_sc = c(-2, 2)) |>
     mutate(log_gdp_s = Intercept + b * rugged_sc,
          rugged_s  = rugged_sc + mean(dataRugged_nona$rugged_s))
   est <- c("fixed" = min(dataRugged_nona$log_gdp_s), "b" = diff(range(dataRugged_nona$log_gdp_s)))
   
-  p <- ggplot(df, aes(x = rugged_s, y = log_gdp_s, group = id)) +
-    geom_line(color = "lavender") +
+  p <- ggplot(df, aes(x = rugged_s, y = log_gdp_s, group = .draw)) +
+    geom_line(color = "orchid") +
     geom_hline(yintercept = range(dataRugged_nona$log_gdp_s), 
                size = 1, linetype = 2, color = "royalblue") +
     geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
     coord_cartesian(xlim = c(0, 1), ylim = c(0.5, 1.5)) +
     labs(
-      subtitle = "Intercept ~ dnorm(1, 1)\nb ~ dnorm(0, 1)",
+      subtitle = "Intercept ~ dnorm(1, 0.1)\nb ~ dnorm(0, 0.3)",
       x = "ruggedness (rescaled)",
       y = "log GDP (prop of mean)")
 })
@@ -463,7 +465,7 @@ ggplot(dataRugged_nona, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, colo
 
 ### A winter flower
 
-```{r}
+```{r ch08_dataTulips}
 data(tulips, package = "rethinking")
 dataTulips <- tulips |>
   mutate(blooms_r = scales::rescale(blooms),
@@ -499,18 +501,18 @@ We see that `blooms_r` must be between 0 and 1. The prior used assign most
 probability outside of that range
 
 ```{r}
-m <- 0.5
-s <- 1
-pnorm(q = 0, mean = m, sd = s) + pnorm(q = 1, mean = m, sd = s, lower.tail = FALSE)
+param <- c("mean" = 0.5, "sd" = 1)
+pnorm(q = -1, mean = param["mean"], sd = param["sd"]) + 
+  pnorm(q = 1, mean = param["mean"], sd = param["sd"], lower.tail = FALSE)
 ```
 
 lets say that we we want only 5% of the values outside the range 
 (2.5% on each side) then, going with trial an error, the boundaries would be about
 
 ```{r}
-m <- 0.5
-s <- 0.25
-pnorm(q = 0, mean = m, sd = s) + pnorm(q = 1, mean = m, sd = s, lower.tail = FALSE)
+param <- c("mean" = 0.5, "sd" = 0.25)
+pnorm(q = -1, mean = param["mean"], sd = param["sd"]) + 
+  pnorm(q = 1, mean = param["mean"], sd = param["sd"], lower.tail = FALSE)
 ```
 
 Therefore we will use
@@ -522,9 +524,9 @@ and since the range for `water_c` and `shade_c` is -1 to 1 then we can use the
 same logic for both as follows
 
 ```{r}
-m <- 0
-s <- 0.25
-pnorm(q = -1, mean = m, sd = s) + pnorm(q = 1, mean = m, sd = s, lower.tail = FALSE)
+param <- c("mean" = 0, "sd" = 0.25)
+pnorm(q = -1, mean = param["mean"], sd = param["sd"]) + 
+  pnorm(q = 1, mean = param["mean"], sd = param["sd"], lower.tail = FALSE)
 ```
 
 which means virtually almost all values will be between -1 and 1. When looking 
@@ -556,6 +558,7 @@ fit08_04 <- xfun::cache_rds({
                 prior(normal(0, 0.25), class = b),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      sample_prior = TRUE,
       seed = 823)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch08_fit08_04")
@@ -594,11 +597,10 @@ fit08_05 <- xfun::cache_rds({
       family = gaussian,
       formula = blooms_r ~ 1 + water_c + shade_c + water_c:shade_c,
       prior = c(prior(normal(0.5, 0.25), class = Intercept),
-                prior(normal(0, 0.25), class = b, coef = water_c),
-                prior(normal(0, 0.25), class = b, coef = shade_c),
-                prior(normal(0, 0.25), class = b, coef = "water_c:shade_c"),
+                prior(normal(0, 0.25), class = b),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
+      sample_prior = TRUE,
       seed = 827)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch08_b08_05")
@@ -607,6 +609,134 @@ tictoc::toc()
 
 ```{r}
 posterior_summary(fit08_05)
+```
+### Plotting continuous interactions
+
+```{r plot08_04post}
+plot08_04post <- list()
+plot08_04post <- within(plot08_04post, {
+  draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
+    expand(water_c, shade_c) |>
+    add_linpred_draws(fit08_04, ndraws = 20) |>
+    mutate(label = paste("shade_c =", shade_c)) |>
+    identity()
+  
+  p <- ggplot(draws, aes(x = water_c, y = .linpred, group = .draw)) +
+    geom_line(color = "orchid") +
+    geom_hline(
+      data = data.frame(y = c(0, 1)), aes(yintercept = y),
+      size = 1, linetype = 2, color = "royalblue") +
+  coord_cartesian(xlim = c(-1, 1), ylim = c(-0.5, 1.5)) +
+    facet_wrap(. ~ label, nrow = 1) +
+  labs(
+    subtitle = "Model 8.4 NO INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
+    x = "water (centered)",
+    y = "bloom (rescaled)")
+})
+# plot08_04post$p
+```
+
+
+```{r plot08_05post}
+plot08_05post <- list()
+plot08_05post <- within(plot08_05post, {
+  draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
+    expand(water_c, shade_c) |>
+    add_linpred_draws(fit08_05, ndraws = 20) |>
+    mutate(label = paste("shade_c =", shade_c)) |>
+    identity()
+  
+  p <- ggplot(draws, aes(x = water_c, y = .linpred, group = .draw)) +
+    geom_line(color = "orchid") +
+    geom_hline(
+      data = data.frame(y = c(0, 1)), aes(yintercept = y),
+      size = 1, linetype = 2, color = "royalblue") +
+  # geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
+  coord_cartesian(xlim = c(-1, 1), ylim = c(-0.5, 1.5)) +
+    facet_wrap(. ~ label, nrow = 1) +
+  labs(
+    subtitle = "Model 8.5 WITH INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
+    x = "water (centered)",
+    y = "bloom (rescaled)")
+})
+# plot08_05post$p
+```
+
+
+```{r}
+plot08_04post$p / plot08_05post$p +
+  plot_annotation(title = "Tryptich plot of predicted bloom by level of shade (-1, 0, 1)")
+```
+
+
+
+### Plotting prior predictions
+
+
+
+```{r plot08_04prior}
+plot08_04prior <- list()
+plot08_04prior <- within(plot08_04prior, {
+  draws <- prior_draws(fit08_04) |>
+    mutate(.draw = seq_len(n())) |>
+    relocate(.draw)
+  
+  df <- draws |>
+    slice_sample(n = 20) |>
+    expand(nesting(.draw, Intercept, b), water_c = -1:1, shade_c = -1:1) |>
+    mutate(blooms_r = Intercept + b * water_c,
+           label = paste("shade_c =", shade_c))
+  
+  p <- ggplot(df, aes(x = water_c, y = blooms_r, group = .draw)) +
+    geom_line(color = "orchid") +
+    geom_hline(
+      data = data.frame(y = c(0, 1)), aes(yintercept = y),
+      size = 1, linetype = 2, color = "royalblue") +
+  # geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
+  coord_cartesian(xlim = c(-1, 1), ylim = c(-0.5, 1.5)) +
+    facet_wrap(. ~ label, nrow = 1) +
+  labs(
+    subtitle = "Model 8.4 NO INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
+    x = "water (centered)",
+    y = "bloom (rescaled)")
+})
+plot08_04prior$p
+```
+
+
+```{r plot08_05prior}
+plot08_05prior <- list()
+plot08_05prior <- within(plot08_05prior, {
+  draws <- prior_draws(fit08_05) |>
+    mutate(.draw = seq_len(n())) |>
+    relocate(.draw)
+  
+  df <- draws |>
+    slice_sample(n = 20) |>
+    expand(nesting(.draw, Intercept, b), water_c = -1:1, shade_c = -1:1) |>
+    mutate(blooms_r = Intercept + b * water_c,
+           label = paste("shade_c =", shade_c))
+  
+  p <- ggplot(df, aes(x = water_c, y = blooms_r, group = .draw)) +
+    geom_line(color = "orchid") +
+    geom_hline(
+      data = data.frame(y = c(0, 1)), aes(yintercept = y),
+      size = 1, linetype = 2, color = "royalblue") +
+  # geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
+  coord_cartesian(xlim = c(-1, 1), ylim = c(-0.5, 1.5)) +
+    facet_wrap(. ~ label, nrow = 1) +
+  labs(
+    subtitle = "Model 8.5 WITH INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
+    x = "water (centered)",
+    y = "bloom (rescaled)")
+})
+# plot08_05prior$p
+```
+
+
+```{r}
+plot08_04prior$p / plot08_05prior$p +
+  plot_annotation(title = "Tryptich plot of prior predicted bloom by level of shade (-1, 0, 1)")
 ```
 
 
