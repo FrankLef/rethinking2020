@@ -8,6 +8,7 @@ library(tidybayes)
 library(rethinking)
 library(brms)
 library(modelr)
+library(skimr)
 library(loo)
 library(ggplot2)
 library(dagitty)
@@ -57,6 +58,11 @@ dataRugged_nona <- dataRugged |>
   mutate(log_gdp_s = log_gdp / mean(log_gdp),
          rugged_s = scales::rescale(rugged),
          rugged_sc = as.vector(scale(rugged_s, center = TRUE, scale = FALSE)))
+dataRugged_nona |>
+  select(log_gdp, log_gdp_s, rugged, rugged_s, rugged_sc) |>
+  skimr::skim() |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 and we use the following DAG, see overthinking box in introduction of section 8.1 for another possible DAG.
@@ -482,8 +488,9 @@ Our preliminary model, as a first jest in terms of prior is
 
 $$
 \begin{align*}
-blooms\_r_i &\sim \mathcal{N}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_W \cdot water\_c_i+ \beta_S \cdot shade\_c_i \\
+blooms\_r_i = blooms - \max(blooms)  &\sim \mathcal{N}(\mu_i, \sigma) \\
+\mu_i &= \alpha + \beta_W \cdot (water - \overline{water})+ \beta_S \cdot (shade - \overline{shade}) \\
+&= \alpha + \beta_W \cdot water\_c_i+ \beta_S \cdot shade\_c_i
 \alpha &\sim \mathcal{N}(0.5, 1) \\
 \beta_W &\sim \mathcal{N}(0, 1) \\
 \beta_S &\sim \mathcal{N}(0, 1) \\
@@ -494,7 +501,9 @@ $$
 When looking at the data with `skimr::skim()` to evaluate the priors we obtain
 
 ```{r}
-skimr::skim(dataTulips)
+skimr::skim(dataTulips) |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 We see that `blooms_r` must be between 0 and 1. The prior used assign most 
@@ -549,16 +558,16 @@ $$
 and we fit that model to the data
 
 ```{r ch08_fit08_04}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit08_04 <- xfun::cache_rds({
   out <- brm(data = dataTulips,
       family = gaussian,
       formula = blooms_r ~ 1 + water_c + shade_c,
       prior = c(prior(normal(0.5, 0.25), class = Intercept),
-                prior(normal(0, 0.25), class = b),
+                prior(normal(0, 0.25), class = b, coef = water_c),
+                prior(normal(0, 0.25), class = b, coef = shade_c),
                 prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      sample_prior = TRUE,
+      iter = 1000, warmup = 500, chains = 2, cores = detectCores(),
       seed = 823)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch08_fit08_04")
@@ -566,7 +575,8 @@ tictoc::toc()
 ```
 
 ```{r}
-posterior_summary(fit08_04)
+posterior_summary(fit08_04) |>
+  round(digits = 3)
 ```
 
 #### Adding an interaction
@@ -575,41 +585,44 @@ Using the notation $\gamma_{W, i} = \beta_W+\beta_{WS} \cdot shade\_c_i$ we get 
 
 $$
 \begin{align*}
-blooms\_r_i &\sim \mathcal{N}(\mu_i, \sigma) \\
-\mu_i &= 
- \alpha + \gamma_{W, i} \cdot water\_c_i+ \beta_S \cdot shade\_c_i =
- \alpha + \beta_W \cdot water\_c_i + \beta_S \cdot shade\_c_i + \beta_{WS} \cdot shade\_c_i \cdot water\_c_i
+blooms\_r_i & \sim \mathcal{N}(\mu_i, \sigma) \\
+\mu_i & = 
+ \alpha + \gamma_{W, i} \cdot water\_c_i+ \beta_S \cdot shade\_c_i \\
+ &= \alpha + \beta_W \cdot water\_c_i + \beta_S \cdot shade\_c_i + \beta_{WS} \cdot shade\_c_i \cdot water\_c_i
  \\
-\alpha &\sim \mathcal{N}(0.5, 0.25) \\
-\beta_W &\sim \mathcal{N}(0, 0.25) \\
-\beta_S &\sim \mathcal{N}(0, 0.25) \\
-\beta_WS &\sim \mathcal{N}(0, 0.25) \\
-\sigma &\sim \mathcal{Exp}(1)
+\alpha & \sim \mathcal{N}(0.5, 0.25) \\
+\beta_W & \sim \mathcal{N}(0, 0.25) \\
+\beta_S & \sim \mathcal{N}(0, 0.25) \\
+\beta_{WS} & \sim \mathcal{N}(0, 0.25) \\
+\sigma & \sim \mathcal{Exp}(1)
 \end{align*}
 $$
 
 and now fitting the model with interaction
 
 ```{r ch08_fit08_05}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit08_05 <- xfun::cache_rds({
-  out <- brm(data = dataTulips,
-      family = gaussian,
-      formula = blooms_r ~ 1 + water_c + shade_c + water_c:shade_c,
-      prior = c(prior(normal(0.5, 0.25), class = Intercept),
-                prior(normal(0, 0.25), class = b),
-                prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = detectCores(),
-      sample_prior = TRUE,
-      seed = 827)
+  out <- update(fit08_04,
+                newdata = dataTulips,
+                formula. = blooms_r ~ 1 + water_c + shade_c + water_c:shade_c,
+                prior = c(prior(normal(0.5, 0.25), class = Intercept),
+                  prior(normal(0, 0.25), class = b, coef = water_c),
+                  prior(normal(0, 0.25), class = b, coef = shade_c),
+                  prior(normal(0, 0.25), class = b, coef = water_c:shade_c),
+                  prior(exponential(1), class = sigma)))
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch08_b08_05")
+  file = "ch08_fit08_05")
 tictoc::toc()
 ```
 
+
+
 ```{r}
-posterior_summary(fit08_05)
+posterior_summary(fit08_05) |>
+  round(digits = 3)
 ```
+
 ### Plotting continuous interactions
 
 ```{r plot08_04post}
@@ -621,8 +634,16 @@ plot08_04post <- within(plot08_04post, {
     mutate(label = paste("shade_c =", shade_c)) |>
     identity()
   
+  intrvl <- draws |>
+    select(-label) |>
+    mean_qi() |>
+    mutate(.draw = 0,
+           label = paste("shade_c =", shade_c))
+  
   p <- ggplot(draws, aes(x = water_c, y = .linpred, group = .draw)) +
     geom_line(color = "orchid") +
+    geom_line(data = intrvl, aes(x = water_c, y = .linpred, group = .draw), 
+              color = "darkgreen", linewidth = 1) +
     geom_hline(
       data = data.frame(y = c(0, 1)), aes(yintercept = y),
       size = 1, linetype = 2, color = "royalblue") +
@@ -633,7 +654,7 @@ plot08_04post <- within(plot08_04post, {
     x = "water (centered)",
     y = "bloom (rescaled)")
 })
-# plot08_04post$p
+plot08_04post$p
 ```
 
 
@@ -643,11 +664,18 @@ plot08_05post <- within(plot08_05post, {
   draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
     expand(water_c, shade_c) |>
     add_linpred_draws(fit08_05, ndraws = 20) |>
-    mutate(label = paste("shade_c =", shade_c)) |>
-    identity()
+    mutate(label = paste("shade_c =", shade_c))
+  
+  intrvl <- draws |>
+    select(-label) |>
+    mean_qi() |>
+    mutate(.draw = 0,
+           label = paste("shade_c =", shade_c))
   
   p <- ggplot(draws, aes(x = water_c, y = .linpred, group = .draw)) +
     geom_line(color = "orchid") +
+    geom_line(data = intrvl, aes(x = water_c, y = .linpred, group = .draw), 
+              color = "darkgreen", linewidth = 1) +
     geom_hline(
       data = data.frame(y = c(0, 1)), aes(yintercept = y),
       size = 1, linetype = 2, color = "royalblue") +
@@ -659,7 +687,8 @@ plot08_05post <- within(plot08_05post, {
     x = "water (centered)",
     y = "bloom (rescaled)")
 })
-# plot08_05post$p
+# plot08_05post$intrvl
+plot08_05post$p
 ```
 
 
@@ -672,27 +701,51 @@ plot08_04post$p / plot08_05post$p +
 
 ### Plotting prior predictions
 
+::: {.callout-warning}
+The plot in this section are different than what McElreath and Kurz have.
+Yet, McElreath"s are different than Kurz's, so there doesn't seem to be a
+consensus between the 2.
+I keep the plots below as I don't see anything wrong with them.
+:::
+
+
+```{r ch08_fit08_04prior}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "20 secs."))
+fit08_04prior <- xfun::cache_rds({
+  out <- update(fit08_04,
+                sample_prior = "only")
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
+  file = "ch08_fit08_04prior")
+tictoc::toc()
+```
+```{r}
+posterior_summary(fit08_04prior)|>
+  round(digits = 3)
+```
+
 
 
 ```{r plot08_04prior}
 plot08_04prior <- list()
 plot08_04prior <- within(plot08_04prior, {
-  draws <- prior_draws(fit08_04) |>
-    mutate(.draw = seq_len(n())) |>
-    relocate(.draw)
+  draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
+    expand(water_c, shade_c) |>
+    add_linpred_draws(fit08_04prior, ndraws = 20) |>
+    mutate(label = paste("shade_c =", shade_c))
   
-  df <- draws |>
-    slice_sample(n = 20) |>
-    expand(nesting(.draw, Intercept, b), water_c = -1:1, shade_c = -1:1) |>
-    mutate(blooms_r = Intercept + b * water_c,
+  intrvl <- draws |>
+    select(-label) |>
+    mean_qi() |>
+    mutate(.draw = 0,
            label = paste("shade_c =", shade_c))
   
-  p <- ggplot(df, aes(x = water_c, y = blooms_r, group = .draw)) +
+  p <- ggplot(draws, aes(x = water_c, y = .linpred, group = .draw)) +
     geom_line(color = "orchid") +
+    geom_line(data = intrvl, aes(x = water_c, y = .linpred, group = .draw), 
+              color = "darkgreen", linewidth = 1) +
     geom_hline(
       data = data.frame(y = c(0, 1)), aes(yintercept = y),
       size = 1, linetype = 2, color = "royalblue") +
-  # geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
   coord_cartesian(xlim = c(-1, 1), ylim = c(-0.5, 1.5)) +
     facet_wrap(. ~ label, nrow = 1) +
   labs(
@@ -700,37 +753,58 @@ plot08_04prior <- within(plot08_04prior, {
     x = "water (centered)",
     y = "bloom (rescaled)")
 })
+# plot08_04prior$intrvl
 plot08_04prior$p
+```
+
+
+```{r ch08_fit08_05prior}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "20 secs."))
+fit08_05prior <- xfun::cache_rds({
+  out <- update(fit08_05,
+                sample_prior = "only")
+  out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
+  file = "ch08_fit08_05prior")
+tictoc::toc()
+```
+
+
+```{r}
+posterior_summary(fit08_05prior)|>
+  round(digits = 3)
 ```
 
 
 ```{r plot08_05prior}
 plot08_05prior <- list()
 plot08_05prior <- within(plot08_05prior, {
-  draws <- prior_draws(fit08_05) |>
-    mutate(.draw = seq_len(n())) |>
-    relocate(.draw)
+  draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
+    expand(water_c, shade_c) |>
+    add_linpred_draws(fit08_05prior, ndraws = 20) |>
+    mutate(label = paste("shade_c =", shade_c))
   
-  df <- draws |>
-    slice_sample(n = 20) |>
-    expand(nesting(.draw, Intercept, b), water_c = -1:1, shade_c = -1:1) |>
-    mutate(blooms_r = Intercept + b * water_c,
+  intrvl <- draws |>
+    select(-label) |>
+    mean_qi() |>
+    mutate(.draw = 0,
            label = paste("shade_c =", shade_c))
   
-  p <- ggplot(df, aes(x = water_c, y = blooms_r, group = .draw)) +
+  p <- ggplot(draws, aes(x = water_c, y = .linpred, group = .draw)) +
     geom_line(color = "orchid") +
+    geom_line(data = intrvl, aes(x = water_c, y = .linpred, group = .draw), 
+              color = "darkgreen", linewidth = 1) +
     geom_hline(
       data = data.frame(y = c(0, 1)), aes(yintercept = y),
       size = 1, linetype = 2, color = "royalblue") +
-  # geom_abline(intercept = est["fixed"], slope = est["b"], color = "purple", size = 1) +
   coord_cartesian(xlim = c(-1, 1), ylim = c(-0.5, 1.5)) +
     facet_wrap(. ~ label, nrow = 1) +
   labs(
-    subtitle = "Model 8.5 WITH INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
+    subtitle = "Model 8.5 NO INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
     x = "water (centered)",
     y = "bloom (rescaled)")
 })
-# plot08_05prior$p
+plot08_05prior$intrvl
+plot08_05prior$p
 ```
 
 
@@ -738,6 +812,7 @@ plot08_05prior <- within(plot08_05prior, {
 plot08_04prior$p / plot08_05prior$p +
   plot_annotation(title = "Tryptich plot of prior predicted bloom by level of shade (-1, 0, 1)")
 ```
+
 
 
 ## Summary
