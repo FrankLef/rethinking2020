@@ -625,7 +625,7 @@ posterior_summary(fit08_05) |>
 
 ### Plotting continuous interactions
 
-```{r plot08_04post}
+```{r ch08_plot08_04post}
 plot08_04post <- list()
 plot08_04post <- within(plot08_04post, {
   draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
@@ -658,7 +658,7 @@ plot08_04post$p
 ```
 
 
-```{r plot08_05post}
+```{r ch08_plot08_05post}
 plot08_05post <- list()
 plot08_05post <- within(plot08_05post, {
   draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
@@ -725,7 +725,7 @@ posterior_summary(fit08_04prior)|>
 
 
 
-```{r plot08_04prior}
+```{r ch08_plot08_04prior}
 plot08_04prior <- list()
 plot08_04prior <- within(plot08_04prior, {
   draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
@@ -749,7 +749,7 @@ plot08_04prior <- within(plot08_04prior, {
   coord_cartesian(xlim = c(-1, 1), ylim = c(-0.5, 1.5)) +
     facet_wrap(. ~ label, nrow = 1) +
   labs(
-    subtitle = "Model 8.4 NO INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
+    subtitle = "Model 8.4 WITHOUT INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
     x = "water (centered)",
     y = "bloom (rescaled)")
 })
@@ -775,7 +775,7 @@ posterior_summary(fit08_05prior)|>
 ```
 
 
-```{r plot08_05prior}
+```{r ch08_plot08_05prior}
 plot08_05prior <- list()
 plot08_05prior <- within(plot08_05prior, {
   draws <- data.frame(water_c = -1:1, shade_c = -1:1) |>
@@ -799,11 +799,11 @@ plot08_05prior <- within(plot08_05prior, {
   coord_cartesian(xlim = c(-1, 1), ylim = c(-0.5, 1.5)) +
     facet_wrap(. ~ label, nrow = 1) +
   labs(
-    subtitle = "Model 8.5 NO INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
+    subtitle = "Model 8.5 WITH INTERACTIONS\nIntercept ~ dnorm(0.5, 0.25)\nb ~ dnorm(0, 0.25)",
     x = "water (centered)",
     y = "bloom (rescaled)")
 })
-plot08_05prior$intrvl
+# plot08_05prior$intrvl
 plot08_05prior$p
 ```
 
