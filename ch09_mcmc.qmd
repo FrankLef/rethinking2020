@@ -499,7 +499,7 @@ plot09_01b$corr
 
 The `ggmcmc` package always starts with the `ggs()` function which extract 
 the posterior draws and organize them in a tibble. The `ggmcmc` is very useful 
-with family of parametrs. i.e.e parameter which are indexed. 
+with family of parameters. i.e.e parameter which are indexed. 
 See the `family` argument in the `ggs` functions.
 
 See more info on `ggmcmc` at [ggmcmc](https://cran.r-project.org/web/packages/ggmcmc/vignettes/using_ggmcmc.html)
@@ -527,13 +527,15 @@ This is a special case, only done with `bayesplot`. See how it is done in sectio
 You have to read section 9.5.3, Figure 9.9, to understand how to read a trank plot.
 
 ```{r}
-post09_01b_trank <- posterior::as_draws_rvars(fit09_01b)
-class(post09_01b_trank)
-# unique(post09_01b_trank$.chain)
-plot09_01b_trank <- bayesplot::mcmc_rank_overlay(x = post09_01b_trank, regex_pars = "is_africa") +
+plot09_01b_trank <- list()
+plot09_01b_trank <- within(plot09_01b_trank, {
+  post <- posterior::as_draws_rvars(fit09_01b)
+  
+  p <- post |> bayesplot::mcmc_rank_overlay(regex_pars = "is_africa") +
     coord_cartesian(ylim = c(10, 50)) +
     scale_color_paletteer_d("lisa::LeeKrasner")
-plot09_01b_trank
+})
+plot09_01b_trank$p
 ```
 
 #### Running means
@@ -651,15 +653,17 @@ nuts_params(fit09_02) %>%
 and plotting the trace and trank
 
 ```{r plot09_02}
-ggs09_02 <- ggmcmc::ggs(fit09_02)
+ggs09_02 <- ggmcmc::ggs(fit09_02, family = c("b_|sigma"))
+
 plot09_02 <- list()
 plot09_02 <- within(plot09_02, {
   p1 <- ggs09_02 |>
     ggs_traceplot() +
     scale_color_paletteer_d("lisa::Pierre_AugusteRenoir") +
     theme_minimal()
-  p2 <- as_draws_rvars(fit09_02) |>
-    bayesplot::mcmc_rank_overlay(pars = vars(b_Intercept:sigma)) +
+  
+  p2 <-  as_draws_rvars(fit09_02) |>
+    bayesplot::mcmc_rank_overlay(pars = vars(b_Intercept, sigma)) +
     scale_color_paletteer_d("lisa::Pierre_AugusteRenoir")
 })
 
@@ -676,7 +680,6 @@ behave erratically.
 ```{r}
 ggs_running(ggs09_02) +
   scale_color_paletteer_d("lisa::Pierre_AugusteRenoir") +
-  theme_minimal() +
   labs(title = "Running means",
        subtitle = "Model b9.2", color = "chain")
 ```
@@ -688,7 +691,6 @@ ggs09_02 |>
   ggs_autocorrelation() +
   scale_fill_paletteer_d("lisa::Pierre_AugusteRenoir") +
   scale_color_paletteer_d("lisa::Pierre_AugusteRenoir", guide = FALSE) +
-  theme_minimal() + 
   labs(title = "Autocorrelations",
        subtitle = "Model b9.2", color = NULL, fill = "chain")
 ```
@@ -726,13 +728,13 @@ posterior_summary(fit09_03)
 and the results are more convincing
 
 ```{r ch09_plot09_03}
-ggs09_03 <- ggmcmc::ggs(fit09_03)
+ggs09_03 <- ggmcmc::ggs(fit09_03, family = c("b_|sigma"))
 plot09_03 <- list()
 plot09_03 <- within(plot09_03, {
   p1 <- ggs_traceplot(ggs09_03) +
     scale_color_paletteer_d("lisa::Pierre_AugusteRenoir")
-# p1
-  p2 <- as_draws_rvars(fit09_03) |>
+  
+  p2 <-  as_draws_rvars(fit09_03) |>
     bayesplot::mcmc_rank_overlay(pars = vars(b_Intercept:sigma)) +
     scale_color_paletteer_d("lisa::Pierre_AugusteRenoir")
 })
@@ -800,7 +802,7 @@ get_variables(fit09_04)
 ```
 
 ```{r}
-ggs09_04 <- ggmcmc::ggs(fit09_04)
+ggs09_04 <- ggmcmc::ggs(fit09_04, family = c("b_|sigma"))
 ```
 
 
@@ -866,7 +868,7 @@ posterior_summary(fit09_05)
 now the plots make more sense
 
 ```{r}
-ggs09_05 <- ggmcmc::ggs(fit09_05)
+ggs09_05 <- ggmcmc::ggs(fit09_05, family = c("b_|sigma"))
 ```
 
 
