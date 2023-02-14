@@ -7,6 +7,7 @@ library(tidyr)
 library(tidybayes)
 library(rethinking)
 library(brms)
+library(skimr)
 library(scales)
 library(modelr)
 library(ggplot2)
@@ -26,7 +27,6 @@ options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 ```
 
-
 The default theme used by `ggplot2`
 
 ```{r}
@@ -34,7 +34,6 @@ The default theme used by `ggplot2`
 ggplot2::theme_set(ggthemes::theme_tufte(base_size = 11, base_family = "serif", ticks = TRUE))
 ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
-
 
 Some custom functions used in this following code
 
@@ -51,29 +50,23 @@ width2probs <- function(x, add = NULL) {
 stopifnot(all.equal(width2probs(c(0.89, 1), add = 0.5), c(0, 0.055, 0.5, 0.945, 1)))
 ```
 
-
-As mentioned in the summary of chapter 4, from hereon, the `brms` package 
-will be used instead of `rethinking`. In addition, we might change the 
-`exponential(1)` prior for the `cauchy(0, 1)` when it improves the performance
-of the fit.
-
+As mentioned in the summary of chapter 4, from hereon, the `brms` package will be used instead of `rethinking`. In addition, we might change the `exponential(1)` prior for the `cauchy(0, 1)` when it improves the performance of the fit.
 
 ## Spurious association
 
 Get the data and standardize the variables
 
-
 ```{r}
-# load data
 data("WaffleDivorce")
 dataWaffle <- WaffleDivorce |>
   # standardize the variables
   mutate(A = scale(as.vector(MedianAgeMarriage)),
          M = scale(as.vector(Marriage)),
          D = scale(as.vector(Divorce)))
-skimr::skim(dataWaffle) |>
+dataWaffle |>
+  select(MedianAgeMarriage, Marriage, Divorce, A, M, D, South) |>
+  skim() |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
-# str(dataWaffle)
 ```
 
 and plot the data
@@ -104,11 +97,9 @@ wrap_plots(plotWaffle, guides = "collect") &
   theme(legend.position = "bottom")
 ```
 
-
 ```{r}
 GGally::ggscatmat(dataWaffle, columns = c("A", "M", "D"))
 ```
-
 
 The model for regressing the divorce rate $D$ on the median age $A$ is
 
@@ -132,7 +123,7 @@ fit05_01 <- xfun::cache_rds({
     formula = D ~ 1 + A,
     family = gaussian,
     prior = c(
-      prior(normal(0, 0.02), class = Intercept),
+      prior(normal(0, 0.2), class = Intercept),
       prior(normal(0, 0.5), class = b),
       prior(exponential(1), class = sigma)),
     iter = 2000, warmup = 1000, chains = 4,
@@ -212,7 +203,7 @@ fit05_02 <- xfun::cache_rds({
     formula = D ~ 1 + M,
     family = gaussian,
     prior = c(
-      prior(normal(0, 0.02), class = Intercept),
+      prior(normal(0, 0.2), class = Intercept),
       prior(normal(0, 0.5), class = b),
       prior(exponential(1), class = sigma)),
     iter = 2000, warmup = 1000, chains = 4,
@@ -225,9 +216,8 @@ tictoc::toc()
 ```
 
 ```{r}
-summary(fit05_02)
+posterior_summary(fit05_02)
 ```
-
 
 ```{r}
 lpred05_02 <- list()
@@ -269,7 +259,6 @@ plot05_02 <- within(plot05_02, {
 })
 # plot05_02$marriage
 ```
-
 
 ```{r}
 plot05_01$age + plot05_02$marriage +
@@ -342,7 +331,8 @@ message("This returns NULL because there are no conditional independencies")
 
 The model with median age and marriage rate, both standardized.
 
-> The $+$ in the model can be interpreted as the divorce rate is a function of the marriage rate **OR** the median age of marriage
+> The $+$ in the model can be interpreted as the divorce rate is a function of 
+the marriage rate **OR** the median age of marriage
 
 $$
 \begin{align*}
@@ -378,7 +368,7 @@ tictoc::toc()
 ```
 
 ```{r}
-summary(fit05_03)
+posterior_summary(fit05_03)
 ```
 
 ```{r}
@@ -497,7 +487,6 @@ fit05_04a <- xfun::cache_rds({brm(
 tictoc::toc()
 ```
 
-
 ```{r}
 lpred05_04a <- dataWaffle |>
   select(Loc, M, A) |>
@@ -522,12 +511,9 @@ which gives us the 2 top plots of figure 5.4
 wrap_plots(plot05_04[c("marriage", "age")])
 ```
 
-
 ##### Using residuals as predictors
 
-Now we use the residuals of the marriage rate to represent marriage 
-**free of any influence by the median age of marriage**. We use the 
-`residual_draws()` function to extract the residuals.
+Now we use the residuals of the marriage rate to represent marriage **free of any influence by the median age of marriage**. We use the `residual_draws()` function to extract the residuals.
 
 ```{r}
 res05_04m <- dataWaffle |>
@@ -539,8 +525,6 @@ res05_04m <- dataWaffle |>
   mean_qi() |>
   select(D, resM = .residual)
 ```
-
-
 
 ```{r ch05_fit05_04dm}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
@@ -576,8 +560,6 @@ plot05_04 <- within(plot05_04, {
   })
 ```
 
-
-
 ```{r}
 res05_04a <- dataWaffle |>
   select(Loc, D, M, A) |>
@@ -588,8 +570,6 @@ res05_04a <- dataWaffle |>
   mean_qi() |>
   select(D, resA = .residual)
 ```
-
-
 
 ```{r ch05_fit05_04da}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
@@ -632,14 +612,11 @@ wrap_plots(plot05_04[c("marriage_res", "age_res")]) +
   plot_annotation("Fig 5.4: Divorce vs Residual marriage rate and median age of marriage")
 ```
 
-We conclude that the marriage rate seems to have little impact on the divorce rate once
-we remove the effect of the median age of marriage.
-
+We conclude that the marriage rate seems to have little impact on the divorce rate once we remove the effect of the median age of marriage.
 
 #### Posterior prediction plots
 
-The textbook mentions posterior predictions. So we use `add_epred_draws()` to
-get the expected predictions.
+The textbook mentions posterior predictions. So we use `add_epred_draws()` to get the expected predictions.
 
 ```{r}
 epred05_03 <- dataWaffle |>
@@ -657,7 +634,6 @@ ggplot(data = epred05_03, aes(x = D, y = .epred)) +
        y = "predicted divorce")
 ```
 
-
 #### Counterfactual plots
 
 We are using the same DAG as above
@@ -666,17 +642,14 @@ We are using the same DAG as above
 dagWaffle$plot1
 ```
 
-**IMPORTANT**: The full model implies 2 effects, $A$ on $M$ and $D$ and $A$ on $M$. 
-In other words 2 structural equations are involved or expressed differently, 
-2 formulas in `brms`.
+**IMPORTANT**: The full model implies 2 effects, $A$ on $M$ and $D$ and $A$ on $M$. In other words 2 structural equations are involved or expressed differently, 2 formulas in `brms`.
 
 ```{r}
 d_model <- brms::bf(D ~ 1 + A + M)
 m_model <- brms::bf(M ~ 1 + A)
 ```
 
-The `set_rescor(FALSE)` indicates that we do not want `brms` to add 
-the residual correlation between $D$ and $M$.
+The `set_rescor(FALSE)` indicates that we do not want `brms` to add the residual correlation between $D$ and $M$.
 
 Also the argument `resp` is used to identify the response.
 
@@ -717,8 +690,6 @@ pred05_03_A$doA <- data.frame(
 glimpse(pred05_03_A$doA)
 ```
 
-
-
 ```{r}
 plot05_03_A <- list()
 plot05_03_A$doAonD <- pred05_03_A$doA |>
@@ -731,8 +702,6 @@ plot05_03_A$doAonD <- pred05_03_A$doA |>
 # plot05_03_A$doAonD
 ```
 
-
-
 ```{r}
 plot05_03_A$doAonM <- pred05_03_A$doA |>
   filter(.category == "M") |>
@@ -744,15 +713,12 @@ plot05_03_A$doAonM <- pred05_03_A$doA |>
 # plot05_03_A$doAonM
 ```
 
-
 ```{r }
 #| fig-cap: Figure 5.6
 plot05_03_A$doAonD + plot05_03_A$doAonM
 ```
 
-The counterfactual effect of manipulating average rate effect $M$ on divorce rate
-$D$ is done as follows
-
+The counterfactual effect of manipulating average rate effect $M$ on divorce rate $D$ is done as follows
 
 ```{r}
 pred05_03_A$doM <- data.frame(
@@ -762,7 +728,6 @@ pred05_03_A$doM <- data.frame(
   mean_qi()
 # glimpse(pred05_03_A$doM)
 ```
-
 
 ```{r}
 #| fig-cap: Figure 5.7
@@ -775,7 +740,6 @@ plot05_03_A$doMonD <- pred05_03_A$doM |>
        x = "Manipulated M", y = "Counterfactual D")
 plot05_03_A$doMonD
 ```
-
 
 ## Masked relationship
 
@@ -801,7 +765,6 @@ stopifnot(nrow(dataMilk) == 17)
 GGally::ggpairs(dataMilk, columns = c("K", "N", "M")) +
   ggthemes::theme_fivethirtyeight()
 ```
-
 
 ### Model 5.5
 
@@ -863,7 +826,6 @@ plot05_05 <- post05_05 |>
 plot05_05
 ```
 
-
 fit for different confidence intervals
 
 ```{r}
@@ -871,7 +833,6 @@ lpred05_05 <- dataMilk |>
   add_linpred_draws(fit05_05, ndraws = 500)
 # glimpse(lpred05_05)
 ```
-
 
 ```{r}
 plot05_05 <- lpred05_05 |>
@@ -883,8 +844,6 @@ plot05_05 <- lpred05_05 |>
   labs(x = "neocortex.perc (standardized)", y = "kcal.per.g (standardized)")
 # plot05_05
 ```
-
-
 
 ### Model 5.6
 
@@ -934,7 +893,6 @@ lpred05_06 <- dataMilk |>
 glimpse(lpred05_06)
 ```
 
-
 ```{r}
 plot05_06 <- ggplot(dataMilk, aes(x = M, y = K)) +
   geom_point() +
@@ -947,7 +905,6 @@ plot05_06 <- ggplot(dataMilk, aes(x = M, y = K)) +
   labs(x = "mass (log)", y = "kcal.per.g (standardized)")
 # plot05_06
 ```
-
 
 ### Model 5.7
 
@@ -989,7 +946,6 @@ print(fit05_07, digits = 3)
 
 get the counterfactual data **holding** $M = 0$
 
-
 ```{r}
 lpred05_07 <- list()
 lpred05_07 <- within(lpred05_07, {
@@ -1007,7 +963,6 @@ lpred05_07 <- within(lpred05_07, {
 })
 glimpse(lpred05_07)
 ```
-
 
 ```{r}
 plot05_07 <- list()
@@ -1036,13 +991,11 @@ plot05_07 <- within(plot05_07, {
 })
 ```
 
-
 ```{r}
 #| fig-cap: Figure 5.9
 ((plot05_05 | plot05_06) / (plot05_07$doM | plot05_07$doN)) +
   plot_annotation(title = "Milk Energy and Neocortex Among Primates")
 ```
-
 
 ## Categorical variables
 
@@ -1088,9 +1041,7 @@ tictoc::toc()
 summary(fit05_08)
 ```
 
-> Read the important comment in section 5.3.1 when using $\alpha$. $\alpha$ 
-now represents the average of women and the male heights is more variable 
-because it relates to 2 parameters instead of 1.
+> Read the important comment in section 5.3.1 when using $\alpha$. $\alpha$ now represents the average of women and the male heights is more variable because it relates to 2 parameters instead of 1.
 
 ### Many categories
 
@@ -1098,8 +1049,7 @@ because it relates to 2 parameters instead of 1.
 
 Load data, standardize and make sure *clade* is a factor.
 
-> With `brms` there is no need to create the contrasts. We simply make sure 
-that `*clade* is a factor.`brms` will create the contrasts by itself.
+> With `brms` there is no need to create the contrasts. We simply make sure that `*clade* is a factor.`brms\` will create the contrasts by itself.
 
 ```{r}
 data("milk")
