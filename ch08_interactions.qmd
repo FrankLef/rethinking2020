@@ -9,7 +9,6 @@ library(rethinking)
 library(brms)
 library(modelr)
 library(skimr)
-library(skimr)
 library(loo)
 library(ggplot2)
 library(dagitty)
@@ -61,7 +60,7 @@ dataRugged_nona <- dataRugged |>
          rugged_sc = as.vector(scale(rugged_s, center = TRUE, scale = FALSE)))
 dataRugged_nona |>
   select(log_gdp, log_gdp_s, rugged, rugged_s, rugged_sc) |>
-  skimr::skim() |>
+  skim() |>
   select(-n_missing, -complete_rate) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
@@ -499,10 +498,10 @@ blooms\_r_i = blooms - \max(blooms)  &\sim \mathcal{N}(\mu_i, \sigma) \\
 \end{align*}
 $$
 
-When looking at the data with `skimr::skim()` to evaluate the priors we obtain
+When looking at the data with `skim()` to evaluate the priors we obtain
 
 ```{r}
-skimr::skim(dataTulips) |>
+skim(dataTulips) |>
   select(-n_missing, -complete_rate) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
@@ -540,7 +539,7 @@ pnorm(q = -1, mean = param["mean"], sd = param["sd"]) +
 ```
 
 which means virtually almost all values will be between -1 and 1. When looking 
-at the `skimr::skim()` summary we see that there are many extreme values so 
+at the `skim()` summary we see that there are many extreme values so 
 this prior covers this situation well.
 
 Therefore, our model with a little more informative priors is

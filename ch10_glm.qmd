@@ -10,7 +10,6 @@ library(ggplot2)
 library(paletteer)
 ```
 
-
 ## Maximum Entropy
 
 The example of pebbles and bucket is also very well explained by a NASA scientist at [monkey](http://maximum-entropy-blog.blogspot.com/2013/11/monkeys-and-multiplicity.html).

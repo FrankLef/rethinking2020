@@ -7,9 +7,10 @@ library(tidyr)
 library(tidybayes)
 library(rethinking)
 library(brms)
-library(qs)
+# library(qs)
 library(loo)
 library(modelr)
+library(skimr)
 library(simstudy)
 library(posterior)
 library(scales)
@@ -22,8 +23,16 @@ library(patchwork)
 library(paletteer)
 ```
 
+Some options to facilitate the computations
 
-We set the current theme used for plotting
+```{r}
+#  For execution on a local, multicore CPU with excess RAM
+options(mc.cores = parallel::detectCores())
+#  To avoid recompilation of unchanged Stan programs
+rstan_options(auto_write = TRUE)
+```
+
+The default theme used by `ggplot2`
 
 ```{r}
 theme_set(
@@ -35,23 +44,32 @@ theme_set(
         strip.background = element_rect(fill = "wheat", color = NA)))
 ```
 
+::: {.callout-note}
+Starting with this chapter, the `posterior::rvar()` datatype will be used as 
+much as possible. See [tidy-posterior](https://cran.r-project.org/web/packages/tidybayes/vignettes/tidy-posterior.html) for more details.
+:::
+
+
 ## Binomial regression
 
 ### Logistic regression: Prosocial chimpanzees
 
 Load the data
 
-```{r}
+```{r ch11_dataChimp}
 data(chimpanzees)
 dataChimp <- chimpanzees %>%
   mutate(actor = factor(actor),
          treatment = factor(1 + prosoc_left + 2 * condition, levels = 1:4,
                             labels = c("AR", "AL", "PR", "PL")))
 rm(chimpanzees)
-skimr::skim(dataChimp)
+dataChimp |>
+  skim() |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
-We have added the variable `treatment` that is a code for `prosoc_left` and `condition` variables with the following meanings
+We have added the variable `treatment` that is a code for `prosoc_left` and
+`condition` variables with the following meanings
 
 ```{r}
 dataChimp %>%
@@ -94,30 +112,31 @@ We will use 2 $\omega$ values for $\alpha \sim \mathcal{N}(0, \omega)$.
 c(10, 1.5)
 ```
 
-```{r ch11_b11_01}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b11.1 <- xfun::cache_rds({
+```{r ch11_fit11_01}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit11_01 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
               family = binomial,
               formula = pulled_left | trials(1) ~ 1,
               prior = c(
                 prior(normal(0, 10), class = Intercept)),
-              seed = 11, cores = detectCores(),
+              seed = 1103, cores = detectCores(),
               sample_prior = TRUE)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_01")
+  file = "ch11_fit11_01")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b11.1)
+posterior_summary(fit11_01) |>
+  round(digits = 3)
 ```
-
 
 and we convert the result using `brms::inv_logit_scaled()`.
 
 ```{r}
-brms::inv_logit_scaled(fixef(b11.1))
+brms::inv_logit_scaled(fixef(fit11_01)) |>
+  round(digits = 3)
 ```
 
 and we use another value for the prior to be able to calibrate it.
@@ -130,44 +149,43 @@ logit(p_i) &= \alpha \\
 \end{align*}
 $$
 
-```{r ch11_b11_01b}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b11.1b <- xfun::cache_rds({
-  out <- brm(data = dataChimp,
-              family = binomial,
-              formula = pulled_left | trials(1) ~ 1,
-              prior = c(
-                prior(normal(0, 1.5), class = Intercept)
-                ),
-              seed = 11, cores = detectCores(),
-              sample_prior = TRUE)
+```{r ch11_fit11_01b}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit11_01b <- xfun::cache_rds({
+  out <- update(fit11_01,
+                prior = c(
+                prior(normal(0, 1.5), class = Intercept)))
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_01b")
+  file = "ch11_fit11_01b")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b11.1b)
-brms::inv_logit_scaled(fixef(b11.1b))
+posterior_summary(fit11_01b) |>
+  round(digits = 3)
 ```
 
 
+```{r}
+brms::inv_logit_scaled(fixef(fit11_01b)) |>
+  round(digits = 3)
+```
+
 and we visualize the outcome using the prior samples
 
-```{r}
-samples <- list()
-samples$data1 <- data.frame(model = "sd=10",
-                            intercept = prior_draws(b11.1))
-samples$data2 <- data.frame(model = "sd=1.5",
-                            intercept = prior_draws(b11.1b))
-samples <- within(samples, {
-  data <- bind_rows(data1, data2) %>%
+```{r ch11_prior11_01}
+prior11_01 <- list()
+prior11_01 <- within(prior11_01, {
+  A <- prior_draws(fit11_01)
+  B <- prior_draws(fit11_01b)
+  all <- bind_rows("sd=10" = A, "sd=1.5" = B, .id = "model") |>
     mutate(p = inv_logit_scaled(Intercept))
 })
-# samples$data
+# glimpse(prior11_01$all)
+```
 
-
-ggplot(samples$data, aes(x = p, color = model)) +
+```{r}
+ggplot(prior11_01$all, aes(x = p, color = model)) +
   geom_density(linewidth = 1, alpha = 3/4, adjust = 0.1) +
   scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = c(0.5, 0.8)) +
@@ -176,22 +194,26 @@ ggplot(samples$data, aes(x = p, color = model)) +
        x = "prior prob. of pulled_left", y = NULL)
 ```
 
+
 We could also use the package `simstudy` to simulate the prior. This will be the favored approach in this project. The advantage of doing this are that
 
 1.  it is much faster and easier to modify than running `brm` repeatedly
 2.  it avoids possible problems of convergence when using a fit
-3.  it allows us to use a single variable such as $treatment$ instead of creating separate prior for each when using `brms`. See what @kurtz2020b has to do in its version of chapter 8. The way Kurtz did it it render the `tidybayes` package less useful.
+3.  it allows us to use a single variable such as $treatment$ instead of 
+creating separate prior for each when using `brms`. See what @kurtz2020b has to 
+do in its version of chapter 8. The way Kurtz did it renders the `tidybayes` 
+package less useful.
 
 ##### Prior for $\alpha$ with `simstudy`
 
-Using `simstudy` is actually pretty simple avoid having to run the fit which could have convergence issues and is certainly more time-consuming.
+Using `simstudy` is actually pretty simple avoid having to run the fit which 
+could have convergence issues and is certainly more time-consuming.
 
-1 + prosoc_left + 2 \* condition
 
-```{r}
-set.seed(as.integer(as.Date("2021-11-24")))
-sim <- list(n = 4000)
-sim <- within(sim, {
+```{r ch11_sim11_01}
+sim11_01 <- list()
+sim11_01 <- within(sim11_01, {
+  n <- 4000L
   defs <- defData(varname = "prosoc_left", dist = "binary", formula = 0.5)
   defs <- defData(defs, varname = "condition", dist = "binary", formula = 0.5)
   defs <- defData(defs, varname = "treat", dist = "nonrandom", 
@@ -200,35 +222,37 @@ sim <- within(sim, {
   defs <- defData(defs, varname = "pulled_left", dist = "binary", formula = "a", 
                   link = "logit")
   data1 <- genData(n = n, dtDefs = defs)
-  
   defs <- updateDef(defs, changevar = "a", newvariance = 1.5^2)
   data2 <- genData(n = n, dtDefs = defs)
+  
+  # put it all together
+  df <- bind_rows("sd=10" = data1, "sd=1.5" = data2, .id = "model") |>
+    mutate(p = gtools::inv.logit(a))
 })
-# glimpse(sim$data1)
-
-
-
-p <- list()
-p$df <- rbind(data.frame(sim$data1, "model" = "sd = 10"),
-              data.frame(sim$data2, "model" = "sd = 1.5")) %>%
-  mutate(p = gtools::inv.logit(a))
-# glimpse(p$df)
-
-ggplot(p$df, aes(x = p, color = model)) +
+```
+```{r}
+ggplot(sim11_01$df, aes(x = p, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
   scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = c(0.5, 0.8)) +
   labs(title = "Prior density of pulled_left",
        subtitle = "Simulation with simstudy",
        x = "prior prob. of pulled_left", y = NULL)
-
 ```
+
+
+
 
 #### Prior for $\beta_{treatment[i]}$
 
-Now we find the sd value for the prior $\beta_k &\sim \mathcal{N}(0, sd)$. Note that Solomon Kurtz in @kurtz2020b uses `inv_logit_scaled()` whereas mcElreath in @elreath2020 uses `inv_logit()`.
+Now we find the sd value for the prior $\beta_k &\sim \mathcal{N}(0, sd)$. 
+Note that Solomon Kurtz in @kurtz2020b uses `inv_logit_scaled()` whereas 
+mcElreath in @elreath2020 uses `inv_logit()`.
 
-**Important**: In practice we could use the same prior as for $\alpha$ just above. In this case however we combine the impact of $\alpha$ and $\beta$ to illustrate the weirdness of flat priors. Comment from MacElreath at the end of p. 328.
+**Important**: In practice we could use the same prior as for $\alpha$ just above. 
+In this case however we combine the impact of $\alpha$ and $\beta$ to 
+illustrate the weirdness of flat priors. Comment from MacElreath at the end of 
+p. 328.
 
 $$
 \begin{align*}
@@ -242,115 +266,82 @@ $$
 
 We get the fit with $sd = 10$
 
+```{r}
+# use get_prior() to get a sense of what the prior might be
+get_prior(formula = pulled_left | trials(1) ~ 1 + treatment, data = dataChimp,
+          family = binomial)
+```
 
-```{r ch11_b11_02}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "95 secs."))
-b11.2 <- xfun::cache_rds({
+
+```{r ch11_fit11_02}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit11_02 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
               family = binomial,
-              formula = bf(pulled_left | trials(1) ~ a + b,
-                           a ~ 1,
-                           b ~ 0 + treatment,
-                           nl = TRUE),
+              formula = bf(pulled_left | trials(1) ~ (1 | treatment)),
               prior = c(
-                prior(normal(0, 1.5), nlpar = a),
-                prior(normal(0, 10), nlpar = b, coef = treatmentAR),
-                prior(normal(0, 10), nlpar = b, coef = treatmentAL),
-                prior(normal(0, 10), nlpar = b, coef = treatmentPR),
-                prior(normal(0, 10), nlpar = b, coef = treatmentPL)
-                ),
+                prior(normal(0, 1.5), class = Intercept),
+                prior(normal(0, 1.5), class = sd, coef = Intercept, group = treatment),
+                prior(normal(0, 10), class = sd, group = treatment)),
               sample_prior = TRUE,
-             cores = detectCores(), seed = 11)
+             cores = detectCores(), seed = 1109)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
-  }, file = "ch11_b11_02")
+  }, file = "ch11_fit11_02")
 tictoc::toc()
 ```
-
+and the coefficients, converted back to natural scale are
 
 ```{r}
-summary(b11.2)
-brms::inv_logit_scaled(fixef(b11.2))
+brms::inv_logit_scaled(fixef(fit11_02)) |>
+  round(digits = 3)
 ```
-
+```{r}
+posterior_summary(fit11_02) |>
+  inv_logit_scaled() |>
+  round(digits = 3)
+```
 
 then the fit with $sd = 0.5$
 
-```{r ch11_b11_03}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "95 secs."))
-b11.3 <- xfun::cache_rds({
-  out <- brm(data = dataChimp,
-              family = binomial,
-              formula = bf(pulled_left | trials(1) ~ a + b,
-                           a ~ 1,
-                           b ~ 0 + treatment,
-                           nl = TRUE),
-              prior = c(
-                prior(normal(0, 1.5), nlpar = a),
-                prior(normal(0, 0.5), nlpar = b, coef = treatmentAR),
-                prior(normal(0, 0.5), nlpar = b, coef = treatmentAL),
-                prior(normal(0, 0.5), nlpar = b, coef = treatmentPR),
-                prior(normal(0, 0.5), nlpar = b, coef = treatmentPL)
-                ),
-              sample_prior = TRUE,
-             cores = detectCores(), seed = 11)
+
+```{r ch11_fit11_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "35 secs."))
+fit11_03 <- xfun::cache_rds({
+  out <- update(fit11_02,
+                prior = c(
+                  prior(normal(0, 1.5), class = Intercept),
+                  prior(normal(0, 1.5), class = sd, coef = Intercept, group = treatment),
+                  prior(normal(0, 0.5), class = sd, group = treatment)))
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_03")
+  file = "ch11_fit11_03")
 tictoc::toc()
-
 ```
+
+the coefficients, converted back to natural scale are
 
 ```{r}
-summary(b11.3)
-brms::inv_logit_scaled(fixef(b11.3))
+posterior_summary(fit11_03) |>
+  inv_logit_scaled() |>
+  round(digits = 3)
 ```
 
-
-
-```{r}
-tidybayes::get_variables(b11.2)
-```
-
-
-```{r}
-samples <- list()
-samples$data1 <- data.frame(model = "sd=10",
-                            intercept = prior_draws(b11.2))
-samples$data2 <- data.frame(model = "sd=0.5",
-                            intercept = prior_draws(b11.3))
-
-samples <- within(samples, {
-  data1 <- data1 %>%
-    mutate(p1 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentAR),
-           p2 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentAL),
-           p3 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentPR),
-           p4 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentPL)) %>%
-    mutate(diff = abs(p1 - p2))
-  data2 <- data2 %>%
-    mutate(p1 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentAR),
-           p2 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentAL),
-           p3 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentPR),
-           p4 = inv_logit_scaled(intercept.b_a + intercept.b_b_treatmentPL)) %>%
-    mutate(diff = abs(p1 - p2))
-  data <- bind_rows(data1, data2)
-})
-
-ggplot(samples$data, aes(x = diff, color = model)) +
-  geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
-  scale_color_paletteer_d("khroma::vibrant") +
-  theme(legend.position = c(0.5, 0.8)) +
-  labs(title = "Prior density of pulled_left",
-       subtitle = "Model 11.1 and 11.1b",
-       x = "prior prob. of pulled_left", y = NULL)
-```
 
 ##### Prior for $\beta$ with `simstudy`
 
-We also simulate $\beta$ with `sinmstudy` which is more versatile and easier to code (personal opinion), e.g. no need to convert with `inv_logit_scaled` and no need to run the model with `prior_draws()`
+We also simulate $\beta$ with `sinmstudy` which is more versatile and easier to 
+code (personal opinion), e.g. no need to convert with `inv_logit_scaled` 
+and no need to run the model with `prior_draws()`. To get the prior by factor,
+that is AR, AL, etc, we need to specify every coefficient in the priors of `brmsfit`.
 
-```{r}
-sim <- list(n = 1000)
-sim <- within(sim, {
-  # define the model
+Using a simulation is very important and will be the favored approach from now 
+on to simulate priors.
+
+```{r ch11_sim11_02}
+sim11_02 <- list()
+sim11_02 <- within(sim11_02, {
+  n = 1000L
+  
+    # define the model
   defs <- defData(varname = "a", dist = "normal", formula = 0, variance = 1.5^2)
   defs <- defData(defs, varname = "b1", dist = "normal", formula = 0, variance = "..v")
   defs <- defData(defs, varname = "b2", dist = "normal", formula = 0, variance = "..v")
@@ -367,7 +358,7 @@ sim <- within(sim, {
   
   # generate the data
   grid <- list(10, 0.5)
-  set.seed(as.integer(as.Date("2021-11-25")))
+  set.seed(1109)
   lst <- lapply(X = grid, FUN = function(x) {
     v <- x^2
     df <- genData(n = n, dtDefs = defs) %>%
@@ -376,11 +367,12 @@ sim <- within(sim, {
   })
   data <- do.call(rbind, lst) %>%
     mutate(diff = abs(p1 - p2))
-  
 })
-# glimpse(sim$data)
+```
 
-ggplot(sim$data, aes(x = diff, color = model)) +
+
+```{r}
+ggplot(sim11_02$data, aes(x = diff, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
   scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = "none",
@@ -389,6 +381,8 @@ ggplot(sim$data, aes(x = diff, color = model)) +
        subtitle = "Simulation with simstudy",
        x = "prior diff between treatments", y = NULL)
 ```
+
+
 
 #### The full model
 
@@ -403,99 +397,130 @@ logit(p_i) &= \alpha_{actor[i]} + \beta_{treatment[i]} \\
 \end{align*}
 $$
 
-We use `brms::brm()` in aslightly different way than @kurtz2020b. Kurtz create distinct priors for every category of treatment. This is justified by his desire to get the prior data in a separate column for every prior. We don't need to do this when using `simstudy` to evaluate the priors. One huge advantage when doing it this way is that we can now use the full power of `tidybayes` which makes the visualization of indexed parameters much easier.
+We have to create a separate prior for every level in order to get them in
+separate columns for the analysis later.  Normally we would simply use
+`prior(normal(0, 0.5), class = b)` without specifying the coefficient.
 
-```{r ch11_b11_04}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "120 secs."))
-b11.4 <- xfun::cache_rds({
+We use `get_prior()` to help us figure out the priors.
+
+```{r}
+get_prior(data = dataChimp,
+          formula = bf(pulled_left | trials(1) ~ 0 + (1 | actor) + (1 | treatment)),
+          family = binomial)
+```
+
+
+```{r ch11_fit11_04}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
+fit11_04 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
               family = binomial,
-              formula = bf(pulled_left | trials(1) ~ a + b,
-                           a ~ 0 + actor,
-                           b ~ 0 + treatment,
-                           nl = TRUE),
+              formula = bf(pulled_left | trials(1) ~ 0 + (1 | actor) + (1 | treatment)),
               prior = c(
-                prior(normal(0, 1.5), nlpar = a),
-                prior(normal(0, 0.5), nlpar = b)),
-             cores = detectCores(), seed = 11)
+                prior(normal(0, 0.5), class = sd, coef = Intercept, group = actor),
+                prior(normal(0, 1.5), class = sd, group = actor),
+                prior(normal(0, 0.5), class = sd, coef = Intercept, group = treatment),
+                prior(normal(0, 0.5), class = sd, group = treatment)),
+             cores = detectCores(), seed = 1117)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_04")
+  file = "ch11_fit11_04")
 tictoc::toc()
 ```
+and the coefficients on natural scale
 
 ```{r}
-summary(b11.4)
+posterior_summary(fit11_04) |>
+  inv_logit_scaled() |>
+  round(digits = 4)
 ```
 
-
-and to obtain the coefficients on the logit scale
+and to obtain the estimates on the logit scale
 
 ```{r}
-samples <- list()
-samples$newdata <- dataChimp %>%
-  expand(actor, treatment)
-samples$data <- as_draws(b11.4, newdata = samples$newdata) %>%
-  as_draws_df()
-# glimpse(samples$data)
-
-
-samples$stats <- samples$data %>%
-  select(-c("lp__", ".chain", ".iteration", ".draw")) %>%
-  pivot_longer(cols = everything(), names_to = "var") %>%
-  mutate(var = sub(pattern = "b_a_|b_b_", replacement = "", x = var)) %>%
-  filter(grepl(pattern = "actor", x = var)) %>%
-  mutate(value = gtools::inv.logit(value)) %>%
-  group_by(var) %>%
-  ggdist::mean_qi()
-# glimpse(samples$stats)
-# tail(samples$stats)
-
-p <- list()
-p$actor <- samples$stats %>% 
-  ggplot(aes(x = value, xmin = .lower, xmax = .upper, y = var)) +
-  geom_pointinterval(color = "darkgreen", size = 2, fatten_point = 3) +
-  geom_vline(xintercept = 0, color = "grey60") +
-  ggrepel::geom_text_repel(mapping = aes(label = round(value, 2))) +
-  theme(panel.grid.major.y = element_line(color = "white")) +
-  labs(title = "Coefficients for actors",
-       subtitle = "Model b11.4",
-       x = "probability", y = NULL)
-# p$actor
-
-
-# the treatment are kept on the logit scale
-samples$stats <- samples$data %>%
-  select(-c("lp__", ".chain", ".iteration", ".draw")) %>%
-  pivot_longer(cols = everything(), names_to = "var") %>%
-  mutate(var = sub(pattern = "b_a_|b_b_", replacement = "", x = var)) %>%
-  filter(grepl(pattern = "treat", x = var)) %>%
-  mutate(var = case_when(
-    var == "treatment1" ~ "AR",
-    var == "treatment2" ~ "AL",
-    var == "treatment3" ~ "PR",
-    var == "treatment4" ~ "PL",
-    TRUE ~ as.character(var)
-  )) %>%
-  group_by(var) %>%
-  ggdist::mean_qi()
-# samples$stats
-
-p$treat <- samples$stats %>% 
-  ggplot(., aes(x = value, xmin = .lower, xmax = .upper, y = var)) +
-  geom_pointinterval(color = "orange", size = 2, fatten_point = 3) +
-  geom_vline(xintercept = 0, color = "grey60") +
-  ggrepel::geom_text_repel(mapping = aes(label = round(value, 2))) +
-  theme(panel.grid.major.y = element_line(color = "white")) +
-  labs(title = "Coefficients for treatment",
-       subtitle = "Model b11.4",
-       x = "logit", y = NULL)
-# p$treat
-
-wrap_plots(p, ncol = 1) &
-  theme(plot.background = element_rect(color = NA))
+get_variables(fit11_04)
 ```
+
+and we build of summary with the estimates on the natural scale
+
+```{r ch11_post11_04}
+post11_04 <- list()
+post11_04 <- within(post11_04, {
+
+  actor <- fit11_04 |> spread_rvars(sd_actor__Intercept,
+                                    r_actor[actor, term]) |>
+    mutate(estimate = inv_logit_scaled(r_actor)) |>
+    mean_qi(r_actor, estimate) |>
+    identity()
+  
+  treatment <- fit11_04 |> spread_rvars(sd_treatment__Intercept,
+                                    r_treatment[treatment, term]) |>
+    mutate(estimate = inv_logit_scaled(r_treatment)) |>
+    mean_qi(r_treatment, estimate) |>
+    identity()
+})
+glimpse(post11_04$treatment)
+```
+
+```{r ch11_plot11_04}
+plot11_04 <- list()
+plot11_04 <- within(plot11_04, {
+  actor <- ggplot(post11_04$actor,
+                  aes(x = estimate, xmin = estimate.lower, xmax = estimate.upper, y = actor)) +
+    geom_pointinterval(color = "darkgreen", size = 2, fatten_point = 3) +
+    geom_vline(xintercept = 0, color = "brown") +
+    ggrepel::geom_text_repel(mapping = aes(label = round(estimate, 2))) +
+    scale_y_continuous(breaks = scales::breaks_width(width = 1)) +
+    theme(panel.grid.major.y = element_line(color = "white")) +
+    labs(title = "Estimates for actors with 95% CI",
+       subtitle = "Model b11.4",
+       x = "probability", y = "actor")
+  treatment <- ggplot(post11_04$treatment,
+                  aes(x = estimate, xmin = estimate.lower, xmax = estimate.upper, y = treatment)) +
+    geom_pointinterval(color = "tomato", size = 2, fatten_point = 3) +
+    geom_vline(xintercept = 0, color = "brown") +
+    ggrepel::geom_text_repel(mapping = aes(label = round(estimate, 2))) +
+    theme(panel.grid.major.y = element_line(color = "white")) +
+    labs(title = "Estimates for treatments with 95% CI (McElreath is on logit scale)",
+       subtitle = "Model b11.4",
+       x = "probability (outcome scale)", y = "treatment")
+  
+  treatment_logit <- ggplot(post11_04$treatment,
+                  aes(x = r_treatment, xmin = r_treatment.lower, xmax = r_treatment.upper, y = treatment)) +
+    geom_pointinterval(color = "tomato", size = 2, fatten_point = 3) +
+    geom_vline(xintercept = 0, color = "brown") +
+    ggrepel::geom_text_repel(mapping = aes(label = round(r_treatment, 2))) +
+    theme(panel.grid.major.y = element_line(color = "white")) +
+    labs(title = "Estimates for treatments with 95% CI (McElreath is on logit scale)",
+       subtitle = "Model b11.4",
+       x = "logit scale", y = "treatment")
+})
+```
+
+The plot for the actors is
+
+```{r}
+plot11_04$actor
+```
+
+and for the treatments. This is different because McElreath gives the plot
+on the logit *scale*
+
+```{r}
+wrap_plots(plot11_04[c("treatment_logit", "treatment")], ncol = 1)
+```
+
+::: {.callout-note}
+The plot above is different because McElreath gives the plot for the treatment 
+on the *logit* scale. Why not using the outcome scale as for actors?
+:::
 
 to compare the models
+
+```{r}
+stop("TODO")
+```
+
+
 
 ```{r}
 w <- loo_compare(b11.2, b11.3, b11.4, criterion = "waic") %>%
@@ -568,7 +593,6 @@ summary(b11.6)
 brms::inv_logit_scaled(fixef(b11.6))
 ```
 
-
 ### Aggregated binomial: Graduate school admissions
 
 In the chimpanzees example, the number of trials was fixed at 18. This is often not the case.
@@ -609,7 +633,6 @@ tictoc::toc()
 summary(b11.7)
 ```
 
-
 and we compute the contrast between male and female
 
 ```{r}
@@ -631,7 +654,7 @@ logit(p_i) &= \alpha_{gid[i]} + \delta_{dept[i]} \\
 \alpha_j &\sim \mathcal{N}(0, 1.5) \\
 \delta_k &\sim \mathcal{N}(0, 1.5)
 \end{align*}
-$$ 
+$$
 
 and we fit the model
 
@@ -656,12 +679,9 @@ tictoc::toc()
 brms::inv_logit_scaled(fixef(b11.8))
 ```
 
-
-
 ```{r}
 summary(b11.8)
 ```
-
 
 and again we compute the contrast between male and female
 
@@ -1001,7 +1021,6 @@ tictoc::toc()
 summary(b11.9)
 ```
 
-
 and the model with the interaction between population and contact
 
 ```{r ch11_b11_10}
@@ -1023,7 +1042,6 @@ tictoc::toc()
 ```{r}
 summary(b11.10)
 ```
-
 
 and we compare the LOO
 
@@ -1129,8 +1147,7 @@ which as an equilibrium point at $\Delta T = 0$ and therefore
 
 $$
 \hat{T} = \frac{\alpha P^\beta}{\gamma}
-$$ 
-
+$$
 
 with the theorical model **which has no link function**
 
@@ -1177,7 +1194,6 @@ tictoc::toc()
 ```{r}
 summary(b11.11)
 ```
-
 
 ```{r}
 samples <- list()
@@ -1300,7 +1316,6 @@ tictoc::toc()
 ```{r}
 summary(b11.12)
 ```
-
 
 and to get the rates on the natural scale we use
 
@@ -1511,7 +1526,6 @@ tictoc::toc()
 summary(b11.13null)
 ```
 
-
 It is important to understand the role of the **pivot category**. It is simple, the pivot category is used to center the categorical scores.
 
 For example the scores we used so far, when centered with his category, are as follows
@@ -1619,7 +1633,6 @@ b11.13a <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r ch11_b11_13b}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "150 secs."))
 b11.13b <- xfun::cache_rds({
@@ -1660,7 +1673,6 @@ b11.13c <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r ch11_b11_13d}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "120 secs."))
 b11.13d <- xfun::cache_rds({
@@ -1680,9 +1692,7 @@ b11.13d <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 and plot the results
-
 
 ```{r}
 p <- list()
@@ -1773,7 +1783,6 @@ p$dens
 
 Now lets fit the model with `brms`
 
-
 ```{r ch11_b11_14}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
 b11.14 <- xfun::cache_rds({
@@ -1796,8 +1805,6 @@ tictoc::toc()
 ```{r}
 summary(b11.14)
 ```
-
-
 
 and lets see PSIS
 

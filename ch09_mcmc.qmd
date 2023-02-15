@@ -340,7 +340,7 @@ dataRugged_nona <- dataRugged %>%
          rugged_sc = as.vector(scale(rugged_s, center = TRUE, scale = FALSE)))
 dataRugged_nona |>
   select(is_africa, rgdppc_2000, log_gdp, log_gdp_s, rugged, rugged_s, rugged_sc) |>
-  skimr::skim() |>
+  skim() |>
   mutate(across(.cols=where(is.numeric), .fns = round, digits = 2))
 ```
 

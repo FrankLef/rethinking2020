@@ -10,6 +10,7 @@ library(brms)
 library(qs)
 library(loo)
 library(modelr)
+library(skimr)
 library(simstudy)
 library(posterior)
 library(scales)
@@ -22,8 +23,6 @@ library(patchwork)
 library(paletteer)
 ```
 
-
-
 We set the current theme used for plotting
 
 ```{r}
@@ -34,7 +33,6 @@ theme_set(
         strip.background = element_rect(fill = "darkgrey"))
   )
 ```
-
 
 ## Over-dispersed outcomes
 
@@ -173,8 +171,6 @@ tictoc::toc()
 ```{r}
 summary(b12.1)
 ```
-
-
 
 and the posterior data which *represents the distribution rather than the data*
 
@@ -323,7 +319,7 @@ $$
 \mathcal{Gamma}(y \mid \mu, \alpha) = 
 \frac{(\frac{\alpha}{\mu})^\alpha}{\Gamma(\alpha)}
 y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
-$$ 
+$$
 
 To convert from the $\mu = mean$ and $\theta = dispersion= \frac{mean^2}{variance}$ to the shape and rate parameters we use the function `simstudy::gammaGetShapeRate()`. To help us find the mean and dispersion to use with `simstudy::gammaGetShapeRate()`, the custom function `gammaGetMeanDispersion` is also defined. It is the inverse of `simstudy::gammaGetShapeRate()`.
 
@@ -438,7 +434,6 @@ tictoc::toc()
 summary(b12.2a)
 ```
 
-
 and the fit with `ulam`
 
 ```{r ch12_m12_02a}
@@ -465,7 +460,6 @@ message("Could not fix the installation of cmdstanr")
 ```{r}
 # summary(m12.2a)
 ```
-
 
 ```{r}
 # posterior_summary(b12.2a)
@@ -568,7 +562,6 @@ tictoc::toc()
 ```{r}
 summary(b12.2b)
 ```
-
 
 add the *pareto k* for use in the plot later
 
@@ -738,7 +731,6 @@ tictoc::toc()
 summary(b12.3)
 ```
 
-
 and we generate a summary with `posterior::summarize_draws`
 
 ```{r}
@@ -842,7 +834,7 @@ logit(p_k) &= \alpha_k - \phi \\
 \phi &= 0 \\
 \alpha_k &\sim \mathcal{N}(0, 1.5)
 \end{align*}
-$$ 
+$$
 
 and the fit with brms
 

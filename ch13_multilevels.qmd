@@ -1,4 +1,3 @@
-
 # Multilevel Models {#MLM}
 
 ```{r}
@@ -11,6 +10,7 @@ library(brms)
 library(qs)
 library(loo)
 library(modelr)
+library(skimr)
 library(simstudy)
 library(posterior)
 library(scales)
@@ -29,8 +29,6 @@ library(paletteer)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 ```
-
-
 
 We set the current theme used for plotting
 
@@ -359,7 +357,7 @@ logit(p_i) &= \alpha_{pond[i]} \\
 \bar{\alpha} &\sim \mathcal{N}(0, 1.5) \\
 \sigma &\sim \mathcal{Exponential}(1)
 \end{align*}
-$$ 
+$$
 
 therefore the simulation of $p_i$ must use the logistic function
 
