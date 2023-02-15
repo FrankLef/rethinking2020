@@ -230,6 +230,9 @@ sim11_01 <- within(sim11_01, {
     mutate(p = gtools::inv.logit(a))
 })
 ```
+
+
+
 ```{r}
 ggplot(sim11_01$df, aes(x = p, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
@@ -446,19 +449,37 @@ and we build of summary with the estimates on the natural scale
 post11_04 <- list()
 post11_04 <- within(post11_04, {
 
-  actor <- fit11_04 |> spread_rvars(sd_actor__Intercept,
-                                    r_actor[actor, term]) |>
+  actor <- fit11_04 |> 
+    spread_rvars(sd_actor__Intercept, r_actor[actor, term]) |>
     mutate(estimate = inv_logit_scaled(r_actor)) |>
     mean_qi(r_actor, estimate) |>
     identity()
   
-  treatment <- fit11_04 |> spread_rvars(sd_treatment__Intercept,
-                                    r_treatment[treatment, term]) |>
+  treatment <- fit11_04 |> 
+    spread_rvars(sd_treatment__Intercept, r_treatment[treatment, term]) |>
     mutate(estimate = inv_logit_scaled(r_treatment)) |>
     mean_qi(r_treatment, estimate) |>
     identity()
+  
+  diff <- fit11_04 |> 
+    tidy_draws(r_treatment[treatment, ]) |>
+    select(matches("r_treatment")) |>
+    rename(AR = `r_treatment[AR,Intercept]`,
+           AL = `r_treatment[AL,Intercept]`,
+           PR = `r_treatment[PR,Intercept]`,
+           PL = `r_treatment[PL,Intercept]`) |>
+    transmute(ARvsPR = AR - PR,
+           ALvsPL = AL - PL) |>
+    pivot_longer(cols = c("ARvsPR", "ALvsPL"), 
+                 names_to = "treatment",
+                 values_to = "estimate") |>
+    group_by(treatment) |>
+    mean_qi(estimate) |>
+    identity()
+    # spread_rvars(r_treatment[treatment, ]) |>
+    # pivot_wider(names_from = treatment, values_from = r_treatment)
 })
-glimpse(post11_04$treatment)
+# glimpse(post11_04$diff)
 ```
 
 ```{r ch11_plot11_04}
@@ -493,6 +514,16 @@ plot11_04 <- within(plot11_04, {
     labs(title = "Estimates for treatments with 95% CI (McElreath is on logit scale)",
        subtitle = "Model b11.4",
        x = "logit scale", y = "treatment")
+  
+  diff_logit <- ggplot(post11_04$diff,
+                  aes(x = estimate, xmin = .lower, xmax = .upper, y = treatment)) +
+    geom_pointinterval(color = "mediumpurple", linewidth = 2, fatten_point = 3) +
+    geom_vline(xintercept = 0, color = "brown") +
+    ggrepel::geom_text_repel(mapping = aes(label = round(estimate, 2))) +
+    theme(panel.grid.major.y = element_line(color = "white")) +
+    labs(title = "Effect treatments with 95% CI (McElreath is on logit scale)",
+       subtitle = "Model b11.4",
+       x = "logit scale", y = "treatment")
 })
 ```
 
@@ -517,9 +548,12 @@ on the *logit* scale. Why not using the outcome scale as for actors?
 to compare the models
 
 ```{r}
-stop("TODO")
+plot11_04$diff
 ```
 
+```{r}
+stop("TODO")
+```
 
 
 ```{r}
