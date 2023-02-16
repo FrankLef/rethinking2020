@@ -468,9 +468,12 @@ post11_04 <- within(post11_04, {
            AL = `r_treatment[AL,Intercept]`,
            PR = `r_treatment[PR,Intercept]`,
            PL = `r_treatment[PL,Intercept]`) |>
-    transmute(ARvsPR = AR - PR,
-           ALvsPL = AL - PL) |>
-    pivot_longer(cols = c("ARvsPR", "ALvsPL"), 
+    transmute(
+      ARvsPR_logit = AR - PR,
+      ARvsPR = inv_logit_scaled(ARvsPR_logit),
+      ALvsPL_logit = AL - PL,
+      ALvsPL = inv_logit_scaled(ALvsPL_logit)) |>
+    pivot_longer(cols = matches("ARvsPR|ALvsPL"),
                  names_to = "treatment",
                  values_to = "estimate") |>
     group_by(treatment) |>
@@ -479,7 +482,7 @@ post11_04 <- within(post11_04, {
     # spread_rvars(r_treatment[treatment, ]) |>
     # pivot_wider(names_from = treatment, values_from = r_treatment)
 })
-# glimpse(post11_04$diff)
+glimpse(post11_04$diff)
 ```
 
 ```{r ch11_plot11_04}
@@ -494,7 +497,7 @@ plot11_04 <- within(plot11_04, {
     theme(panel.grid.major.y = element_line(color = "white")) +
     labs(title = "Estimates for actors with 95% CI",
        subtitle = "Model b11.4",
-       x = "probability", y = "actor")
+       x = "probability (outcome scale)", y = "actor")
   treatment <- ggplot(post11_04$treatment,
                   aes(x = estimate, xmin = estimate.lower, xmax = estimate.upper, y = treatment)) +
     geom_pointinterval(color = "tomato", size = 2, fatten_point = 3) +
@@ -515,15 +518,26 @@ plot11_04 <- within(plot11_04, {
        subtitle = "Model b11.4",
        x = "logit scale", y = "treatment")
   
-  diff_logit <- ggplot(post11_04$diff,
-                  aes(x = estimate, xmin = .lower, xmax = .upper, y = treatment)) +
-    geom_pointinterval(color = "mediumpurple", linewidth = 2, fatten_point = 3) +
+  diff_logit <- post11_04$diff |>
+    filter(treatment  %in% c("ALvsPL_logit", "ARvsPR_logit")) |>
+    ggplot(aes(x = estimate, xmin = .lower, xmax = .upper, y = treatment)) +
+    geom_pointinterval(color = "mediumpurple", size = 2, fatten_point = 3) +
     geom_vline(xintercept = 0, color = "brown") +
     ggrepel::geom_text_repel(mapping = aes(label = round(estimate, 2))) +
     theme(panel.grid.major.y = element_line(color = "white")) +
     labs(title = "Effect treatments with 95% CI (McElreath is on logit scale)",
        subtitle = "Model b11.4",
        x = "logit scale", y = "treatment")
+  diff <- post11_04$diff |>
+    filter(treatment  %in% c("ALvsPL", "ARvsPR")) |>
+    ggplot(aes(x = estimate, xmin = .lower, xmax = .upper, y = treatment)) +
+    geom_pointinterval(color = "mediumpurple", size = 2, fatten_point = 3) +
+    geom_vline(xintercept = 0, color = "brown") +
+    ggrepel::geom_text_repel(mapping = aes(label = round(estimate, 2))) +
+    theme(panel.grid.major.y = element_line(color = "white")) +
+    labs(title = "Effect treatments with 95% CI",
+       subtitle = "Model b11.4",
+       x = "probability difference (outcome scale)", y = "treatment")
 })
 ```
 
@@ -548,41 +562,86 @@ on the *logit* scale. Why not using the outcome scale as for actors?
 to compare the models
 
 ```{r}
-plot11_04$diff
+wrap_plots(plot11_04[c("diff", "diff_logit")], ncol = 1)
+```
+
+Next we look at the observed and predicted efect by actor
+
+
+
+```{r ch11_plot11_04all}
+plot11_04all <- list()
+plot11_04all <- within(plot11_04all, {
+  dataObserved <- dataChimp |>
+    group_by(actor, condition, prosoc_left) |>
+    summarize(pulled_left = mean(pulled_left)) |>
+    # create the factors
+    mutate(actor_id = paste("actor", actor),
+           condition = condition + 1,
+           condition = factor(condition, levels = 1:2, labels = c("alone", "partner")),
+           prosoc_left = prosoc_left + 1,
+           prosoc_left = factor(prosoc_left, levels = 1:2, labels = c("right", "left")))
+  
+  plotObserved <- ggplot(dataObserved, 
+                         aes(x = condition, y = pulled_left, 
+                             group = prosoc_left, color = prosoc_left,
+                             fill = prosoc_left)) +
+    geom_line(size = 1) +
+    geom_point() +
+    geom_hline(yintercept = 0.5, color = "brown", linetype = 2) +
+    ggrepel::geom_text_repel(aes(label = round(pulled_left, 2)), size = 3) +
+    scale_y_continuous(labels = scales::label_percent()) +
+    coord_cartesian(ylim = c(0, 1)) +
+    theme(legend.position = "bottom") +
+    labs(title = "Observed proportions",
+         x = NULL, y = "proportion pulled left") +
+    facet_grid(. ~ actor_id)
+})
+plot11_04all$dataObserved
+plot11_04all$plotObserved
 ```
 
 ```{r}
-stop("TODO")
+plot11_04all <- within(plot11_04all, {
+  dataPredicted <- expand_grid(actor = unique(dataChimp$actor),
+                               treatment = unique(dataChimp$treatment)) |>
+    # dataPredicted <- dataChimp |>
+    add_predicted_rvars(fit11_04) |>
+    mutate(actor_id = paste("actor", actor),
+           condition = if_else(substring(treatment, 1, 1) == "A", "alone", "partner"),
+           condition = as.factor(condition),
+           prosoc_left = if_else(substring(treatment, 2, 2) == "R", "right", "left"),
+           prosoc_left = as.factor(prosoc_left)) |>
+    select(-treatment) |>
+    group_by(actor, condition, prosoc_left) |>
+    mean_qi(.prediction, .width = 0.89) |>
+    identity()
+  
+  plotPredicted <- ggplot(dataPredicted,
+                         aes(x = condition, y = .prediction,
+                             group = prosoc_left, color = prosoc_left,
+                             fill = prosoc_left)) +
+    geom_line(size = 1) +
+    geom_point() +
+    geom_hline(yintercept = 0.5, color = "brown", linetype = 2) +
+    ggrepel::geom_text_repel(aes(label = round(.prediction, 2)), size = 3) +
+    scale_y_continuous(labels = scales::label_percent()) +
+    coord_cartesian(ylim = c(0, 1)) +
+    theme(legend.position = "bottom") +
+    labs(title = "Posterior predictions",
+         x = NULL, y = "proportion pulled left") +
+    facet_grid(. ~ actor_id)
+})
+# glimpse(plot11_04all$dataPredicted)
+plot11_04all$plotPredicted
 ```
 
 
-```{r}
-w <- loo_compare(b11.2, b11.3, b11.4, criterion = "waic") %>%
-  as.data.frame() %>%
-  mutate(waic_diff = elpd_diff * -2,
-         waic_diff_se = se_diff * 2) %>%
-  round(digits = 1) %>%
-  tibble::rownames_to_column(var = "model")
-print(w, simplify = FALSE)
-```
-
-and the coefficient plot is
-
-```{r}
-ggplot(w, aes(x = reorder(model, waic), color = model)) +
-  geom_pointinterval(aes(x = waic, xmin = waic - se_waic, xmax = waic + se_waic, y = model),
-                     size = 4, fatten_point = 4) +
-  ggrepel::geom_text_repel(aes(x = waic, y = model, label = waic)) +
-  scale_color_paletteer_d("khroma::bright") +
-  # ggthemes::theme_hc() +
-  theme(legend.position = "none",
-        panel.grid.major.y = element_line(color = "white")) +
-  labs(title = "WAIC intervals by model", x = "waic", y = NULL)
-```
 
 ### Relative shark and absolute deer
 
 ```{r}
+stop("TODO")
 as_draws_df(b11.4) %>%
   mutate(proportional_odds = exp(b_b_treatmentAR - b_b_treatmentPR)) %>% 
   mean_qi(proportional_odds)
