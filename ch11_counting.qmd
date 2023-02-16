@@ -565,8 +565,7 @@ to compare the models
 wrap_plots(plot11_04[c("diff", "diff_logit")], ncol = 1)
 ```
 
-Next we look at the observed and predicted efect by actor
-
+Next we look at the observed and predicted effect by actor
 
 
 ```{r ch11_plot11_04all}
@@ -597,7 +596,7 @@ plot11_04all <- within(plot11_04all, {
          x = NULL, y = "proportion pulled left") +
     facet_grid(. ~ actor_id)
 })
-plot11_04all$dataObserved
+# glimpse(plot11_04all$dataObserved)
 plot11_04all$plotObserved
 ```
 
@@ -637,66 +636,101 @@ plot11_04all$plotPredicted
 ```
 
 
+ and if we compare th emodels
+ 
+```{r}
+loo_compare(fit11_02, fit11_03, fit11_04, criterion = "waic") |>
+  data.frame() |>
+  round(digits = 1)
+```
+ 
+we can see that $actor$ and $treatment$ considered alone give about the same 
+quality of fit. The better fit is when both of them are taken into account
+together.
+
 
 ### Relative shark and absolute deer
 
+It is more common to see logistic regression as relative effects. relative effect
+are proportional change in the odds of the outcome
+
 ```{r}
-stop("TODO")
-as_draws_df(b11.4) %>%
-  mutate(proportional_odds = exp(b_b_treatmentAR - b_b_treatmentPR)) %>% 
-  mean_qi(proportional_odds)
+get_variables(fit11_04)
 ```
 
-On average the switch from treatment 2 to treatment 4 multiply the odds of pulling the left lever by 92%.
 
-> The risk of focusing on relative effects, such as proportional odds, is that they aren't enough to tell enough whether a variable is important or not.
+
+
+```{r}
+fit11_04 |>
+  spread_rvars(r_treatment[treatment, ]) |>
+  pivot_wider(names_from = treatment, values_from = r_treatment) |>
+  mutate(
+    ARvsPR = exp(PR - AR),
+    ALvsPL = exp(PL - AL)) |>
+  mean_qi(.width = 0.89) |>
+  pull(ALvsPL)
+# as_draws_df(b11.4) %>%
+#   mutate(proportional_odds = exp(b_b_treatmentAR - b_b_treatmentPR)) %>% 
+#   mean_qi(proportional_odds)
+```
+
+On average the switch from treatment AL, pulling the left lever without a partner,
+to treatment PL, pulling the left lever with a partner, reduces the odds
+by 6%. The difference with McElreath is cause by the ransom sampling.
+
+> The risk of focusing on relative effects, such as proportional odds, is that 
+they aren't enough to tell enough whether a variable is important or not.
 
 See the overthinking box in section 11.1.2, p. 337.
 
 ### Aggregated binomial: Chimpanzees again
 
-```{r}
-d.aggr <- dataChimp %>%
+```{r ch11_dataChimp_agg}
+dataChimp_agg <- dataChimp %>%
   group_by(treatment, actor, prosoc_left, condition) %>%
   summarise(left_pulls = sum(pulled_left)) %>%
   ungroup()
-# d.aggr
+# dataChimp_agg
 ```
 
-```{r ch11_b11_06}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b11.6 <- xfun::cache_rds({
+```{r ch11_fit11_06}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit11_06 <- xfun::cache_rds({
   out <- brms::brm(
-    data = d.aggr,
+    data = dataChimp_agg,
     family = binomial,
-    formula = bf(left_pulls | trials(18) ~ a + b,
-               a ~ 0 + actor,
-               b ~ 0 + treatment,
-               nl = TRUE),
-    prior =  c(prior(normal(0, 1.5), nlpar = a),
-             prior(normal(0, 0.5), nlpar = b)),
-    cores = detectCores(), seed = 11)
+    formula = bf(left_pulls | trials(18) ~ 0 + (1 | actor) + (1 | treatment)),
+    prior = c(prior(normal(0, 0.5), class = sd, coef = Intercept, group = actor),
+              prior(normal(0, 1.5), class = sd, group = actor),
+              prior(normal(0, 0.5), class = sd, coef = Intercept, group = treatment),
+              prior(normal(0, 0.5), class = sd, group = treatment)),
+    cores = detectCores(), seed = 1123)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_06")
+  file = "ch11_fit11_06")
 tictoc::toc()
 ```
 
+
 ```{r}
-summary(b11.6)
-brms::inv_logit_scaled(fixef(b11.6))
+posterior_summary(fit11_06) |>
+  round(digits = 3)
 ```
+
 
 ### Aggregated binomial: Graduate school admissions
 
 In the chimpanzees example, the number of trials was fixed at 18. This is often not the case.
 
-```{r}
+```{r ch11_dataAdmit}
 data(UCBadmit)
 dataAdmit <- UCBadmit %>%
   mutate(gid = factor(applicant.gender, levels = c("male", "female")),
          case = seq_len(nrow(.)))
 rm(UCBadmit)
-skimr::skim(dataAdmit)
+skim(dataAdmit) |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
 ```
 
 the univariate model is
@@ -707,28 +741,32 @@ admit_i &\sim \mathcal{Binomial}(n_i, p_i) \\
 logit(p_i) &= \alpha_{gid[i]} \\
 \alpha_j &\sim \mathcal{N}(0, 1.5)
 \end{align*}
-$$ and we fit the model
+$$ 
 
-```{r ch11_b11_07}
+and we fit the model
+
+```{r ch11_fit11_07}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b11.7 <- xfun::cache_rds({
+fit11_07 <- xfun::cache_rds({
   out <- brm(data = dataAdmit,
              family = binomial,
-            admit | trials(applications) ~ 0 + gid,
-          prior(normal(0, 1.5), class = b),
-          cores = detectCores(), seed = 11)
+             formula = admit | trials(applications) ~ 0 + gid,
+             prior(normal(0, 1.5), class = b),
+             cores = detectCores(), seed = 1129)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_07")
+  file = "ch11_fit11_07")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b11.7)
+posterior_summary(fit11_07) |>
+  round(digits = 3)
 ```
 
 and we compute the contrast between male and female
 
 ```{r}
+stop("TODO")
 as_draws_df(b11.7) %>%
   mutate_variables(diff_a = b_gidmale - b_gidfemale,
                    diff_b = gtools::inv.logit(b_gidmale) - gtools::inv.logit(b_gidfemale)) %>%
