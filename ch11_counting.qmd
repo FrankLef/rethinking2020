@@ -602,10 +602,11 @@ plot11_04all$plotObserved
 
 ```{r}
 plot11_04all <- within(plot11_04all, {
-  dataPredicted <- expand_grid(actor = unique(dataChimp$actor),
+  
+  dataEPredicted <- expand_grid(actor = unique(dataChimp$actor),
                                treatment = unique(dataChimp$treatment)) |>
     # dataPredicted <- dataChimp |>
-    add_predicted_rvars(fit11_04) |>
+    add_epred_rvars(fit11_04) |>
     mutate(actor_id = paste("actor", actor),
            condition = if_else(substring(treatment, 1, 1) == "A", "alone", "partner"),
            condition = as.factor(condition),
@@ -613,26 +614,27 @@ plot11_04all <- within(plot11_04all, {
            prosoc_left = as.factor(prosoc_left)) |>
     select(-treatment) |>
     group_by(actor, condition, prosoc_left) |>
-    mean_qi(.prediction, .width = 0.89) |>
+    mean_qi(.epred, .width = 0.89) |>
     identity()
   
-  plotPredicted <- ggplot(dataPredicted,
-                         aes(x = condition, y = .prediction,
+  plotEPredicted <- ggplot(dataEPredicted,
+                         aes(x = condition, y = .epred,
                              group = prosoc_left, color = prosoc_left,
                              fill = prosoc_left)) +
     geom_line(size = 1) +
     geom_point() +
+    geom_errorbar(aes(ymin = .lower, ymax = .upper)) +
     geom_hline(yintercept = 0.5, color = "brown", linetype = 2) +
-    ggrepel::geom_text_repel(aes(label = round(.prediction, 2)), size = 3) +
+    ggrepel::geom_text_repel(aes(label = round(.epred, 2)), size = 3) +
     scale_y_continuous(labels = scales::label_percent()) +
     coord_cartesian(ylim = c(0, 1)) +
     theme(legend.position = "bottom") +
-    labs(title = "Posterior predictions",
+    labs(title = "Posterior expected predictions with 89% CI",
          x = NULL, y = "proportion pulled left") +
     facet_grid(. ~ actor_id)
 })
-# glimpse(plot11_04all$dataPredicted)
-plot11_04all$plotPredicted
+# glimpse(plot11_04all$dataEPredicted)
+plot11_04all$plotEPredicted
 ```
 
 
@@ -669,10 +671,8 @@ fit11_04 |>
     ARvsPR = exp(PR - AR),
     ALvsPL = exp(PL - AL)) |>
   mean_qi(.width = 0.89) |>
-  pull(ALvsPL)
-# as_draws_df(b11.4) %>%
-#   mutate(proportional_odds = exp(b_b_treatmentAR - b_b_treatmentPR)) %>% 
-#   mean_qi(proportional_odds)
+  pull(ALvsPL) |>
+  identity()
 ```
 
 On average the switch from treatment AL, pulling the left lever without a partner,
@@ -766,14 +766,15 @@ posterior_summary(fit11_07) |>
 and we compute the contrast between male and female
 
 ```{r}
-stop("TODO")
-as_draws_df(b11.7) %>%
-  mutate_variables(diff_a = b_gidmale - b_gidfemale,
-                   diff_b = gtools::inv.logit(b_gidmale) - gtools::inv.logit(b_gidfemale)) %>%
-  select(diff_a, diff_b) %>%
-  pivot_longer(cols = everything(), names_to = "var") %>%
-  group_by(var) %>%
-  skimr::skim()
+fit11_07 |>
+  spread_rvars(b_gidmale, b_gidfemale) |>
+  mutate(diff_a = b_gidmale - b_gidfemale,
+         diff_p = inv_logit_scaled(b_gidmale) - inv_logit_scaled(b_gidfemale)) |>
+  select(diff_a, diff_p) |>
+  pivot_longer(cols = everything(), names_to = "var", values_to = "value") |>
+  group_by(var) |>
+  mean_qi(.width = 0.89) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 and the full model is
@@ -790,6 +791,7 @@ $$
 and we fit the model
 
 ```{r ch11_b11_08}
+stop("TODO")
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "95 secs."))
 b11.8 <- xfun::cache_rds({
   out <- brm(data = dataAdmit,
