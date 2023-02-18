@@ -234,6 +234,7 @@ sim11_01 <- within(sim11_01, {
 
 
 ```{r}
+#| fig-cap: "Figure 11.3"
 ggplot(sim11_01$df, aes(x = p, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
   scale_color_paletteer_d("khroma::vibrant") +
@@ -375,6 +376,7 @@ sim11_02 <- within(sim11_02, {
 
 
 ```{r}
+#| fig-cap: "Figure 11.3"
 ggplot(sim11_02$data, aes(x = diff, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
   scale_color_paletteer_d("khroma::vibrant") +
@@ -569,6 +571,7 @@ Next we look at the observed and predicted effect by actor
 
 
 ```{r ch11_plot11_04all}
+#| fig-cap: "Figure 11.4"
 plot11_04all <- list()
 plot11_04all <- within(plot11_04all, {
   dataObserved <- dataChimp |>
@@ -601,6 +604,7 @@ plot11_04all$plotObserved
 ```
 
 ```{r}
+#| fig-cap: "Figure 11.4"
 plot11_04all <- within(plot11_04all, {
   
   dataEPredicted <- expand_grid(actor = unique(dataChimp$actor),
@@ -623,7 +627,7 @@ plot11_04all <- within(plot11_04all, {
                              fill = prosoc_left)) +
     geom_line(size = 1) +
     geom_point() +
-    geom_errorbar(aes(ymin = .lower, ymax = .upper)) +
+    geom_errorbar(aes(ymin = .lower, ymax = .upper), width = 1/3) +
     geom_hline(yintercept = 0.5, color = "brown", linetype = 2) +
     ggrepel::geom_text_repel(aes(label = round(.epred, 2)), size = 3) +
     scale_y_continuous(labels = scales::label_percent()) +
@@ -638,7 +642,7 @@ plot11_04all$plotEPredicted
 ```
 
 
- and if we compare th emodels
+ and if we compare the models
  
 ```{r}
 loo_compare(fit11_02, fit11_03, fit11_04, criterion = "waic") |>
@@ -725,8 +729,10 @@ In the chimpanzees example, the number of trials was fixed at 18. This is often 
 ```{r ch11_dataAdmit}
 data(UCBadmit)
 dataAdmit <- UCBadmit %>%
-  mutate(gid = factor(applicant.gender, levels = c("male", "female")),
-         case = seq_len(nrow(.)))
+  rename(gender = applicant.gender) |>
+  mutate(case = factor(seq_len(n())),
+         admit_pct = admit / applications,
+         reject_pct = reject / applications)
 rm(UCBadmit)
 skim(dataAdmit) |>
   select(-n_missing, -complete_rate) |>
@@ -743,15 +749,23 @@ logit(p_i) &= \alpha_{gid[i]} \\
 \end{align*}
 $$ 
 
-and we fit the model
+and we fit the model, first we look at the default prior,
+
+```{r}
+get_prior(data = dataAdmit, 
+          formula = bf(admit | trials(applications) ~ 0 + (1|gender)),
+          family = binomial)
+```
+then do the fit
 
 ```{r ch11_fit11_07}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit11_07 <- xfun::cache_rds({
   out <- brm(data = dataAdmit,
              family = binomial,
-             formula = admit | trials(applications) ~ 0 + gid,
-             prior(normal(0, 1.5), class = b),
+             formula = bf(admit | trials(applications) ~ 0 + (1|gender)),
+             prior(normal(0, 1.5), class = sd),
+             iter = 2000, warmup = 1000, chains = 4, 
              cores = detectCores(), seed = 1129)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_fit11_07")
@@ -767,15 +781,64 @@ and we compute the contrast between male and female
 
 ```{r}
 fit11_07 |>
-  spread_rvars(b_gidmale, b_gidfemale) |>
-  mutate(diff_a = b_gidmale - b_gidfemale,
-         diff_p = inv_logit_scaled(b_gidmale) - inv_logit_scaled(b_gidfemale)) |>
-  select(diff_a, diff_p) |>
+  spread_rvars(r_gender[gender, ]) |>
+  pivot_wider(names_from = gender, values_from = r_gender) |>
+  transmute(diff_a = male - female,
+         diff_p = inv_logit_scaled(male) - inv_logit_scaled(female)) |>
   pivot_longer(cols = everything(), names_to = "var", values_to = "value") |>
-  group_by(var) |>
-  mean_qi(.width = 0.89) |>
+  mean_qi(value, .width = 0.89) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
+
+we firs get the posterior expected fit
+
+```{r}
+pred11_07 <- dataAdmit |>
+  add_epred_rvars(fit11_07) |>
+  mutate(.epred_pct = .epred / applications) |>
+  select(dept, case, .epred_pct) |>
+  group_by(dept, case) |>
+  mean_qi(.epred_pct)
+glimpse(pred11_07)
+```
+
+
+
+and the posterior validation check for model `fit11_07` is
+
+```{r ch11_plot11_07}
+#| fig-cap: "Figure 11.5"
+plot11_07 <- list()
+plot11_07 <- within(plot11_07, {
+  data <- dataAdmit |>
+    group_by(case, dept) |>
+    summarize(admit_pct = mean(admit_pct)) |>
+    identity()
+  
+  p <- ggplot(data, aes(x = case, y = admit_pct, color = dept, fill = dept)) +
+    geom_line(aes(group = dept)) +
+    geom_point() +
+    geom_hline(yintercept = 0.5, color = "brown", linetype = 2) +
+    ggrepel::geom_text_repel(aes(label = round(admit_pct, 2)), size = 3) +
+    scale_y_continuous(labels = scales::label_percent()) +
+    coord_cartesian(ylim = c(0, 1)) +
+    theme(legend.position = c(0.8, 0.8),
+          legend.direction = "horizontal") +
+    labs(title = "Posterior validation check")
+  
+  p <- p +
+    geom_point(data = pred11_07, aes(x = case, y = .epred_pct, group = dept),
+               color = "darkgreen") +
+    geom_errorbar(data = pred11_07,  
+                  aes(x = case, y = .epred_pct, ymin = .lower, ymax = .upper, group = dept),
+                  color = "darkgreen", width = 1/4)
+})
+# plot11_07$data
+plot11_07$p
+```
+
+
+
 
 and the full model is
 
@@ -790,43 +853,67 @@ $$
 
 and we fit the model
 
-```{r ch11_b11_08}
-stop("TODO")
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "95 secs."))
-b11.8 <- xfun::cache_rds({
+```{r ch11_fit11_08}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit11_08 <- xfun::cache_rds({
   out <- brm(data = dataAdmit,
              family = binomial,
-      bf(admit | trials(applications) ~ a + d,
-         a ~ 0 + gid,
-         d ~ 0 + dept,
-         nl = TRUE),
-      prior = c(prior(normal(0, 1.5), nlpar = a),
-                prior(normal(0, 1.5), nlpar = d)),
-      iter = 4000, warmup = 1000, cores = detectCores(), seed = 11)
+             formula = admit | trials(applications) ~ 0 + (1|gender) + (1|dept),
+             prior(normal(0, 1.5), class = sd),
+             iter = 2000, warmup = 1000, chains = 4,
+             cores = detectCores(), seed = 1151)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_08")
+  file = "ch11_fit11_08")
 tictoc::toc()
 ```
 
 ```{r}
-brms::inv_logit_scaled(fixef(b11.8))
+posterior_summary(fit11_08) |>
+  # inv_logit_scaled() |>
+  round(digits = 2)
 ```
 
+with the posterior distributions
+
 ```{r}
-summary(b11.8)
+# post11_08 <- expand.grid(
+#   gender = dataAdmit$gender,
+#   dept = dataAdmit$dept) |>
+post11_08 <- spread_rvars(fit11_08, r_gender[gender, ])
+post11_08
 ```
+
+
 
 and again we compute the contrast between male and female
 
 ```{r}
-as_draws_df(b11.8) %>%
-  mutate_variables(diff_a = b_a_gidmale - b_a_gidfemale,
-                   diff_b = gtools::inv.logit(b_a_gidmale) - gtools::inv.logit(b_a_gidfemale)) %>%
-  select(diff_a, diff_b) %>%
-  pivot_longer(cols = everything(), names_to = "var") %>%
-  group_by(var) %>%
-  skimr::skim()
+fit11_08 |>
+  spread_rvars(r_gender[gender, ]) |>
+  pivot_wider(names_from = gender, values_from = r_gender) |>
+  transmute(diff_a = male - female,
+         diff_p = inv_logit_scaled(male) - inv_logit_scaled(female)) |>
+  pivot_longer(cols = everything(), names_to = "var", values_to = "value") |>
+  mean_qi(value, .width = 0.89) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
+
+and again the results are very close to McElreath's.
+
+
+This leads us to hypotheses that the department is a confound and we could
+have the following DAG
+
+```{r}
+#| fig-align: "center"
+#| fig-width: 0.75
+ggdag::dagify(A ~ D + G, D ~ G) |>
+    ggdag::ggdag_classic(layout = "sugiyama") +
+    ggdag::theme_dag_blank(
+      panel.background = element_rect(fill = "snow2", color = "snow2"))
+```
+
+
 
 ## Poisson regression
 
@@ -846,7 +933,10 @@ dataKline <- Kline %>%
          log_pop_s = as.vector(scale(log_pop)),
          cid = factor(contact, levels = c("low", "high")))
 rm(Kline)
-skimr::skim(dataKline)
+dataKline |>
+  skim() |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 the model is
@@ -862,11 +952,13 @@ $$
 
 > Source: https://ggplot2.tidyverse.org/reference/geom_function.html
 
-For the intercept $\alpha_j$. If $\alpha_j$ is normal then we know that $\lambda_j$ is lognormal distributed.
+For the intercept $\alpha_j$. If $\alpha_j$ is normal then we know that 
+$\lambda_j$ is lognormal distributed.
 
 ##### With `simstudy`
 
 ```{r}
+stop("TODO")
 sim <- list(nsamples = 100)
 sim <- within(sim, {
   # define the model

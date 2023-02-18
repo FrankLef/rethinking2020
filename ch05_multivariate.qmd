@@ -331,8 +331,7 @@ message("This returns NULL because there are no conditional independencies")
 
 The model with median age and marriage rate, both standardized.
 
-> The $+$ in the model can be interpreted as the divorce rate is a function of 
-the marriage rate **OR** the median age of marriage
+> The $+$ in the model can be interpreted as the divorce rate is a function of the marriage rate **OR** the median age of marriage
 
 $$
 \begin{align*}
