@@ -957,38 +957,39 @@ $\lambda_j$ is lognormal distributed.
 
 ##### With `simstudy`
 
-```{r}
-stop("TODO")
-sim <- list(nsamples = 100)
-sim <- within(sim, {
+```{r ch11_simKline}
+simKline <- list()
+simKline <- within(simKline, {
+  nsamples = 100
+  
   # define the model
   defs <- defData(varname = "a", dist = "normal", formula = "..m",
                   variance = "..v")
   defs <- defData(defs, varname = "lambda", dist = "nonrandom", 
                   formula = "a", link = "log")
   
-  # generate data using the grid f specs
+    # generate data using the grid f specs
   grid <- expand.grid(mean = c(0, 1, 3), 
-                      sd = c(0.5, 1, 2)) %>%
+                      sd = c(0.5, 1, 2)) |>
     mutate(model = sprintf("m=%.1f, s=%.1f", mean, sd))
   
   lst <- lapply(seq_len(nrow(grid)), FUN = function(i) {
     m <- grid$mean[i]
     s <- grid$sd[i]
     v <- s^2
-    set.seed(as.integer(as.Date("2021-12-09")))
-    genData(n = nsamples, dtDefs = defs) %>%
+    set.seed(1153)
+    genData(n = nsamples, dtDefs = defs) |>
       as.data.frame() %>%
       mutate(mean = m, sd = s, model = grid$model[i])
     })
   names(lst) <- grid$model
   
   data <- do.call(rbind, lst)
+  data <- bind_rows(lst, .id = "model")
 })
-# glimpse(sim$data)
 
-p$plot <- ggplot(sim$data, aes(x = lambda, fill = as.factor(mean), color = as.factor(mean))) +
-  geom_density(aes(y = ..scaled..)) +
+ggplot(simKline$data, aes(x = lambda, fill = as.factor(mean), color = as.factor(mean))) +
+  geom_density(aes(y = after_stat(scaled))) +
   scale_fill_paletteer_d("khroma::vibrant") +
   scale_color_paletteer_d("khroma::vibrant") +
   coord_cartesian(xlim = c(0, 100)) +
@@ -998,44 +999,44 @@ p$plot <- ggplot(sim$data, aes(x = lambda, fill = as.factor(mean), color = as.fa
   labs(title = "Prior predictive distribution of the mean (lambda)",
        x = NULL, y = NULL) +
   facet_grid(sprintf("sd of a=%.1f", sd) ~ sprintf("mean of a=%.1f", mean))
-p$plot
 ```
 
 ##### as per textbook
 
 ```{r}
-
 p <- list()
-# p$specs <- expand.grid("x"= c(0, 100), "meanlog" = c(0, 3, 5), "sdlog" = c(0.5, 5, 10)) %>%
-#   mutate(prior = paste0("meanlog=", meanlog, ", ", "sdlog=", sdlog))
-# p$specs
-p$df <- crossing("meanlog" = c(0, 2, 3), "sdlog" = c(0.5, 1, 2)) %>%
-  expand(nesting(meanlog, sdlog), x = seq(from = 0, to = 100, length.out = 50)) %>%
-  mutate(density = dlnorm(x, meanlog = meanlog, sdlog = sdlog),
+p <- within(p, {
+  df <- crossing("meanlog" = c(0, 2, 3), "sdlog" = c(0.5, 1, 2)) |>
+    expand(nesting(meanlog, sdlog), x = seq(from = 0, to = 100, length.out = 50)) |>
+    mutate(density = dlnorm(x, meanlog = meanlog, sdlog = sdlog),
          meanid = factor(paste("meanlog =", meanlog)),
-         sdid = factor(paste("sdlog =", sdlog))) %>%
-  arrange(meanlog, sdlog)
-
-p$plot <- ggplot(p$df, aes(x = x, y = density, fill = meanid)) +
-  geom_area() +
-  scale_y_continuous(breaks = NULL) +
-  scale_fill_paletteer_d("khroma::vibrant") +
-  coord_cartesian(xlim = c(0, 50)) +
-  theme(legend.position = "none",
+         sdid = factor(paste("sdlog =", sdlog))) |>
+    arrange(meanlog, sdlog)
+  
+  plot <- ggplot(df, aes(x = x, y = density, fill = meanid)) +
+    geom_area() +
+    scale_y_continuous(breaks = NULL) +
+    scale_fill_paletteer_d("khroma::vibrant") +
+    coord_cartesian(xlim = c(0, 50)) +
+    theme(legend.position = "none",
         axis.text.y = element_blank()) +
-  labs(title = "Prior predictive distribution of the mean (lambda)", 
+    labs(title = "Prior predictive distribution of the mean (lambda)", 
        x = NULL, y = NULL) +
-  facet_grid(sdid ~ meanid, scales = "free_y")
+    facet_grid(sdid ~ meanid, scales = "free_y")
+})
 p$plot
 ```
 
-Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as our prior for $\alpha_{cid[i]}$.
+Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as 
+our prior for $\alpha_{cid[i]}$.
 
-Using our prior for $\alpha_{cid[i]}$ wwe simulate $\beta_{cid[i]}$. We show the simulation on the natural scale as it is much easier to understand
+Using our prior for $\alpha_{cid[i]}$ wwe simulate $\beta_{cid[i]}$. We show 
+the simulation on the natural scale as it is much easier to understand
 
 ##### slope with `simstudy`
 
 ```{r}
+stop("TODO")
 sim <- list(nsamples = 100,  # same as mcElreath 
             npreds = 100)  # same as McElreath
 
