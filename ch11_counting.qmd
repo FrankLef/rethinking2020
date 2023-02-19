@@ -484,7 +484,7 @@ post11_04 <- within(post11_04, {
     # spread_rvars(r_treatment[treatment, ]) |>
     # pivot_wider(names_from = treatment, values_from = r_treatment)
 })
-glimpse(post11_04$diff)
+# glimpse(post11_04$diff)
 ```
 
 ```{r ch11_plot11_04}
@@ -646,8 +646,8 @@ plot11_04all$plotEPredicted
  
 ```{r}
 loo_compare(fit11_02, fit11_03, fit11_04, criterion = "waic") |>
-  data.frame() |>
-  round(digits = 1)
+  round(digits = 1) |>
+  print(simplify = FALSE)
 ```
  
 we can see that $actor$ and $treatment$ considered alone give about the same 
@@ -799,7 +799,7 @@ pred11_07 <- dataAdmit |>
   select(dept, case, .epred_pct) |>
   group_by(dept, case) |>
   mean_qi(.epred_pct)
-glimpse(pred11_07)
+# glimpse(pred11_07)
 ```
 
 
@@ -958,8 +958,8 @@ $\lambda_j$ is lognormal distributed.
 ##### With `simstudy`
 
 ```{r ch11_simKline}
-simKline <- list()
-simKline <- within(simKline, {
+simKline1 <- list()
+simKline1 <- within(simKline1, {
   nsamples = 100
   
   # define the model
@@ -988,7 +988,7 @@ simKline <- within(simKline, {
   data <- bind_rows(lst, .id = "model")
 })
 
-ggplot(simKline$data, aes(x = lambda, fill = as.factor(mean), color = as.factor(mean))) +
+ggplot(simKline1$data, aes(x = lambda, fill = as.factor(mean), color = as.factor(mean))) +
   geom_density(aes(y = after_stat(scaled))) +
   scale_fill_paletteer_d("khroma::vibrant") +
   scale_color_paletteer_d("khroma::vibrant") +
@@ -1004,8 +1004,8 @@ ggplot(simKline$data, aes(x = lambda, fill = as.factor(mean), color = as.factor(
 ##### as per textbook
 
 ```{r}
-p <- list()
-p <- within(p, {
+plotKline1 <- list()
+plotKline1 <- within(plotKline1, {
   df <- crossing("meanlog" = c(0, 2, 3), "sdlog" = c(0.5, 1, 2)) |>
     expand(nesting(meanlog, sdlog), x = seq(from = 0, to = 100, length.out = 50)) |>
     mutate(density = dlnorm(x, meanlog = meanlog, sdlog = sdlog),
@@ -1013,7 +1013,7 @@ p <- within(p, {
          sdid = factor(paste("sdlog =", sdlog))) |>
     arrange(meanlog, sdlog)
   
-  plot <- ggplot(df, aes(x = x, y = density, fill = meanid)) +
+  pplotKline1 <- ggplot(df, aes(x = x, y = density, fill = meanid)) +
     geom_area() +
     scale_y_continuous(breaks = NULL) +
     scale_fill_paletteer_d("khroma::vibrant") +
@@ -1024,7 +1024,7 @@ p <- within(p, {
        x = NULL, y = NULL) +
     facet_grid(sdid ~ meanid, scales = "free_y")
 })
-p$plot
+plotKline1$p
 ```
 
 Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as 
@@ -1036,11 +1036,13 @@ the simulation on the natural scale as it is much easier to understand
 ##### slope with `simstudy`
 
 ```{r}
-stop("TODO")
-sim <- list(nsamples = 100,  # same as mcElreath 
-            npreds = 100)  # same as McElreath
+simKline2 <- list()
+# simKline2 <- list(nsamples = 100,  # same as mcElreath 
+#             npreds = 100)  # same as McElreath
 
-sim <- within(sim, {
+simKline2 <- within(simKline2, {
+  nsamples = 100  # same as mcElreath 
+  npreds = 100  # same as mcElreath 
   # define the model
   defs <- defData(varname = "a", dist = "normal", formula = 3,
                   variance = 0.5^2)
@@ -1054,7 +1056,7 @@ sim <- within(sim, {
   
   # create sim with standardized log
   lst_log_s <- lapply(seq_len(nrow(grid)), FUN = function(i) {
-    set.seed(10)  # same seed as McElreath
+    set.seed(1153)  # same seed as McElreath
     m <- grid$mean[i]
     s <- grid$sd[i]
     v <- s^2
@@ -1070,7 +1072,7 @@ sim <- within(sim, {
   
   # create sim with log
   lst_log <- lapply(seq_len(nrow(grid)), FUN = function(i) {
-    set.seed(10)  # same seed as McElreath
+    set.seed(1153)  # same seed as McElreath
     m <- grid$mean[i]
     s <- grid$sd[i]
     v <- s^2
@@ -1082,139 +1084,142 @@ sim <- within(sim, {
       mutate(lambda = exp(a + b * log_pop))
     })
   names(lst_log) <- grid$model
-  data_log <- do.call(rbind, lst_log)
+  data_log <- bind_rows(lst_log, .id = "model")
 })
-
-# str(sim$lst_log_s[[2]])
-# glimpse(sim$data)
-
-p <- list()
-p$log_s <- ggplot(sim$data_log_s, aes(x = log_pop_s, y = lambda, group = id, color = model)) +
-  geom_line() +
-  scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
-  theme(legend.position = "none") +
-  labs(title = "Prior predictive distribution of the mean (lambda)",
-       x = "Standard log population", y = "mean total tools(lambda)") +
-  facet_wrap(. ~ model, scales = "free_y")
-# p$log_s
-
-
-p$log <- ggplot(sim$data_log, aes(x = log_pop, y = lambda, group = id, color = model)) +
-  geom_line() +
-  scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
-  coord_cartesian(ylim = c(0, 500)) +
-  theme(legend.position = "none") +
-  labs(title = "Prior predictive distribution of the mean (lambda)",
-       x = "Log population", y = "mean total tools(lambda)") +
-  facet_wrap(. ~ model, scales = "free_y")
-p$log
-
-p$hline <- 100
-p$nat <- ggplot(sim$data_log, aes(x = exp(log_pop), y = lambda, group = id, color = model)) +
-  geom_line() +
-  geom_hline(yintercept = p$hline, color = "darkblue", linetype = "dashed", size = 1) +
-  scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
-  scale_x_continuous(labels = scales::label_number(scale = 0.001)) +
-  coord_cartesian(ylim = c(0, 500)) +
-  theme(legend.position = "none") +
-  labs(title = "Prior predictive distribution of the mean (lambda)",
-       x = "Population in thousands", y = "mean total tools(lambda)") +
-  facet_wrap(. ~ model, scales = "free_y")
-p$nat
 ```
+
+```{r}
+plotKline2 <- list()
+plotKline2 <- within(plotKline2, {
+  p_log_s <- ggplot(simKline2$data_log_s, 
+                    aes(x = log_pop_s, y = lambda, group = id, color = model)) +
+    geom_line() +
+    scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
+    theme(legend.position = "none") +
+    labs(title = "Prior predictive distribution of the mean (lambda)",
+       x = "Standard log population", y = "mean total tools(lambda)") +
+    facet_wrap(. ~ model, scales = "free_y")
+  
+  p_log <- ggplot(simKline2$data_log, 
+                  aes(x = log_pop, y = lambda, group = id, color = model)) +
+    geom_line() +
+    scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
+    coord_cartesian(ylim = c(0, 500)) +
+    theme(legend.position = "none") +
+    labs(title = "Prior predictive distribution of the mean (lambda)",
+       x = "Log population", y = "mean total tools(lambda)") +
+    facet_wrap(. ~ model, scales = "free_y")
+  
+  hline <- 100
+  p_nat <- ggplot(simKline2$data_log, 
+                  aes(x = exp(log_pop), y = lambda, group = id, color = model)) +
+    geom_line() +
+    geom_hline(yintercept = hline, color = "darkblue", linetype = "dashed", size = 1) +
+    scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
+    scale_x_continuous(labels = scales::label_number(scale = 0.001)) +
+    coord_cartesian(ylim = c(0, 500)) +
+    theme(legend.position = "none") +
+    labs(title = "Prior predictive distribution of the mean (lambda)",
+       x = "Population in thousands", y = "mean total tools(lambda)") +
+    facet_wrap(. ~ model, scales = "free_y")
+})
+wrap_plots(plotKline2[c("p_log_s", "p_log", "p_nat")], nrow = 1) +
+  plot_annotation(title = "Prior predictive distribution of the mean (lambda)",
+       subtitle = names(simKline2$lst_log)[2])
+```
+
 
 and the same plots as McElreaths with the chosen priors
 
 ```{r}
-p <- list()
-p$log_s <- ggplot(sim$lst_log_s[[2]], aes(x = log_pop_s, y = lambda, group = id)) +
-  geom_line(color = "lightcoral") +
-  theme(legend.position = "none") +
-  labs(x = "Standard log population", y = "mean total tools(lambda)")
+plotKline3 <- list()
+plotKline3 <- within(plotKline3, {
+  p_log_s <- ggplot(simKline2$lst_log_s[[2]], aes(x = log_pop_s, y = lambda, group = id)) +
+    geom_line(color = "lightcoral") +
+    theme(legend.position = "none") +
+    labs(x = "Standard log population", y = "mean total tools(lambda)")
 # p$log_s
 
-p$log <- ggplot(sim$lst_log[[2]], aes(x = log_pop, y = lambda, group = id, color = model)) +
-  geom_line(color = "darkgoldenrod") +
-  coord_cartesian(ylim = c(0, 500)) +
-  theme(legend.position = "none") +
-  labs(x = "Log population", y = "mean total tools(lambda)")
+  p_log <- ggplot(simKline2$lst_log[[2]], aes(x = log_pop, y = lambda, group = id, color = model)) +
+    geom_line(color = "darkgoldenrod") +
+    coord_cartesian(ylim = c(0, 500)) +
+    theme(legend.position = "none") +
+    labs(x = "Log population", y = "mean total tools(lambda)")
 # p$log
 
-p$hline <- 100
-p$nat <- ggplot(sim$lst_log[[2]], aes(x = exp(log_pop), y = lambda, group = id, color = model)) +
-  geom_line(color = "lightseagreen") +
-  geom_hline(yintercept = p$hline, color = "darkblue", linetype = "dashed", size = 1) +
-  scale_x_continuous(labels = scales::label_number(scale = 0.001)) +
-  coord_cartesian(ylim = c(0, 500)) +
-  theme(legend.position = "none") +
-  labs(x = "Population in thousands", y = "mean total tools(lambda)")
-# p$nat
-
-p$log_s + p$log + p$nat +
+  hline <- 100
+  p_nat <- ggplot(simKline2$lst_log[[2]], aes(x = exp(log_pop), y = lambda, group = id, color = model)) +
+    geom_line(color = "lightseagreen") +
+    geom_hline(yintercept = hline, color = "darkblue", linetype = "dashed", size = 1) +
+    scale_x_continuous(labels = scales::label_number(scale = 0.001)) +
+    coord_cartesian(ylim = c(0, 500)) +
+    theme(legend.position = "none") +
+    labs(x = "Population in thousands", y = "mean total tools(lambda)")
+})
+wrap_plots(plotKline3[c("p_log_s", "p_log", "p_nat")], nrow = 1) +
   plot_annotation(title = "Prior predictive distribution of the mean (lambda)",
-       subtitle = names(sim$lst_log)[2])
+       subtitle = names(simKline2$lst_log)[2])
 ```
 
 ##### slope as per textbook
 
 ```{r}
-p <- list(nlines = 50)
-# p$pop_log <- seq_range(x = log(dataKline$population), n = 10)
-p$pop_log <- c(2, floor(max(log(dataKline$population))))
-p <- within(p, {
+plotSlopes <- list()
+plotSlopes <- within(plotSlopes, {
+  nlines <- 50
+  pop_log <- c(2, floor(max(log(dataKline$population))))
   df <- data.frame(
     id = seq_len(nlines),
-    a = rnorm(nlines, mean = 3, sd = 0.5)) %>%
+    a = rnorm(nlines, mean = 3, sd = 0.5)) |>
     mutate(
       `beta%~%Normal(0*', '*0.10)`  = rnorm(nlines, mean = 0 , sd = 0.10),
       `beta%~%Normal(0*', '*0.20)` = rnorm(nlines, mean = 0 , sd = 0.20),
       `beta%~%Normal(0*', '*0.30)` = rnorm(nlines, mean = 0 , sd = 0.30),
       `beta%~%Normal(0*', '*0.40)` = rnorm(nlines, mean = 0 , sd = 0.40),
       `beta%~%Normal(0*', '*0.50)` = rnorm(nlines, mean = 0 , sd = 0.50),
-      `beta%~%Normal(0*', '*0.60)` = rnorm(nlines, mean = 0 , sd = 0.60)
-         ) %>% 
-    pivot_longer(contains("beta"), values_to = "b", names_to = "prior") %>% 
+      `beta%~%Normal(0*', '*0.60)` = rnorm(nlines, mean = 0 , sd = 0.60)) |>
+    pivot_longer(contains("beta"), values_to = "b", names_to = "prior") |> 
     expand(nesting(id, a, b, prior),
            x = seq(from = pop_log[1], to = pop_log[2], length.out = 10))
-})
-# glimpse(p$df)
-
-p$log <- ggplot(p$df, aes(x = x, y = exp(a + b * x), group = id, color = prior)) +
-  geom_line() +
-  scale_x_continuous(breaks = scales::breaks_extended(n = 5),
-                     labels = scales::label_number(accuracy = 1)) +
-  scale_y_continuous(breaks = scales::breaks_extended(n = 5),
-                     labels = scales::label_number_auto()) +
-  scale_color_paletteer_d("LaCroixColoR::PassionFruit") +
-  coord_cartesian(ylim = c(0, 500)) +
-  theme(legend.position = "none",
+  
+   p_log <- ggplot(df, aes(x = x, y = exp(a + b * x), group = id, color = prior)) +
+    geom_line() +
+    scale_x_continuous(breaks = scales::breaks_extended(n = 5),
+                      labels = scales::label_number(accuracy = 1)) +
+    scale_y_continuous(breaks = scales::breaks_extended(n = 5),
+                      labels = scales::label_number_auto()) +
+    scale_color_paletteer_d("LaCroixColoR::PassionFruit") +
+    coord_cartesian(ylim = c(0, 500)) +
+    theme(legend.position = "none",
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
-  labs(title = "Prior predictive distribution of the mean (lambda)", 
-       x = "population (log)", y = "Tools") +
-  facet_wrap(. ~ prior, labeller = label_parsed)
-p$log
+    labs(title = "Prior predictive distribution of the mean (lambda)", 
+        x = "population (log)", y = "Tools") +
+    facet_wrap(. ~ prior, labeller = label_parsed)
+   
+   hline <- 100
+   p_nat <- ggplot(df, aes(x = exp(x), y = exp(a + b * x), group = id, color = prior)) +
+      geom_line() +
+      geom_hline(yintercept = hline, color = "darkblue", linetype = "dashed", size = 1) +
+      scale_x_continuous(breaks = scales::breaks_extended(n = 5),
+                     labels = scales::label_number(accuracy = 1, scale = 0.001)) +
+      scale_y_continuous(breaks = hline,
+                     labels = scales::label_number_auto()) +
+      scale_color_paletteer_d("LaCroixColoR::PassionFruit") +
+    coord_cartesian(ylim = c(0, 500)) +
+    theme(legend.position = "none",
+        strip.background = element_rect(fill = "wheat", color = NA)) +
+    labs(title = "Prior predictive distribution of the mean (lambda)", 
+       x = "population in thousands", y = "Tools") +
+    facet_wrap(. ~ prior, labeller = label_parsed)
+})
+plotSlopes$p_log
 ```
 
-and visulizing on the natural scale which is the best way to understand it
+and visualizing on the natural scale which is the best way to understand it
 
 ```{r}
-p$hline <- 100
-p$nat <- ggplot(p$df, aes(x = exp(x), y = exp(a + b * x), group = id, color = prior)) +
-  geom_line() +
-  geom_hline(yintercept = p$hline, color = "darkblue", linetype = "dashed", size = 1) +
-  scale_x_continuous(breaks = scales::breaks_extended(n = 5),
-                     labels = scales::label_number(accuracy = 1, scale = 0.001)) +
-  scale_y_continuous(breaks = p$hline,
-                     labels = scales::label_number_auto()) +
-  scale_color_paletteer_d("LaCroixColoR::PassionFruit") +
-  coord_cartesian(ylim = c(0, 500)) +
-  theme(legend.position = "none",
-        strip.background = element_rect(fill = "wheat", color = NA)) +
-  labs(title = "Prior predictive distribution of the mean (lambda)", 
-       x = "population in thousands", y = "Tools") +
-  facet_wrap(. ~ prior, labeller = label_parsed)
-p$nat
+plotSlopes$p_nat
 ```
 
 #### Model and fit
@@ -1230,63 +1235,66 @@ $$
 
 The fit with intercept only
 
-```{r ch11_b11_09}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b11.9 <- xfun::cache_rds({
+```{r ch11_fit11_09}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+fit11_09 <- xfun::cache_rds({
   out <- brm(data = dataKline,
              family = poisson,
              formula = total_tools ~ 1,
              prior = c(prior(normal(3, 0.5), class = Intercept)),
-             cores = detectCores(), seed = 11)
+             iter = 1000, warmup = 500, chains = 2, 
+             cores = detectCores(), seed = 1163)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_09")
+  file = "ch11_fit11_09")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b11.9)
+posterior_summary(fit11_09)
 ```
 
 and the model with the interaction between population and contact
 
-```{r ch11_b11_10}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
-b11.10 <- xfun::cache_rds({
+```{r}
+get_prior(formula = bf(total_tools ~ 0 + (1 + log_pop_s | cid)),
+          data = dataKline, family = poisson)
+```
+
+
+
+```{r ch11_fit11_10}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit11_10 <- xfun::cache_rds({
   out <- brm(data = dataKline,
              family = poisson,
-             formula = bf(total_tools ~ a + b * log_pop_s,
-                          a + b ~ 0 + cid,
-                          nl = TRUE),
-             prior = c(prior(normal(3, 0.5), nlpar = a),
-                       prior(normal(0, 0.2), nlpar = b)),
-             cores = detectCores(), seed = 11)
+             formula = bf(total_tools ~ 0 + (1 + log_pop_s | cid)),
+             prior = c(prior(normal(3, 0.5), class = sd, coef = Intercept, group = cid),
+                       prior(normal(0, 0.2), class = sd, coef = log_pop_s, group = cid)),
+             iter = 1000, warmup = 500, chains = 2,
+             cores = detectCores(), seed = 1171)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_10")
+  file = "ch11_fit11_10")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b11.10)
+posterior_summary(fit11_10) |>
+  round(digits = 3)
 ```
+
 
 and we compare the LOO
 
 ```{r}
-loo::loo_compare(b11.9, b11.10, criterion = "loo") %>%
+loo::loo_compare(fit11_09, fit11_10, criterion = "loo") |>
   print(simplify = FALSE)
 ```
 
-with the model weights
+and we look at the pareto k since a warning was issued by `add_criterion()` above
 
 ```{r}
-model_weights(b11.9, b11.10) %>% 
-  round(digits = 2)
-```
-
-and we look ate the pareto k since a warning was issued by `add_criterion()` above
-
-```{r}
-loo::loo(b11.10) %>% loo::pareto_k_table()
+loo::loo(fit11_10) |> 
+  loo::pareto_k_table()
 ```
 
 and we add the *pareto k* to the data
@@ -1294,11 +1302,11 @@ and we add the *pareto k* to the data
 ```{r}
 # append k value to data
 dataKline <- dataKline %>%
-  mutate(ParetoK = round(b11.10$criteria$loo$diagnostics$pareto_k, 1))
+  mutate(ParetoK = round(fit11_10$criteria$loo$diagnostics$pareto_k, 1))
 stopifnot(!any(is.na(dataKline)))
 
-dataKline %>%
-  select(culture, ParetoK) %>%
+dataKline |>
+  select(culture, ParetoK) |>
   arrange(desc(ParetoK))
 ```
 
@@ -1306,29 +1314,25 @@ dataKline %>%
 
 #### Plotting the posterior
 
-```{r}
-samples <- list()
-samples <- within(samples, {
-  newdata <- dataKline %>%
-    distinct(cid) %>%
-    expand(cid, log_pop_s = seq_range(dataKline$log_pop_s, n = 20, pretty = TRUE))
-  data <- epred_draws(b11.10, newdata = newdata)
-  stats <- data %>%
-    select(cid, log_pop_s, .epred) %>%
-    ggdist::mean_qi(.width = 0.89) %>%
-    as.data.frame() %>%
-    mutate(population = log_pop_s * sd(log(dataKline$population)) + 
+The expected predicitons
+
+```{r ch11_epred11_10}
+epred11_10 <- expand_grid(
+  cid = unique(dataKline$cid),
+  log_pop_s = seq_range(dataKline$log_pop_s, n = 20, pretty = TRUE)) |>
+  add_epred_rvars(fit11_10) |>
+  mean_qi(.epred, .width = 0.89) |>
+  mutate(population = log_pop_s * sd(log(dataKline$population)) + 
              mean(log(dataKline$population)),
            population = round(exp(population), 0))
-})
-# str(samples$data)
-# samples$stats
+# epred11_10
+```
 
-
-p <- list()
-p$log <- ggplot(dataKline,
-                aes(x = log_pop_s, y = total_tools, color = cid)) +
-  geom_smooth(samples$stats,
+```{r ch11_plot11_10}
+plot11_10 <- list()
+plot11_10 <- within(plot11_10, {
+  p_log <- ggplot(dataKline, aes(x = log_pop_s, y = total_tools, color = cid)) +
+  geom_smooth(epred11_10,
               mapping = aes(x = log_pop_s, y = .epred, ymin = .lower,
                             ymax = .upper, fill = cid, color = cid),
               inherit.aes = FALSE, stat = "identity") +
@@ -1336,11 +1340,9 @@ p$log <- ggplot(dataKline,
   ggrepel::geom_text_repel(aes(label = paste0(culture, "(", ParetoK, ")")), size = 3) +
   coord_cartesian(ylim = c(0, 100)) +
   labs(x = "standardized population log")
-# p$log
-
-p$nat <- ggplot(dataKline,
-                aes(x = population, y = total_tools, color = cid)) +
-  geom_smooth(samples$stats,
+  
+  p_nat <- ggplot(dataKline, aes(x = population, y = total_tools, color = cid)) +
+  geom_smooth(epred11_10,
               mapping = aes(x = population, y = .epred, ymin = .lower,
                             ymax = .upper, fill = cid, color = cid),
               inherit.aes = FALSE, stat = "identity") +
@@ -1350,9 +1352,8 @@ p$nat <- ggplot(dataKline,
   scale_x_continuous(breaks = scales::breaks_extended(n = 5),
                      labels = scales::label_number(scale = 0.001)) +
   labs(x = "population in thousands")
-# p$nat
-
-wrap_plots(p$log, p$nat) &
+})
+wrap_plots(plot11_10[c("p_log", "p_nat")]) &
   scale_color_paletteer_d("khroma::bright") &
   scale_fill_paletteer_d("khroma::bright") &
   theme(legend.position = c(0.2, 0.90),
@@ -1360,6 +1361,7 @@ wrap_plots(p$log, p$nat) &
   plot_annotation(title = "Posterior fitted values for Oceanic Tools model",
                   subtitle = "Model b11.10 - Size of points is the paretor_k factor")
 ```
+
 
 #### Overthinking: Modeling tool innovation
 
@@ -1396,11 +1398,12 @@ total\_tools_i &\sim \mathcal{Poisson}(\lambda_i) \\
 \end{align*}
 $$
 
-and the fit, **see identity in poisson(link = "identity")**, this is important and read warning from Kurtz on this.
+and the fit, **see identity in poisson(link = "identity")**, this is 
+important and read warning from Kurtz on this.
 
-```{r ch11_b11_11}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
-b11.11 <- xfun::cache_rds({
+```{r ch11_fit11_11}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit11_11 <- xfun::cache_rds({
   out <- brm(data = dataKline,
       family = poisson(link = "identity"),
       bf(total_tools ~ exp(a) * population^b / g,
@@ -1410,35 +1413,33 @@ b11.11 <- xfun::cache_rds({
       prior = c(prior(normal(1, 1), nlpar = a),
                 prior(exponential(1), nlpar = b, lb = 0),
                 prior(exponential(1), nlpar = g, lb = 0)),
-      cores = detectCores(), seed = 11,
+      iter = 1000, warmup = 500, chains = 2,
+      cores = detectCores(), seed = 1181,
       control = list(adapt_delta = .95))
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_11")
+  file = "ch11_fit11_11")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b11.11)
+posterior_summary(fit11_11) |>
+  round(digits = 2)
 ```
 
+with the expected predictions
+
+```{r ch11_epred11_11}
+epred11_11 <- expand_grid(
+  cid = unique(dataKline$cid),
+  population = seq_range(dataKline$population, n = 20, pretty = TRUE)) |>
+  add_epred_rvars(fit11_11) |>
+  mean_qi(.epred, .width = 0.89)
+```
+
+
 ```{r}
-samples <- list()
-samples <- within(samples, {
-  newdata <- dataKline %>%
-    distinct(cid) %>%
-    expand(cid, population = seq_range(dataKline$population, n = 20, pretty = TRUE))
-  data <- epred_draws(b11.11, newdata = newdata)
-  stats <- data %>%
-    select(cid, population, .epred) %>%
-    ggdist::mean_qi(.width = 0.89)
-})
-# str(samples$data)
-# samples$stats
-
-
-p$science <- ggplot(dataKline,
-                aes(x = population, y = total_tools, color = cid)) +
-  geom_smooth(samples$stats,
+ggplot(dataKline, aes(x = population, y = total_tools, color = cid)) +
+  geom_smooth(epred11_11,
               mapping = aes(x = population, y = .epred, ymin = .lower,
                             ymax = .upper, fill = cid, color = cid),
               inherit.aes = FALSE, stat = "identity") +
@@ -1453,24 +1454,18 @@ p$science <- ggplot(dataKline,
   labs(title = "Fitted values with the scientific model",
        subtitle = "model b11.11",
        x = "population in thousands")
-p$science
 ```
+
 
 #### final model comparison
 
 ```{r}
-loo::loo_compare(b11.9, b11.10, b11.11, criterion = "loo") %>%
+loo::loo_compare(fit11_09, fit11_10, fit11_11, criterion = "loo") |>
   print(simplify = FALSE)
 ```
 
 So the model b11.11 is slightly better. Note however that the difference is well within the standard deviation so that we can actually say that the 2 are as accurate. The scientific model is more interpretable nonetheless.
 
-And the model weights.
-
-```{r}
-model_weights(b11.9, b11.10, b11.11) %>% 
-  round(digits = 2)
-```
 
 ### Negative binomial (gamma-Poisson) models
 
@@ -1484,7 +1479,9 @@ When we have different unit of times, or distance (or other denominator), $\tau_
 
 $$
 \lambda = \frac{\mu}{\tau}
-$$ and now the link is
+$$ 
+
+and now the link is
 
 $$
 \begin{align*}
@@ -1523,24 +1520,25 @@ nb_i &\sim \mathcal{Poisson}(\mu_i) \\
 \end{align*}
 $$
 
-and the fit. With `brms` you use the `offset()` funciton.
+and the fit. With `brms` you use the `offset()` function.
 
-```{r ch11_b11_12}
+```{r ch11_fit11_12}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
-b11.12 <- xfun::cache_rds({
+fit11_12 <- xfun::cache_rds({
   out <- brm(data = dataMonastery,
       family = poisson,
       nb ~ 1 + offset(days_lg) + monastery,
       prior = c(prior(normal(0, 1), class = Intercept),
                 prior(normal(0, 1), class = b)),
-      cores = detectCores(), seed = 11)
+      iter = 1000, warmup = 500, chains = 2,
+      cores = detectCores(), seed = 1187)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_b11_12")
+  file = "ch11_fit11_12")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b11.12)
+fit11_12
 ```
 
 and to get the rates on the natural scale we use
@@ -1554,20 +1552,24 @@ $$
 
 and the results are
 
-```{r}
-as_draws_df(b11.12) %>%
+```{r ch11_post11_12}
+spread_rvars(fit11_12, b_Intercept, b_monastery) |>
   mutate(lambda_old = exp(b_Intercept),
-         lambda_new = exp(b_Intercept + b_monastery)) %>%
-  pivot_longer(starts_with("lambda"), names_to = "monastery") %>% 
-  mutate(monastery = factor(monastery, levels = c("lambda_old", "lambda_new"))) %>%
-  group_by(monastery) %>%
-  mean_qi(value, .width = .89) %>% 
-  mutate(across(.cols = where(is.double), .fns = round, digits = 2))
+         lambda_new = exp(b_Intercept + b_monastery)) |>
+  pivot_longer(starts_with("lambda"), names_to = "monastery") |>
+  mutate(monastery = factor(monastery, levels = c("lambda_old", "lambda_new"))) |>
+  group_by(monastery) |>
+  mean_qi(value, .width = .89) |> 
+  mutate(across(.cols = where(is.double), .fns = round, digits = 2)) |>
+  select(-b_Intercept, -b_monastery)
 ```
+
 
 ## Multinomial and categorical models
 
-**Important**: It is important to read @kurtz2020b in this section because \* McElreath seems to have obtained the wrong results \* Kurtz gives significantly more details and extrememly important explanations
+**Important**: It is important to read @kurtz2020b in this section because 
+*McElreath seems to have obtained the wrong results*. Kurtz gives significantly 
+more details and extrememly important explanations
 
 $$
 \begin{align*}
@@ -1585,9 +1587,11 @@ $$
 
 ### Predictors matched to outcomes
 
-The career are the outcomes. We now predict the career using a trait of the career (outcome itself) which is the income in this case.
+The career are the outcomes. We now predict the career using a trait of the 
+career (outcome itself) which is the income in this case.
 
 ```{r}
+stop("TODO")
 sim <- list()
 sim <- within(sim, {
   income <- c(1, 2, 5)
