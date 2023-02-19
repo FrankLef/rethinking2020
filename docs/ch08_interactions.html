@@ -319,7 +319,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">rugged_sc =</span> <span class="fu">as.vector</span>(<span class="fu">scale</span>(rugged_s, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)))</span>
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>dataRugged_nona <span class="sc">|&gt;</span></span>
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(log_gdp, log_gdp_s, rugged, rugged_s, rugged_sc) <span class="sc">|&gt;</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  skimr<span class="sc">::</span><span class="fu">skim</span>() <span class="sc">|&gt;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">skim</span>() <span class="sc">|&gt;</span></span>
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n_missing, <span class="sc">-</span>complete_rate) <span class="sc">|&gt;</span></span>
 <span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -525,7 +525,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch08_fit08_01a"</span>)</span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.13 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.14 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -608,7 +608,7 @@ lp__              91.845     1.152 88.832 93.182</code></pre>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch08_fit08_01b"</span>)</span>
 <span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.34 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.33 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -697,7 +697,7 @@ lp__              95.237     1.297 91.928 96.698</code></pre>
 <span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch08_fit08_02"</span>)</span>
 <span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.16 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -817,7 +817,7 @@ fit08_01b   13.0 </code></pre>
 <span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch08_fit08_03"</span>)</span>
 <span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.24 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.27 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -929,9 +929,9 @@ blooms\_r_i = blooms - \max(blooms)  &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 \sigma &amp;\sim \mathcal{Exp}(1)
 \end{align*}
 \]</span></p>
-<p>When looking at the data with <code>skimr::skim()</code> to evaluate the priors we obtain</p>
+<p>When looking at the data with <code>skim()</code> to evaluate the priors we obtain</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(dataTulips) <span class="sc">|&gt;</span></span>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skim</span>(dataTulips) <span class="sc">|&gt;</span></span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n_missing, <span class="sc">-</span>complete_rate) <span class="sc">|&gt;</span></span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -1122,7 +1122,7 @@ blooms\_r_i = blooms - \max(blooms)  &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <pre><code>[1] 6.334248e-05</code></pre>
 </div>
 </div>
-<p>which means virtually almost all values will be between -1 and 1. When looking at the <code>skimr::skim()</code> summary we see that there are many extreme values so this prior covers this situation well.</p>
+<p>which means virtually almost all values will be between -1 and 1. When looking at the <code>skim()</code> summary we see that there are many extreme values so this prior covers this situation well.</p>
 <p>Therefore, our model with a little more informative priors is</p>
 <p><span class="math display">\[
 \begin{align*}
@@ -1151,7 +1151,7 @@ blooms\_r_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch08_fit08_04"</span>)</span>
 <span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.14 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1201,7 +1201,7 @@ blooms\_r_i &amp; \sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch08_fit08_05"</span>)</span>
 <span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.17 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.14 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1382,7 +1382,7 @@ lp__          -1.643     1.444 -5.345 0.151</code></pre>
 <span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch08_fit08_05prior"</span>)</span>
 <span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 20 secs., use the cache.: 0.16 sec elapsed</code></pre>
+<pre><code>run time of 20 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
