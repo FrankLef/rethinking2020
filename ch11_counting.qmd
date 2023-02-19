@@ -1795,7 +1795,6 @@ Now lets see what the fitted values for the $\mu_{cat}$ are. These fitted
 values correspond to the `softmax` which is the link function.
 
 ```{r}
-simCareer$data
 epred11_13null <- simCareer$data |>
   distinct(career) |>
   add_epred_draws(fit11_13null) |>
@@ -2063,20 +2062,34 @@ post11_14 <- data.frame(
   add_epred_draws(fit11_14) |>
   mean_qi() |>
   identity()
-post11_14
+# post11_14
+```
+
+```{r}
+
 ```
 
 
-
 ```{r ch11_plot11_14}
-ggplot(post11_14, aes(x = family_income, y = .epred, ymin = .lower, ymax = .upper, 
+plot11_14 <- list()
+plot11_14 <- within(plot11_14, {
+  df <- dataCareer |>
+    mutate(family_income = plyr::round_any(family_income, 0.25)) |>
+    count(career, family_income) |>
+    mutate(probs = n / sum(n))
+  
+  p <- ggplot(post11_14, aes(x = family_income, y = .epred, ymin = .lower, ymax = .upper, 
                     color = .category, fill = .category)) +
-  geom_smooth(stat = "identity") +
-  scale_color_paletteer_d("khroma::vibrant") +
-  scale_fill_paletteer_d("khroma::vibrant") +
-  theme(legend.position = "bottom") +
-  labs(title = "probabilities of career relative to family income",
+    geom_point(df, mapping = aes(x = family_income, y = probs, color = as.factor(career), fill = as.factor(career)),
+               inherit.aes = FALSE) +
+    geom_smooth(stat = "identity") +
+    scale_color_paletteer_d("khroma::vibrant") +
+    scale_fill_paletteer_d("khroma::vibrant") +
+    theme(legend.position = "bottom") +
+    labs(title = "probabilities of career relative to family income",
        y = "probabilities", color = "career", fill = "career")
+})
+plot11_14$p
 ```
 
 ### Multinomial in disguise as Poisson
@@ -2091,5 +2104,58 @@ dataAdmit |>
   select(-n_missing, -complete_rate) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
 ```
+
+```{r ch11_fit11_15binom}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit11_15binom <- xfun::cache_rds({
+  out <- brm(data = dataAdmit, 
+             family = binomial,
+             formula = admit | trials(applications) ~ 1,
+             prior = c(prior(normal(0, 1.5), class = Intercept)),
+             iter = 2000, warmup = 1000, chains = 4,
+             cores = detectCores(), seed = 1193)
+  out <- brms::add_criterion(out, criterion = "loo")},
+  file = "ch11_fit11_15binom")
+tictoc::toc()
+```
+
+
+
+```{r ch11_fit11_15pois}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+fit11_15pois <- xfun::cache_rds({
+  out <- brm(data = dataAdmit, 
+             family = poisson,
+             formula = mvbind(admit, rejct) ~ 1,
+             prior = c(prior(normal(0, 1.5), class = Intercept)),
+             iter = 2000, warmup = 1000, chains = 4,
+             cores = detectCores(), seed = 1193)
+  out <- brms::add_criterion(out, criterion = "loo")},
+  file = "ch11_fit11_15pois")
+tictoc::toc()
+```
+and the posterior distribution for the Poisson fit
+
+```{r}
+get_variables(fit11_15pois)
+gather_rvars(fit11_15pois, b_admit_Intercept, b_rejct_Intercept)
+```
+
+
+```{r}
+gather_rvars(fit11_15pois, b_admit_Intercept, b_rejct_Intercept) |>
+  mutate(.value = exp(.value),
+         .variable = sub(pattern = "_Intercept", replacement = "", x = .variable),
+         .variable = sub(pattern = "b_", replacement = "", x = .variable)) |>
+  ggplot(aes(xdist = .value, y = .variable, fill = .variable)) +
+  stat_halfeye(point_interval = median_qi, .width = 0.95) +
+  theme(legend.position = "none") +
+  labs(title = "Distribution of rate of admission and reject across departments",
+       x = "nb of applicaitons", y = NULL)
+```
+
+
+
+
 
 ## Summary
