@@ -58,7 +58,7 @@ Load the data
 
 ```{r ch11_dataChimp}
 data(chimpanzees)
-dataChimp <- chimpanzees %>%
+dataChimp <- chimpanzees |>
   mutate(actor = factor(actor),
          treatment = factor(1 + prosoc_left + 2 * condition, levels = 1:4,
                             labels = c("AR", "AL", "PR", "PL")))
@@ -113,14 +113,15 @@ c(10, 1.5)
 ```
 
 ```{r ch11_fit11_01}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 fit11_01 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
-              family = binomial,
-              formula = pulled_left | trials(1) ~ 1,
+              family = bernoulli,
+              formula = pulled_left ~ 1,
               prior = c(
                 prior(normal(0, 10), class = Intercept)),
-              seed = 1103, cores = detectCores(),
+             iter = 1000, warmup = 500, chains = 2,
+             cores = detectCores(), seed = 1103,
               sample_prior = TRUE)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_fit11_01")
@@ -150,7 +151,7 @@ logit(p_i) &= \alpha \\
 $$
 
 ```{r ch11_fit11_01b}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit11_01b <- xfun::cache_rds({
   out <- update(fit11_01,
                 prior = c(
@@ -249,7 +250,7 @@ ggplot(sim11_01$df, aes(x = p, color = model)) +
 
 #### Prior for $\beta_{treatment[i]}$
 
-Now we find the sd value for the prior $\beta_k &\sim \mathcal{N}(0, sd)$. 
+Now we find the sd value for the prior $\beta_k \sim \mathcal{N}(0, sd)$. 
 Note that Solomon Kurtz in @kurtz2020b uses `inv_logit_scaled()` whereas 
 mcElreath in @elreath2020 uses `inv_logit()`.
 
@@ -278,16 +279,17 @@ get_prior(formula = pulled_left | trials(1) ~ 1 + treatment, data = dataChimp,
 
 
 ```{r ch11_fit11_02}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 fit11_02 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
-              family = binomial,
-              formula = bf(pulled_left | trials(1) ~ (1 | treatment)),
+              family = bernoulli,
+              formula = bf(pulled_left ~ (1 | treatment)),
               prior = c(
                 prior(normal(0, 1.5), class = Intercept),
                 prior(normal(0, 1.5), class = sd, coef = Intercept, group = treatment),
                 prior(normal(0, 10), class = sd, group = treatment)),
               sample_prior = TRUE,
+             iter = 2000, warmup = 1000, chains = 4,
              cores = detectCores(), seed = 1109)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   }, file = "ch11_fit11_02")
@@ -410,22 +412,23 @@ We use `get_prior()` to help us figure out the priors.
 
 ```{r}
 get_prior(data = dataChimp,
-          formula = bf(pulled_left | trials(1) ~ 0 + (1 | actor) + (1 | treatment)),
-          family = binomial)
+          formula = bf(pulled_left ~ 0 + (1 | actor) + (1 | treatment)),
+          family = bernoulli)
 ```
 
 
 ```{r ch11_fit11_04}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit11_04 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
-              family = binomial,
-              formula = bf(pulled_left | trials(1) ~ 0 + (1 | actor) + (1 | treatment)),
+              family = bernoulli,
+              formula = bf(pulled_left ~ 0 + (1 | actor) + (1 | treatment)),
               prior = c(
                 prior(normal(0, 0.5), class = sd, coef = Intercept, group = actor),
                 prior(normal(0, 1.5), class = sd, group = actor),
                 prior(normal(0, 0.5), class = sd, coef = Intercept, group = treatment),
                 prior(normal(0, 0.5), class = sd, group = treatment)),
+             iter = 2000, warmup = 1000, chains = 4,
              cores = detectCores(), seed = 1117)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
   file = "ch11_fit11_04")
@@ -454,14 +457,12 @@ post11_04 <- within(post11_04, {
   actor <- fit11_04 |> 
     spread_rvars(sd_actor__Intercept, r_actor[actor, term]) |>
     mutate(estimate = inv_logit_scaled(r_actor)) |>
-    mean_qi(r_actor, estimate) |>
-    identity()
+    mean_qi(r_actor, estimate)
   
   treatment <- fit11_04 |> 
     spread_rvars(sd_treatment__Intercept, r_treatment[treatment, term]) |>
     mutate(estimate = inv_logit_scaled(r_treatment)) |>
-    mean_qi(r_treatment, estimate) |>
-    identity()
+    mean_qi(r_treatment, estimate)
   
   diff <- fit11_04 |> 
     tidy_draws(r_treatment[treatment, ]) |>
@@ -479,10 +480,7 @@ post11_04 <- within(post11_04, {
                  names_to = "treatment",
                  values_to = "estimate") |>
     group_by(treatment) |>
-    mean_qi(estimate) |>
-    identity()
-    # spread_rvars(r_treatment[treatment, ]) |>
-    # pivot_wider(names_from = treatment, values_from = r_treatment)
+    mean_qi(estimate)
 })
 # glimpse(post11_04$diff)
 ```
