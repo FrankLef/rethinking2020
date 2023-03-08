@@ -23,16 +23,26 @@ library(patchwork)
 library(paletteer)
 ```
 
-We set the current theme used for plotting
+
+Some options to facilitate the computations
+
+```{r}
+#  For execution on a local, multicore CPU with excess RAM
+options(mc.cores = parallel::detectCores())
+#  To avoid recompilation of unchanged Stan programs
+rstan_options(auto_write = TRUE)
+```
+
+The default theme used by `ggplot2`
 
 ```{r}
 theme_set(
   ggthemes::theme_hc(base_size = 12, base_family = "sans", style = "darkunica") +
   theme(title = element_text(color = "floralwhite"),
         axis.title.y = element_text(angle = 90),
-        strip.background = element_rect(fill = "darkgrey"))
-  )
+        strip.background = element_rect(fill = "darkgrey")))
 ```
+
 
 ## Over-dispersed outcomes
 
@@ -46,14 +56,39 @@ $$
 \mathcal{Beta}(x|\alpha, \beta) =
 \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} x^{\alpha -1} (1-x)^{\beta -1} =
 \frac{1}{B(\alpha, \beta)} x^{\alpha -1} (1-x)^{\beta -1}, 0 \leq x \leq 1
-$$ which is not the format used by McElreath. He uses the following shape parameters which are much easier to understand as $\mu$ is the **average** of the distribution and $\kappa$ is the **spread**.
-
-$$
-\mu = \bar{p} = \frac{\alpha}{\alpha + \beta} \\
-\kappa = \theta = \alpha + \beta
 $$
 
-the `simstudy` package provide the function to perform that conversion from $mean = \mu$ and $precision = \kappa$ to the shape(mathematical) parameters $\alpha$ and $\beta$
+which is not the format used by McElreath. He uses the following shape 
+parameters which are easier (personal opinion) to understand as $\mu$ is the 
+**average** of the distribution and $\kappa$ is the **spread**.
+
+$$
+\begin{align*}
+\mu &= \bar{p} = \frac{\alpha}{\alpha + \beta} \\
+\kappa &= \theta = \alpha + \beta
+\end{align*}
+$$
+
+The beta-binomial distribution in `brms` is defined with `brms::dbeta_binomial`.
+This distribution uses the parameters $\mu$ and $\phi$. Now this is confusing
+because $\mu$ and $\phi$ are actually respectively the beta distribution's 
+$\alpha$ and $\beta$ mentioned above.
+
+So from now on we use the following parameters with the beta-binomial distribution
+from `brms`
+
+$$
+\begin{align*}
+\mu \:\text{parameter in brms:} \:\: \alpha &= \mu \cdot \kappa \\
+\phi \: \text{phi parameter in brms:} \:\:\beta &= (1-\alpha) \cdot \kappa
+\end{align*}
+$$
+
+
+
+the `simstudy` package provide the function to perform that conversion from 
+$mean = \mu$ and $precision = \kappa$ to the shape(mathematical) parameters 
+$\alpha$ and $\beta$
 
 ```{r}
 paramsMeanKappa <- list(mean = 0.5, kappa = 5)
@@ -62,53 +97,17 @@ stopifnot(paramsShape$shape1 == paramsMeanKappa$mean * paramsMeanKappa$kappa,
           paramsShape$shape2 == (1 - paramsMeanKappa$mean) * paramsMeanKappa$kappa)
 ```
 
-and the parameters are used in different `beta` functions but give the same result.
 
-```{r}
-dens1 <- with(paramsMeanKappa, rethinking::dbeta2(0.25, mean, kappa))
-dens2 <- with(paramsShape, dbeta(0.25, shape1, shape2))
-stopifnot(dens1 == dens2)
-```
 
-and the standard deviation of the beta binomial distribution is
 
-$$
-\sigma = \sqrt{\frac{\mu(1-\mu)}{\kappa+1}}
-$$
+Variations of the beta distribution using different parameter values 
+can be illustrated as follows
 
-The beta-binomial distribution is not defined in `brms`. We need to define the family in \``brms` as well as a `stan_funs()` and `stanvar()`.
 
-```{r}
-# IMPORTANT: we could have used lb = c(NA, 0) as Kurtz does
-#            but McElreath adds 2 to theta
-# see note just below on lb = c(NA, 2)
-beta_binomial2 <- custom_family(
-  "beta_binomial2", dpars = c("mu", "phi"),
-  links = c("logit", "log"), lb = c(NA, 2),
-  type = "int", vars = "vint1[n]"
-)
-
-stan_funs <- "
-  real beta_binomial2_lpmf(int y, real mu, real phi, int T) {
-    return beta_binomial_lpmf(y | T, mu * phi, (1 - mu) * phi);
-  }
-  int beta_binomial2_rng(real mu, real phi, int T) {
-    return beta_binomial_rng(T, mu * phi, (1 - mu) * phi);
-  }
-"
-
-stanvars <- stanvar(scode = stan_funs, block = "functions")
-```
-
-> Did you notice `lb = c(NA, 2)`? In Burkner's vignette the lower bound of $\phi$ is 0. Since McElreath wanted the lower bound to 2, we will use lb = 2.
-
-See also McElreath explanation of 2 in section 12.1.1 just before R code 12.1 on p. 371.
-
-Variations of the beta-binomial distribution using different parameter values can be illustrated as follows
-
-```{r}
-p <- list()
-p$df <- crossing(pbar = c(0.25, 0.5, 0.75), theta = c(5, 15, 30)) %>% 
+```{r ch12_plotBeta}
+plotBeta <- list()
+plotBeta <- within(plotBeta, {
+  df <- crossing(pbar = c(0.25, 0.5, 0.75), theta = c(5, 15, 30)) %>% 
   expand(nesting(pbar, theta), 
          x = seq(from = 0, to = 1, length.out = 100)) %>%
   mutate(shape1 = betaGetShapes(pbar, theta)$shape1,
@@ -116,22 +115,22 @@ p$df <- crossing(pbar = c(0.25, 0.5, 0.75), theta = c(5, 15, 30)) %>%
   mutate(density = dbeta(x, shape1, shape2),
          mu = paste("mu", pbar, sep = "=="),
          kappa = paste("kappa", theta, sep = "=="))
-
-p$plot <- ggplot(data = p$df, aes(x = x, y = density)) +
-  geom_area(fill = "darkorchid1") + 
-  scale_y_continuous(NULL, labels = NULL) +
-  theme(axis.ticks.y = element_blank()) +
-  labs(title = "Beta can take many shapes",
-       x = "parameter space") +
-  facet_grid(kappa~mu, labeller = label_parsed)
-p$plot
+  
+  p <- ggplot(data = df, aes(x = x, y = density)) +
+    geom_area(fill = "darkorchid1") + 
+    scale_y_continuous(NULL, labels = NULL) +
+    theme(axis.ticks.y = element_blank()) +
+    labs(title = "Beta can take many shapes", x = "parameter space") +
+    facet_grid(kappa~mu, labeller = label_parsed)
+})
+plotBeta$p
 ```
 
 #### Beta-binomial model
 
 The data used is
 
-```{r}
+```{r ch12_dataAdmit}
 data(UCBadmit)
 dataAdmit <- UCBadmit %>%
   mutate(gid = ifelse(applicant.gender == "male", "1", "2"))
@@ -139,7 +138,8 @@ rm(UCBadmit)
 # glimpse(dataAdmit)
 ```
 
-There is an error in the model defined by McElrath, to concur with his code at 11.26, the model is
+There is an error in the model defined by McElrath, to concur with his code at 
+11.26, the model is
 
 $$
 \begin{align*}
@@ -150,154 +150,144 @@ logit(\bar{p}_i) &= \alpha_{gid[i]} \\
 \end{align*}
 $$
 
-which we fit as follows, see important note above on `beta_binomial2()`
+We can fit the model in 2 ways with `brms`: With the `beta_binomilal` family
+or with a custom family called `beta_binomial2()` as explained by [burkner](https://paul-buerkner.github.io/brms/articles/brms_customfamilies.html).
+The family `beta_binomial` and `beta_binomila2` give the same results! So we
+use `brms::beta_binomilal`
 
-```{r ch12_b12_01}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b12.1 <- xfun::cache_rds({
-  brm(
-    data = dataAdmit,
-    family = beta_binomial2,
-    admit | vint(applications) ~ 0 + gid,
-    prior = c(prior(normal(0, 1.5), class = b),
-              prior(exponential(1), class = phi)),
-    cores = detectCores(),
-    stanvars = stanvars,
-    seed = 12)},
-  file = "ch12_b12_01")
-tictoc::toc()
-```
 
 ```{r}
-summary(b12.1)
+brms::brmsfamily("beta_binomial")
 ```
+
+```{r ch12_fit12_01}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+fit12_01 <- xfun::cache_rds({
+  brm(
+    data = dataAdmit,
+    family = beta_binomial,
+    admit | trials(applications) ~ 0 + gid,
+    prior = c(prior(normal(0, 1.5), class = b),
+              prior(exponential(1), class = phi, lb = 2)),
+    iter = 1000, warmup = 500, chains = 2, 
+    cores = detectCores(), seed = 1201)},
+  file = "ch12_fit12_01")
+tictoc::toc()
+```
+```{r}
+fit12_01
+```
+
+> Did you notice `lb = 2` in `prior(exponential(1), ...)`? Since McElreath 
+wanted the lower bound to 2, we will use lb = 2.
+
+See also McElreath explanation of 2 in section 12.1.1 just before R code 12.1 
+on p. 371.
 
 and the posterior data which *represents the distribution rather than the data*
 
 ```{r}
-samples <- list()
-samples$data <- as_draws_df(b12.1) %>%
-  mutate_variables(a_diff = b_gid1 - b_gid2,
-                   p_gid1 = gtools::inv.logit(b_gid1),
-                   p_gid2 = gtools::inv.logit(b_gid2))
-samples$data %>%
-  summarize_draws("mean", "median", "sd", "mad", 
-                  ~quantile2(.x, probs = c(0.055, 0.945)),
-                  default_convergence_measures()) %>%
-  filter(variable != "lp__") %>%
-  mutate(across(.cols = where(is.double), .fns = round, digits = 2))
-
-# stats used in the plot later
-samples$stats <- list(
-  mean_pgid2 = mean(samples$data$p_gid2),
-  mean_phi = mean(samples$data$phi)
-)
+get_variables(fit12_01)
 ```
 
-and so, just like McElreath, the difference between the admission rates `a_diff` is close to zero.
 
-#### Beta-binomial plots
-
-See @kurtz2020b for the details
-
-```{r}
-set.seed(12)
-
-p <- list()
-p$df <-
-  samples$data %>%
-  slice_sample(n = 100) %>%
-  expand(nesting(.draw, p_gid2, phi),
-         x = seq(from = 0, to = 1, by = .005)) %>%
-  mutate(density = purrr::pmap_dbl(list(x, p_gid2, phi), rethinking::dbeta2))
-glimpse(p$df)
-samples$stats
-```
-
-```{r}
-ggplot(p$df, aes(x = x, y = density)) + 
-  stat_function(fun = rethinking::dbeta2,
-                args = list(prob = samples$stats$mean_pgid2,
-                            theta = samples$stats$mean_phi),
-                linewidth = 1, color = "magenta") +
-  geom_line(aes(group = .draw),
-            alpha = .2, color = "green") +
-  scale_y_continuous(breaks = scales::breaks_width(width = 0.5), limits = c(0, 3)) +
-  labs(subtitle = "distribution of female admission rates",
-       x = "probability admit", y = "density")
-```
-
-and for the posterior validation check we need to create funcitions to handle predictions and fitted values. See @kurtz2020b.
-
-```{r}
-expose_functions(b12.1, vectorize = TRUE)
-
-# required to use `predict()`
-log_lik_beta_binomial2 <- function(i, prep) {
-  mu     <- prep$dpars$mu[, i]
-  phi    <- prep$dpars$phi
-  trials <- prep$data$vint1[i]
-  y      <- prep$data$Y[i]
-  beta_binomial2_lpmf(y, mu, phi, trials)
-}
-
-posterior_predict_beta_binomial2 <- function(i, prep, ...) {
-  mu     <- prep$dpars$mu[, i]
-  phi    <- prep$dpars$phi
-  trials <- prep$data$vint1[i]
-  beta_binomial2_rng(mu, phi, trials)
-}
-
-# required to use `fitted()`
-posterior_epred_beta_binomial2 <- function(prep) {
-  mu     <- prep$dpars$mu
-  trials <- prep$data$vint1
-  trials <- matrix(trials, nrow = nrow(mu), ncol = ncol(mu), byrow = TRUE)
-  mu * trials
-}
-```
-
-```{r}
-samples$predict <- predicted_draws(b12.1, newdata = dataAdmit)
-# samples$predict
-
-samples$predict_stats <- samples$predict %>%  ggdist::mean_qi(.width = 0.89) %>%
-  mutate(case = seq_len(n()),
-         p = .prediction / applications,
-         p_lower = .lower / applications,
-         p_upper = .upper / applications)
-
-samples$epred <- epred_draws(b12.1, newdata = dataAdmit)
-
-samples$epred_stats <- samples$epred %>%  ggdist::mean_qi(.width = 0.89) %>%
-  mutate(case = seq_len(n()),
-         p = .epred / applications,
-         p_lower = .lower / applications,
-         p_upper = .upper / applications)
-
-
-p <- list()
-p$plot <- ggplot(samples$predict_stats, aes(x = case, y = p)) +
-  geom_linerange(aes(ymin = p_lower, ymax = p_upper),
-                 size = 2.5, alpha = 1/3, color = "palegreen") +
-  geom_pointrange(samples$epred_stats,
-                  mapping = aes(x = case, y = p, ymin = p_lower, ymax = p_upper),
-                  size = 1, shape = 1, color = "lightyellow") +
-  geom_point(dataAdmit %>% mutate(case = seq_len(n())), 
-             mapping = aes(x = case, y = admit / applications),  
-             size = 2, color = "turquoise") +
-  scale_x_continuous(breaks = 1:12) +
-  scale_y_continuous(breaks = 0:5 / 5, limits = c(0, 1)) +
+```{r }
+gather_rvars(fit12_01, b_gid1, b_gid2, phi) |>
+  ggplot(aes(xdist = .value, y = .variable, fill = .variable)) +
+  stat_dots(color = "white", quantiles = 20) +
   theme(legend.position = "none") +
-  labs(Title = "Admission data",
-       subtitle = "Posterior validation check",
-       y = "admittance probability")
-p$plot
+  labs(title = "Posterior distibution of model 12.1",
+       x = NULL, y = NULL)
 ```
+
+
+To do figure 12.1 a) which represents the posterior distribution of the rate of
+admission of female applicant, that is the **posterior beta distribution**
+
+
+
+```{r ch12_plot12_01_post}
+plot12_01_post <- list()
+plot12_01_post <- within(plot12_01_post, {
+  post_df <- spread_draws(fit12_01, b_gid1, b_gid2, phi) |>
+    mutate(p1 = inv_logit_scaled(b_gid1),
+           p2 = inv_logit_scaled(b_gid2),
+           ndraws = 100)
+  set.seed(1201)
+  sample_df <- post_df |>
+    slice_sample(n = 20) |>
+    select(.draw, p1, p2, phi)
+  
+  # x values used to create the data.frame
+  the_x = seq(from = 0, to = 1, by = 0.01)
+
+  beta_df <- purrr::map2_dfr(.x = sample_df$p2, .y = sample_df$phi, .f = function(mu, kappa) {
+    shapes = simstudy::betaGetShapes(mean = mu, precision = kappa)
+    shape1 = shapes$shape1
+    shape1 = shapes$shape1
+    data.frame(x = the_x,
+               y = dbeta(x = the_x, shape1 = shapes$shape1, shape2 = shapes$shape2),
+               p2 = mu,
+               phi = kappa)
+    }, .id = "id")
+  # beta_df
+  
+  mean_shapes <- simstudy::betaGetShapes(
+    mean = mean(beta_df$p2), 
+    precision = mean(beta_df$phi))
+  beta_mean_df <- data.frame(
+    x = the_x) |>
+    mutate(
+      y = dbeta(x, shape1 = mean_shapes$shape1, shape2 = mean_shapes$shape2))
+  
+  p <- ggplot(data = beta_df, aes(x = x, y = y, group = id)) +
+    geom_line(color = "yellow") +
+    geom_line(data = beta_mean_df, aes(x = x, y = y), inherit.aes = FALSE,
+              color = "green", linewidth = 2) +
+    coord_cartesian(ylim = c(0, 3)) +
+    labs(title = "Distribution of female admission rates",
+         x = "probability admit", y = "density")
+  
+})
+plot12_01_post$p
+```
+
+and for the posterior validity check
+
+
+```{r ch12_plot12_01_epred}
+plot12_01_epred <- list()
+plot12_01_epred <- within(plot12_01_epred, {
+  epred <- dataAdmit |>
+    add_epred_draws(fit12_01, ndraws = 100) |>
+    mean_qi(.width = 0.89) |>
+    mutate(p = admit / applications,
+           p_epred = .epred / applications,
+           p_lower = .lower / applications,
+           p_upper = .upper / applications)
+  
+  p <- ggplot(epred, aes(x = .row, y = p)) +
+    geom_point(color = "yellow", size = 3) +
+    geom_pointinterval(aes(x = .row, y = p_epred, ymin = p_lower, ymax = p_upper),
+                       inherit.aes = FALSE, shape = 1, fatten_point = 7, size = 1, color = "green") +
+    scale_x_continuous(breaks = scales::breaks_width(width = 1)) +
+    scale_y_continuous(breaks = scales::breaks_extended(n = 7),
+                       labels = scales::label_percent()) +
+    labs(title = "Posterior validity check",
+         subtitle = "with 89% CI",
+         x = "case", y = "admission rate")
+})
+# plot12_01_epred$epred
+plot12_01_epred$p
+```
+
 
 ### Negative-binomial or gamma-Poisson
 
-**You absolutely need to look at the Poisson-lognormal mixture in Kurtz's blog [Kurtz lognormal](https://solomonkurz.netlify.app/post/2021-07-12-got-overdispersion-try-observation-level-random-effects-with-the-poisson-lognormal-mixture/). See the added section below.**
+::: {.callout-important}
+You absolutely need to look at the Poisson-lognormal mixture in Kurtz's blog [Kurtz lognormal](https://solomonkurz.netlify.app/post/2021-07-12-got-overdispersion-try-observation-level-random-effects-with-the-poisson-lognormal-mixture/).
+:::
+
 
 #### Gamma-Poisson distribution shape
 
@@ -307,13 +297,16 @@ $$
 \mathcal{Gamma}(y \mid\alpha, \beta) = \frac{\beta^\alpha y^{\alpha-1} e^{-\beta y}}{\Gamma(\alpha)}
 $$
 
-but the rate $\beta$ and scale $\theta$ are the reciprocal of each other. Therefore the gamma distribution can be expressed in terms of shape $\alpha$ and scale $\theta$ as
+but the rate $\beta$ and scale $\theta$ are the reciprocal of each other.
+Therefore the gamma distribution can be expressed in terms of shape $\alpha$ 
+and scale $\theta$ as
 
 $$
 \mathcal{Gamma}(y \mid\alpha, \theta) = \frac{y^{\alpha-1} e^{-\frac{y}{\theta}}}{\theta^\alpha\Gamma(\alpha)}
 $$
 
-and, also, the gamma distribution can be expressed in terms of mean $\mu$ and shape $\alpha$
+and, also, the gamma distribution can be expressed in terms of mean $\mu$ 
+and shape $\alpha$
 
 $$
 \mathcal{Gamma}(y \mid \mu, \alpha) = 
@@ -321,9 +314,14 @@ $$
 y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
 $$
 
-To convert from the $\mu = mean$ and $\theta = dispersion= \frac{mean^2}{variance}$ to the shape and rate parameters we use the function `simstudy::gammaGetShapeRate()`. To help us find the mean and dispersion to use with `simstudy::gammaGetShapeRate()`, the custom function `gammaGetMeanDispersion` is also defined. It is the inverse of `simstudy::gammaGetShapeRate()`.
+To convert from the $\mu = mean$ and $\theta = dispersion= \frac{mean^2}{variance}$ 
+to the shape and rate parameters we use the function `simstudy::gammaGetShapeRate()`.
+To help us find the mean and dispersion to use with `simstudy::gammaGetShapeRate()`,
+the custom function `gammaGetMeanDispersion` is also defined. It is the inverse 
+of `simstudy::gammaGetShapeRate()`.
 
 ```{r}
+stop("TODO")
 # custom function which is the inverse function of gammaGetShapeRate()
 gammaGetMeanDispersion <- function(shape, rate) {
   stopifnot(shape > 0, rate > 0)
@@ -345,7 +343,8 @@ prm <- within(prm, {
 stopifnot(identical(prm$md, prm$values))
 ```
 
-In the `dgamma` the shape parameter influence the rate which is equivalent to Poisson $lambda$
+In the `dgamma` the shape parameter influence the rate which is equivalent to 
+Poisson $\lambda$
 
 ```{r}
 p <- list()
@@ -369,7 +368,7 @@ p$plot <- ggplot(data = p$df %>% filter(shape == 0.1, rate == 0.1),
 p$plot
 ```
 
-and the plot with different values of sape and rate
+and the plot with different values of shape and rate
 
 ```{r}
 p$plot <- ggplot(data = p$df, aes(x = x, y = density, color = rate_char)) +

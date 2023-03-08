@@ -44,11 +44,10 @@ theme_set(
         strip.background = element_rect(fill = "wheat", color = NA)))
 ```
 
-::: {.callout-note}
-Starting with this chapter, the `posterior::rvar()` datatype will be used as 
-much as possible. See [tidy-posterior](https://cran.r-project.org/web/packages/tidybayes/vignettes/tidy-posterior.html) for more details.
+::: callout-note
+Starting with this chapter, the `posterior::rvar()` datatype will be used 
+as much as possible. See [tidy-posterior](https://cran.r-project.org/web/packages/tidybayes/vignettes/tidy-posterior.html) for more details.
 :::
-
 
 ## Binomial regression
 
@@ -68,8 +67,7 @@ dataChimp |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
-We have added the variable `treatment` that is a code for `prosoc_left` and
-`condition` variables with the following meanings
+We have added the variable `treatment` that is a code for `prosoc_left` and `condition` variables with the following meanings
 
 ```{r}
 dataChimp %>%
@@ -166,7 +164,6 @@ posterior_summary(fit11_01b) |>
   round(digits = 3)
 ```
 
-
 ```{r}
 brms::inv_logit_scaled(fixef(fit11_01b)) |>
   round(digits = 3)
@@ -195,21 +192,15 @@ ggplot(prior11_01$all, aes(x = p, color = model)) +
        x = "prior prob. of pulled_left", y = NULL)
 ```
 
-
 We could also use the package `simstudy` to simulate the prior. This will be the favored approach in this project. The advantage of doing this are that
 
 1.  it is much faster and easier to modify than running `brm` repeatedly
 2.  it avoids possible problems of convergence when using a fit
-3.  it allows us to use a single variable such as $treatment$ instead of 
-creating separate prior for each when using `brms`. See what @kurtz2020b has to 
-do in its version of chapter 8. The way Kurtz did it renders the `tidybayes` 
-package less useful.
+3.  it allows us to use a single variable such as $treatment$ instead of creating separate prior for each when using `brms`. See what @kurtz2020b has to do in its version of chapter 8. The way Kurtz did it renders the `tidybayes` package less useful.
 
 ##### Prior for $\alpha$ with `simstudy`
 
-Using `simstudy` is actually pretty simple avoid having to run the fit which 
-could have convergence issues and is certainly more time-consuming.
-
+Using `simstudy` is actually pretty simple avoid having to run the fit which could have convergence issues and is certainly more time-consuming.
 
 ```{r ch11_sim11_01}
 sim11_01 <- list()
@@ -232,8 +223,6 @@ sim11_01 <- within(sim11_01, {
 })
 ```
 
-
-
 ```{r}
 #| fig-cap: "Figure 11.3"
 ggplot(sim11_01$df, aes(x = p, color = model)) +
@@ -245,19 +234,11 @@ ggplot(sim11_01$df, aes(x = p, color = model)) +
        x = "prior prob. of pulled_left", y = NULL)
 ```
 
-
-
-
 #### Prior for $\beta_{treatment[i]}$
 
-Now we find the sd value for the prior $\beta_k \sim \mathcal{N}(0, sd)$. 
-Note that Solomon Kurtz in @kurtz2020b uses `inv_logit_scaled()` whereas 
-mcElreath in @elreath2020 uses `inv_logit()`.
+Now we find the sd value for the prior $\beta_k \sim \mathcal{N}(0, sd)$. Note that Solomon Kurtz in @kurtz2020b uses `inv_logit_scaled()` whereas mcElreath in @elreath2020 uses `inv_logit()`.
 
-**Important**: In practice we could use the same prior as for $\alpha$ just above. 
-In this case however we combine the impact of $\alpha$ and $\beta$ to 
-illustrate the weirdness of flat priors. Comment from MacElreath at the end of 
-p. 328.
+**Important**: In practice we could use the same prior as for $\alpha$ just above. In this case however we combine the impact of $\alpha$ and $\beta$ to illustrate the weirdness of flat priors. Comment from MacElreath at the end of p. 328.
 
 $$
 \begin{align*}
@@ -277,7 +258,6 @@ get_prior(formula = pulled_left | trials(1) ~ 1 + treatment, data = dataChimp,
           family = binomial)
 ```
 
-
 ```{r ch11_fit11_02}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 fit11_02 <- xfun::cache_rds({
@@ -295,12 +275,14 @@ fit11_02 <- xfun::cache_rds({
   }, file = "ch11_fit11_02")
 tictoc::toc()
 ```
+
 and the coefficients, converted back to natural scale are
 
 ```{r}
 brms::inv_logit_scaled(fixef(fit11_02)) |>
   round(digits = 3)
 ```
+
 ```{r}
 posterior_summary(fit11_02) |>
   inv_logit_scaled() |>
@@ -308,7 +290,6 @@ posterior_summary(fit11_02) |>
 ```
 
 then the fit with $sd = 0.5$
-
 
 ```{r ch11_fit11_03}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "35 secs."))
@@ -331,16 +312,11 @@ posterior_summary(fit11_03) |>
   round(digits = 3)
 ```
 
-
 ##### Prior for $\beta$ with `simstudy`
 
-We also simulate $\beta$ with `sinmstudy` which is more versatile and easier to 
-code (personal opinion), e.g. no need to convert with `inv_logit_scaled` 
-and no need to run the model with `prior_draws()`. To get the prior by factor,
-that is AR, AL, etc, we need to specify every coefficient in the priors of `brmsfit`.
+We also simulate $\beta$ with `sinmstudy` which is more versatile and easier to code (personal opinion), e.g. no need to convert with `inv_logit_scaled` and no need to run the model with `prior_draws()`. To get the prior by factor, that is AR, AL, etc, we need to specify every coefficient in the priors of `brmsfit`.
 
-Using a simulation is very important and will be the favored approach from now 
-on to simulate priors.
+Using a simulation is very important and will be the favored approach from now on to simulate priors.
 
 ```{r ch11_sim11_02}
 sim11_02 <- list()
@@ -376,7 +352,6 @@ sim11_02 <- within(sim11_02, {
 })
 ```
 
-
 ```{r}
 #| fig-cap: "Figure 11.3"
 ggplot(sim11_02$data, aes(x = diff, color = model)) +
@@ -388,8 +363,6 @@ ggplot(sim11_02$data, aes(x = diff, color = model)) +
        subtitle = "Simulation with simstudy",
        x = "prior diff between treatments", y = NULL)
 ```
-
-
 
 #### The full model
 
@@ -404,9 +377,7 @@ logit(p_i) &= \alpha_{actor[i]} + \beta_{treatment[i]} \\
 \end{align*}
 $$
 
-We have to create a separate prior for every level in order to get them in
-separate columns for the analysis later.  Normally we would simply use
-`prior(normal(0, 0.5), class = b)` without specifying the coefficient.
+We have to create a separate prior for every level in order to get them in separate columns for the analysis later. Normally we would simply use `prior(normal(0, 0.5), class = b)` without specifying the coefficient.
 
 We use `get_prior()` to help us figure out the priors.
 
@@ -415,7 +386,6 @@ get_prior(data = dataChimp,
           formula = bf(pulled_left ~ 0 + (1 | actor) + (1 | treatment)),
           family = bernoulli)
 ```
-
 
 ```{r ch11_fit11_04}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
@@ -434,6 +404,7 @@ fit11_04 <- xfun::cache_rds({
   file = "ch11_fit11_04")
 tictoc::toc()
 ```
+
 and the coefficients on natural scale
 
 ```{r}
@@ -547,16 +518,14 @@ The plot for the actors is
 plot11_04$actor
 ```
 
-and for the treatments. This is different because McElreath gives the plot
-on the logit *scale*
+and for the treatments. This is different because McElreath gives the plot on the logit *scale*
 
 ```{r}
 wrap_plots(plot11_04[c("treatment_logit", "treatment")], ncol = 1)
 ```
 
-::: {.callout-note}
-The plot above is different because McElreath gives the plot for the treatment 
-on the *logit* scale. Why not using the outcome scale as for actors?
+::: callout-note
+The plot above is different because McElreath gives the plot for the treatment on the *logit* scale. Why not using the outcome scale as for actors?
 :::
 
 to compare the models
@@ -566,7 +535,6 @@ wrap_plots(plot11_04[c("diff", "diff_logit")], ncol = 1)
 ```
 
 Next we look at the observed and predicted effect by actor
-
 
 ```{r ch11_plot11_04all}
 #| fig-cap: "Figure 11.4"
@@ -639,31 +607,23 @@ plot11_04all <- within(plot11_04all, {
 plot11_04all$plotEPredicted
 ```
 
+and if we compare the models
 
- and if we compare the models
- 
 ```{r}
 loo_compare(fit11_02, fit11_03, fit11_04, criterion = "waic") |>
   round(digits = 1) |>
   print(simplify = FALSE)
 ```
- 
-we can see that $actor$ and $treatment$ considered alone give about the same 
-quality of fit. The better fit is when both of them are taken into account
-together.
 
+we can see that $actor$ and $treatment$ considered alone give about the same quality of fit. The better fit is when both of them are taken into account together.
 
 ### Relative shark and absolute deer
 
-It is more common to see logistic regression as relative effects. relative effect
-are proportional change in the odds of the outcome
+It is more common to see logistic regression as relative effects. relative effect are proportional change in the odds of the outcome
 
 ```{r}
 get_variables(fit11_04)
 ```
-
-
-
 
 ```{r}
 fit11_04 |>
@@ -677,12 +637,9 @@ fit11_04 |>
   identity()
 ```
 
-On average the switch from treatment AL, pulling the left lever without a partner,
-to treatment PL, pulling the left lever with a partner, reduces the odds
-by 6%. The difference with McElreath is cause by the ransom sampling.
+On average the switch from treatment AL, pulling the left lever without a partner, to treatment PL, pulling the left lever with a partner, reduces the odds by 6%. The difference with McElreath is cause by the ransom sampling.
 
-> The risk of focusing on relative effects, such as proportional odds, is that 
-they aren't enough to tell enough whether a variable is important or not.
+> The risk of focusing on relative effects, such as proportional odds, is that they aren't enough to tell enough whether a variable is important or not.
 
 See the overthinking box in section 11.1.2, p. 337.
 
@@ -713,12 +670,10 @@ fit11_06 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r}
 posterior_summary(fit11_06) |>
   round(digits = 3)
 ```
-
 
 ### Aggregated binomial: Graduate school admissions
 
@@ -745,7 +700,7 @@ admit_i &\sim \mathcal{Binomial}(n_i, p_i) \\
 logit(p_i) &= \alpha_{gid[i]} \\
 \alpha_j &\sim \mathcal{N}(0, 1.5)
 \end{align*}
-$$ 
+$$
 
 and we fit the model, first we look at the default prior,
 
@@ -754,6 +709,7 @@ get_prior(data = dataAdmit,
           formula = bf(admit | trials(applications) ~ 0 + (1|gender)),
           family = binomial)
 ```
+
 then do the fit
 
 ```{r ch11_fit11_07}
@@ -791,7 +747,7 @@ fit11_07 |>
 we firs get the posterior expected fit
 
 ```{r}
-pred11_07 <- dataAdmit |>
+epred11_07 <- dataAdmit |>
   add_epred_rvars(fit11_07) |>
   mutate(.epred_pct = .epred / applications) |>
   select(dept, case, .epred_pct) |>
@@ -800,43 +756,45 @@ pred11_07 <- dataAdmit |>
 # glimpse(pred11_07)
 ```
 
-
-
 and the posterior validation check for model `fit11_07` is
+
+```{r}
+glimpse(dataAdmit)
+```
 
 ```{r ch11_plot11_07}
 #| fig-cap: "Figure 11.5"
 plot11_07 <- list()
 plot11_07 <- within(plot11_07, {
   data <- dataAdmit |>
-    group_by(case, dept) |>
-    summarize(admit_pct = mean(admit_pct)) |>
-    identity()
+    mutate(label = sprintf("%s=%0.2f", substr(as.character(gender), 1, 1), admit_pct)) |>
+    group_by(case, dept, label) |>
+    summarize(admit_pct = mean(admit_pct))
   
   p <- ggplot(data, aes(x = case, y = admit_pct, color = dept, fill = dept)) +
     geom_line(aes(group = dept)) +
     geom_point() +
     geom_hline(yintercept = 0.5, color = "brown", linetype = 2) +
-    ggrepel::geom_text_repel(aes(label = round(admit_pct, 2)), size = 3) +
+    ggrepel::geom_text_repel(aes(label = label), size = 3) +
     scale_y_continuous(labels = scales::label_percent()) +
+    scale_color_paletteer_d("ggthemes::Classic_10") +
+    scale_fill_paletteer_d("ggthemes::Classic_10") +
     coord_cartesian(ylim = c(0, 1)) +
     theme(legend.position = c(0.8, 0.8),
-          legend.direction = "horizontal") +
-    labs(title = "Posterior validation check")
+          legend.direction = "horizontal",
+          legend.text = element_text(size = rel(0.8))) +
+    labs(title = "Posterior validation check", x = NULL)
   
   p <- p +
-    geom_point(data = pred11_07, aes(x = case, y = .epred_pct, group = dept),
-               color = "darkgreen") +
-    geom_errorbar(data = pred11_07,  
+    geom_point(data = epred11_07, aes(x = case, y = .epred_pct, group = dept),
+               shape = 1, color = "darkblue") +
+    geom_errorbar(data = epred11_07,  
                   aes(x = case, y = .epred_pct, ymin = .lower, ymax = .upper, group = dept),
-                  color = "darkgreen", width = 1/4)
+                  color = "darkblue", width = 1/4)
 })
 # plot11_07$data
 plot11_07$p
 ```
-
-
-
 
 and the full model is
 
@@ -867,7 +825,6 @@ tictoc::toc()
 
 ```{r}
 posterior_summary(fit11_08) |>
-  # inv_logit_scaled() |>
   round(digits = 2)
 ```
 
@@ -880,8 +837,6 @@ with the posterior distributions
 post11_08 <- spread_rvars(fit11_08, r_gender[gender, ])
 post11_08
 ```
-
-
 
 and again we compute the contrast between male and female
 
@@ -898,9 +853,7 @@ fit11_08 |>
 
 and again the results are very close to McElreath's.
 
-
-This leads us to hypotheses that the department is a confound and we could
-have the following DAG
+This leads us to hypotheses that the department is a confound and we could have the following DAG
 
 ```{r}
 #| fig-align: "center"
@@ -910,8 +863,6 @@ ggdag::dagify(A ~ D + G, D ~ G) |>
     ggdag::theme_dag_blank(
       panel.background = element_rect(fill = "snow2", color = "snow2"))
 ```
-
-
 
 ## Poisson regression
 
@@ -950,8 +901,7 @@ $$
 
 > Source: https://ggplot2.tidyverse.org/reference/geom_function.html
 
-For the intercept $\alpha_j$. If $\alpha_j$ is normal then we know that 
-$\lambda_j$ is lognormal distributed.
+For the intercept $\alpha_j$. If $\alpha_j$ is normal then we know that $\lambda_j$ is lognormal distributed.
 
 ##### With `simstudy`
 
@@ -1025,11 +975,9 @@ plotKline1 <- within(plotKline1, {
 plotKline1$p
 ```
 
-Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as 
-our prior for $\alpha_{cid[i]}$.
+Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as our prior for $\alpha_{cid[i]}$.
 
-Using our prior for $\alpha_{cid[i]}$ wwe simulate $\beta_{cid[i]}$. We show 
-the simulation on the natural scale as it is much easier to understand
+Using our prior for $\alpha_{cid[i]}$ wwe simulate $\beta_{cid[i]}$. We show the simulation on the natural scale as it is much easier to understand
 
 ##### slope with `simstudy`
 
@@ -1125,7 +1073,6 @@ wrap_plots(plotKline2[c("p_log_s", "p_log", "p_nat")], nrow = 1) +
   plot_annotation(title = "Prior predictive distribution of the mean (lambda)",
        subtitle = names(simKline2$lst_log)[2])
 ```
-
 
 and the same plots as McElreaths with the chosen priors
 
@@ -1258,8 +1205,6 @@ get_prior(formula = bf(total_tools ~ 0 + (1 + log_pop_s | cid)),
           data = dataKline, family = poisson)
 ```
 
-
-
 ```{r ch11_fit11_10}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit11_10 <- xfun::cache_rds({
@@ -1279,7 +1224,6 @@ tictoc::toc()
 posterior_summary(fit11_10) |>
   round(digits = 3)
 ```
-
 
 and we compare the LOO
 
@@ -1360,7 +1304,6 @@ wrap_plots(plot11_10[c("p_log", "p_nat")]) &
                   subtitle = "Model b11.10 - Size of points is the paretor_k factor")
 ```
 
-
 #### Overthinking: Modeling tool innovation
 
 Using the scientific approach with and ODE (ordinary differential equation)
@@ -1396,8 +1339,7 @@ total\_tools_i &\sim \mathcal{Poisson}(\lambda_i) \\
 \end{align*}
 $$
 
-and the fit, **see identity in poisson(link = "identity")**, this is 
-important and read warning from Kurtz on this.
+and the fit, **see identity in poisson(link = "identity")**, this is important and read warning from Kurtz on this.
 
 ```{r ch11_fit11_11}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
@@ -1434,7 +1376,6 @@ epred11_11 <- expand_grid(
   mean_qi(.epred, .width = 0.89)
 ```
 
-
 ```{r}
 ggplot(dataKline, aes(x = population, y = total_tools, color = cid)) +
   geom_smooth(epred11_11,
@@ -1454,7 +1395,6 @@ ggplot(dataKline, aes(x = population, y = total_tools, color = cid)) +
        x = "population in thousands")
 ```
 
-
 #### final model comparison
 
 ```{r}
@@ -1463,7 +1403,6 @@ loo::loo_compare(fit11_09, fit11_10, fit11_11, criterion = "loo") |>
 ```
 
 So the model b11.11 is slightly better. Note however that the difference is well within the standard deviation so that we can actually say that the 2 are as accurate. The scientific model is more interpretable nonetheless.
-
 
 ### Negative binomial (gamma-Poisson) models
 
@@ -1477,7 +1416,7 @@ When we have different unit of times, or distance (or other denominator), $\tau_
 
 $$
 \lambda = \frac{\mu}{\tau}
-$$ 
+$$
 
 and now the link is
 
@@ -1562,12 +1501,9 @@ spread_rvars(fit11_12, b_Intercept, b_monastery) |>
   select(-b_Intercept, -b_monastery)
 ```
 
-
 ## Multinomial and categorical models
 
-**Important**: It is important to read @kurtz2020b in this section because 
-*McElreath seems to have obtained the wrong results*. Kurtz gives significantly 
-more details and extrememly important explanations
+**Important**: It is important to read @kurtz2020b in this section because *McElreath seems to have obtained the wrong results*. Kurtz gives significantly more details and extrememly important explanations
 
 $$
 \begin{align*}
@@ -1585,8 +1521,7 @@ $$
 
 ### Predictors matched to outcomes
 
-The career are the outcomes. We now predict the career using a trait of the 
-career (outcome itself) which is the income in this case.
+The career are the outcomes. We now predict the career using a trait of the career (outcome itself) which is the income in this case.
 
 ```{r ch11_simCareer}
 simCareer <- list()
@@ -1724,33 +1659,24 @@ and we look at the summary
 get_variables(fit11_13)
 ```
 
-
 ```{r}
 as_draws_df(fit11_13) |>
   summarize_draws() |>
   mutate(across(.cols = where(is.numeric), .fns = function(x) round(x, digits = 2)))
 ```
 
-and check the summary using `rethinking::precis`. **The result from mcElreath 
-are significantly different than what Kurtz (and the above) give**.
+and check the summary using `rethinking::precis`. **The result from mcElreath are significantly different than what Kurtz (and the above) give**.
 
-Note: although Kurtz results seem to work, they have a high Rhat, just like 
-McElreath and warnings about divergent points after warmup are issued. 
-The effective sizes for Kurtz is much lower than the ones from McElreath.
+Note: although Kurtz results seem to work, they have a high Rhat, just like McElreath and warnings about divergent points after warmup are issued. The effective sizes for Kurtz is much lower than the ones from McElreath.
 
-> Be aware that the estimates you get from these models are extraordinarily 
-difficult to interpret. Since the parameters are relative to the pivot 
-outcome value, they could end up positive or negative, depending upon the 
-context. @elreath2020 p. 361.
+> Be aware that the estimates you get from these models are extraordinarily difficult to interpret. Since the parameters are relative to the pivot outcome value, they could end up positive or negative, depending upon the context. @elreath2020 p. 361.
 
 #### Null Model (Intercept-only)
 
 As usual we start we the model with only the intercept.\
-In the case of multinomial, since every category is a model in itself, 
-we use an intercept per category.
+In the case of multinomial, since every category is a model in itself, we use an intercept per category.
 
-The 3rd category is the *pivot* and identified as such in the `brm()` function 
-below. The default of `brm()` is to take the first category as the pivot.
+The 3rd category is the *pivot* and identified as such in the `brm()` function below. The default of `brm()` is to take the first category as the pivot.
 
 ```{r ch11_fit11_13null}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "100 secs."))
@@ -1772,8 +1698,7 @@ posterior_summary(fit11_13null) |>
   round(digits = 2)
 ```
 
-It is important to understand the role of the **pivot category**. It is simple, 
-the pivot category is used to center the categorical scores.
+It is important to understand the role of the **pivot category**. It is simple, the pivot category is used to center the categorical scores.
 
 For example the scores we used so far, when centered with his category, are as follows
 
@@ -1785,12 +1710,9 @@ tibble::tibble(
 )
 ```
 
-And we observe that $mu1_Intercept$ and $mu2_Intercept$ in the summary 
-just above are the same as what we just computed **which is the intercepts 
-we obtain with the null model. This is an easy check on the null model.**
+And we observe that $mu1_Intercept$ and $mu2_Intercept$ in the summary just above are the same as what we just computed **which is the intercepts we obtain with the null model. This is an easy check on the null model.**
 
-Now lets see what the fitted values for the $\mu_{cat}$ are. These fitted 
-values correspond to the `softmax` which is the link function.
+Now lets see what the fitted values for the $\mu_{cat}$ are. These fitted values correspond to the `softmax` which is the link function.
 
 ```{r}
 epred11_13null <- simCareer$data |>
@@ -1804,14 +1726,11 @@ epred11_13null <- simCareer$data |>
 epred11_13null
 ```
 
-
 2 observations
 
--   the mean are about equal to the original softamx values which is expected 
-since we are using the intercept-only model.
+-   the mean are about equal to the original softamx values which is expected since we are using the intercept-only model.
 
-and we can see that that the multinomial probability is actually very close to 
-the theoretical softmax
+and we can see that that the multinomial probability is actually very close to the theoretical softmax
 
 ```{r}
 tibble::tibble(
@@ -1820,7 +1739,6 @@ tibble::tibble(
   prob = exp(simCareer$score) / sum(exp(simCareer$score))) |>
   round(digits = 2)
 ```
-
 
 > This is an important test to make sure we get our model right before going any further.
 
@@ -1942,8 +1860,6 @@ summ11_13 <- within(summ11_13, {
 # summ11_13$data
 ```
 
-
-
 ```{r ch11_plot11_13}
 ggplot(summ11_13$data, aes(x = Estimate, xmin = Q2.5, xmax = Q97.5, 
                                   y = model, color = term)) +
@@ -1966,9 +1882,7 @@ loo_compare(fit11_13null, fit11_13a, fit11_13b, fit11_13c, fit11_13d,
   print(simplify = FALSE)
 ```
 
-The results are similar to what Kurtz found, this is caused by the facts that 
-the models have very similar performance and therefore it doesn't take much to 
-change the ranking. Most numbers, e.g. `looic` are similar.
+The results are similar to what Kurtz found, this is caused by the facts that the models have very similar performance and therefore it doesn't take much to change the ranking. Most numbers, e.g. `looic` are similar.
 
 and the model weights
 
@@ -2067,7 +1981,6 @@ post11_14 <- data.frame(
 
 ```
 
-
 ```{r ch11_plot11_14}
 plot11_14 <- list()
 plot11_14 <- within(plot11_14, {
@@ -2117,8 +2030,6 @@ fit11_15binom <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
-
 ```{r ch11_fit11_15pois}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit11_15pois <- xfun::cache_rds({
@@ -2132,13 +2043,13 @@ fit11_15pois <- xfun::cache_rds({
   file = "ch11_fit11_15pois")
 tictoc::toc()
 ```
+
 and the posterior distribution for the Poisson fit
 
 ```{r}
 get_variables(fit11_15pois)
 gather_rvars(fit11_15pois, b_admit_Intercept, b_rejct_Intercept)
 ```
-
 
 ```{r}
 gather_rvars(fit11_15pois, b_admit_Intercept, b_rejct_Intercept) |>
@@ -2151,9 +2062,5 @@ gather_rvars(fit11_15pois, b_admit_Intercept, b_rejct_Intercept) |>
   labs(title = "Distribution of rate of admission and reject across departments",
        x = "nb of applicaitons", y = NULL)
 ```
-
-
-
-
 
 ## Summary
