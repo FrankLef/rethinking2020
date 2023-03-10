@@ -120,8 +120,8 @@ plotBeta <- within(plotBeta, {
     geom_area(fill = "darkorchid1") + 
     scale_y_continuous(NULL, labels = NULL) +
     theme(axis.ticks.y = element_blank()) +
-    labs(title = "Beta can take many shapes", x = "parameter space") +
-    facet_grid(kappa~mu, labeller = label_parsed)
+    facet_grid(kappa~mu, labeller = label_parsed) +
+    labs(title = "Beta can take many shapes", x = "parameter space")
 })
 plotBeta$p
 ```
@@ -177,9 +177,10 @@ tictoc::toc()
 ```{r}
 fit12_01
 ```
-
-> Did you notice `lb = 2` in `prior(exponential(1), ...)`? Since McElreath 
+::: {.callout-note}
+Did you notice `lb = 2` in `prior(exponential(1), ...)`? Since McElreath 
 wanted the lower bound to 2, we will use lb = 2.
+:::
 
 See also McElreath explanation of 2 in section 12.1.1 just before R code 12.1 
 on p. 371.
@@ -321,7 +322,6 @@ the custom function `gammaGetMeanDispersion` is also defined. It is the inverse
 of `simstudy::gammaGetShapeRate()`.
 
 ```{r}
-stop("TODO")
 # custom function which is the inverse function of gammaGetShapeRate()
 gammaGetMeanDispersion <- function(shape, rate) {
   stopifnot(shape > 0, rate > 0)
@@ -344,61 +344,54 @@ stopifnot(identical(prm$md, prm$values))
 ```
 
 In the `dgamma` the shape parameter influence the rate which is equivalent to 
-Poisson $\lambda$
+Poisson $\lambda$.
 
-```{r}
-p <- list()
-p$df <- crossing(shape = c(0.1, 0.25, 0.5, 0.75, 1, 2), 
-                 rate = c(1/10, 1/5, 1/2, 1)) %>%
-  expand(nesting(shape, rate), 
-         x = seq(from = 0, to = 5, length.out = 100)) %>%
-  mutate(density = dgamma(x, shape, rate),
-         shape_char    = paste("shape", shape, sep = "=="),
-         rate_char = paste("rate", rate, sep = "=="))
+```{r ch12_plotGamma}
+plotGamma <- list()
+plotGamma <- within(plotGamma, {
+  df <- crossing(shape = c(0.5, 1, 2), 
+                 rate = c(0.25, 0.5, 1)) |>
+    expand(nesting(shape, rate), 
+           x = seq(from = 0, to = 5, length.out = 50)) |>
+    mutate(density = dgamma(x, shape, rate),
+           shape_lbl    = paste("shape", format(shape, nsmall = 2), sep = "=="),
+           rate_lbl = paste("rate", format(rate, nsmall = 2), sep = "=="))
+  
+  p <- df |>
+    ggplot(aes(x = x, y = density)) +
+    geom_area(fill = "orchid") +
+    scale_y_continuous(NULL, labels = NULL) +
+    theme(axis.ticks.y = element_blank()) +
+    facet_grid(shape_lbl~rate_lbl, labeller = label_parsed) +
+    labs(title = "Gamma prior with different parameter values",
+       x = "domain space")
+})
+plotGamma$p
 ```
 
-```{r}
-p$plot <- ggplot(data = p$df %>% filter(shape == 0.1, rate == 0.1),
-                 aes(x = x, y = density)) +
-  geom_area(fill = "orchid") +
-  scale_y_continuous(NULL, labels = NULL) +
-  labs(title = "Gamma prior with default values (shape = 0.1, rate = 0.1)",
-       x = "parameter space") +
-  theme(axis.ticks.y = element_blank())
-p$plot
-```
 
-and the plot with different values of shape and rate
-
-```{r}
-p$plot <- ggplot(data = p$df, aes(x = x, y = density, color = rate_char)) +
-  geom_line(size = 1) +
-  scale_y_continuous(NULL, labels = NULL) +
-  scale_color_paletteer_d("ggthemes::excel_Atlas") +
-  theme(axis.text.x = element_text(size = rel(0.8)),
-        axis.ticks.y = element_blank(),
-        legend.title = element_blank()) +
-  labs(title = "Gamma can take many shapes",
-       x = "parameter space") +
-  facet_wrap(. ~ shape_char, scales = "free_y", labeller = label_parsed)
-p$plot
-```
 
 #### Data
 
 ```{r}
 data(Kline)
-dataKline <- Kline %>%
+dataKline <- Kline |>
   mutate(log_pop_s = log(population),
          log_pop_s = as.vector(scale(log_pop_s)),
          cid = factor(contact, levels = c("low", "high")))
 rm(Kline)
-skimr::skim(dataKline)
+dataKline |> skim() |>
+  select(-n_missing, - complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
 ```
 
 #### Null model {.unnumbered}
 
-> This section is important as it serves to evaluate the prior to use for the full model. See how @kurtz2020b does it. My work below does not show everything (yet).
+::: {.callout-note}
+This section is important as it serves to evaluate the prior to use for the 
+full model. See how @kurtz2020b does it. My work below does not show 
+everything (yet).
+:::
 
 Start with the null model, or as Kurtz calls it, the intercept-only model.
 
@@ -411,114 +404,92 @@ log(\mu) &= \beta_0 \\
 \end{align*}
 $$
 
-and the fit with `brm`
 
-```{r ch12_b12_02a}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b12.2a <- xfun::cache_rds({
+```{r ch12_fit12_02a}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+fit12_02a <- xfun::cache_rds({
   out <- brm(data = dataKline,
       family = negbinomial,
       total_tools ~ 1,
       prior = c(prior(normal(3, 0.5), class = Intercept),  # beta_0
                 prior(gamma(0.01, 0.01), class = shape)),  # alpha
-      cores = detectCores(),
-      seed = 12)
+      iter = 1000, warmup = 500, chains = 2,
+      cores = detectCores(), seed = 1213)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   out},
-  file = "ch12_b12_02a")
+  file = "ch12_fit12_02a")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b12.2a)
+fit12_02a
 ```
 
-and the fit with `ulam`
-
-```{r ch12_m12_02a}
-message("Could not fix the installation of cmdstanr")
-# tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-# m12.2a <- xfun::cache_rds({
-#   ulam(
-#     data = dataKline,
-#     flist = alist(
-#       total_tools ~ dgampois(mu, scale),
-#       log(mu) <- a,
-#       a ~ dnorm(3, 0.5),
-#       scale ~ dexp(1)),
-#   log_lik = TRUE)},
-#   file = "ch12_m12_02a")
-# tictoc::toc()
-# 
-# set_cmdstan_path(path = NULL)
-# cmdstan_path()
-
-# Sys.getenv("CMDSTAN")
-```
+and the estimated parameters of the $mean$ and $dispersion$ can be converted to the
+$shape$ and $rate$ parameters using $simstudy::gammaGetShapeRate()$
 
 ```{r}
-# summary(m12.2a)
-```
-
-```{r}
-# posterior_summary(b12.2a)
-```
-
-```{r}
-# precis(m12.2a)
-```
-
-```{r}
-m <- posterior_summary(b12.2a)["b_Intercept", "Estimate"]
-m
-s <- posterior_summary(b12.2a)["shape", "Estimate"]
-d <- s
+m <- posterior_summary(fit12_02a)["b_Intercept", "Estimate"]
+d <- posterior_summary(fit12_02a)["shape", "Estimate"]
 simstudy::gammaGetShapeRate(mean = m, dispersion = d)
 ```
 
-Because the model has only the intercept and no predictor, there is only one value for the Intercept which is the mean of the 10 Poisson rates $\lambda_i, i =1,...10$.
+Because the model has only the intercept and no predictor, there is only one 
+value for the Intercept which is the mean of the 10 Poisson rates 
+$\lambda_i, i =1,...10$.
 
-The $alpha$ is simply the $shape$ parameter of gamma ... and does not really describe anything. It is really used to define the shape of the distribution.
+The $alpha$ is simply the $shape$ parameter of gamma ... and does not really 
+describe anything. It is really used to define the shape of the distribution.
 
-And the prediction plots show that the distributions all use the same rate and shape.
+And the prediction plots show that the distributions using the same rate 
+and shape for the gamma hyperparameters.
 
-```{r}
-samples <- list()
-samples$data <- predicted_draws(b12.2a, newdata = dataKline)
-ggplot(samples$data, aes(.prediction, color = culture)) +
-  geom_density(size = 1) +
-  scale_y_continuous(NULL, labels = NULL) +
-  scale_color_paletteer_d("khroma::soil") +
-  theme(axis.text.x = element_text(size = rel(0.8)),
-        axis.ticks.y = element_blank(),
-        legend.position = "none") +
-  labs(title = "Predictive distributions",
-       x = "total tools") +
-  facet_wrap(. ~ culture)
+```{r ch12_plot12_02a_pred}
+plot12_02a_pred <- list()
+plot12_02a_pred <- within(plot12_02a_pred, {
+  df <- dataKline |>
+    add_predicted_draws(fit12_02a, ndraws = 100)
+  
+  p <- df |>
+    ggplot(aes(x = .prediction, color = culture)) +
+    geom_density(size = 1) +
+    scale_y_continuous(NULL, labels = NULL) +
+    scale_color_paletteer_d("khroma::soil") +
+    theme(axis.text.x = element_text(size = rel(0.8)),
+          axis.ticks.y = element_blank(),
+          legend.position = "none") +
+    facet_wrap(. ~ culture, nrow = 4) +
+    labs(title = "Predictive distributions",
+         subtitle = sprintf("Gamma hyperparameters: mean = %0.2f and dispersion = %0.2f",
+                            posterior_summary(fit12_02a)["b_Intercept", "Estimate"],
+                            posterior_summary(fit12_02a)["shape", "Estimate"]),
+        x = "total tools")
+})
+plot12_02a_pred$p
 ```
+
 
 and we can also visualize the distributions of our $rate$ and $shape$ parameters
 
-```{r}
-samples <- list()
-samples$data <- as_draws_df(b12.2a) %>%
-  select(b_Intercept, shape) %>%
-  mutate(mu = exp(b_Intercept),
-         theta = mu / shape) %>%
-  select(mu, shape, theta) %>%
-  pivot_longer(cols = everything())
-# str(samples$data)
-ggplot(samples$data, aes(value, fill = name, color = name)) +
-  geom_density(geom = "area") +
-  scale_y_continuous(NULL, labels = NULL) +
-  scale_fill_paletteer_d("fishualize::Scarus_quoyi") +
-  scale_color_paletteer_d("fishualize::Scarus_quoyi") +
-  theme(axis.text.x = element_text(size = rel(0.8)),
+```{r ch12_plot12_02a_post}
+plot12_02a_post <- list()
+plot12_02a_post <- within(plot12_02a_post, {
+  df <- gather_draws(fit12_02a, b_Intercept, shape, ndraws = 100) |>
+    mutate(.variable = if_else(.variable == "b_Intercept", "mean", "dispersion"))
+  p <- df |>
+    ggplot(aes(.value, fill = .variable, color = .variable)) +
+    stat_density(geom = "area") +
+    scale_y_continuous(NULL, labels = NULL) +
+    scale_fill_paletteer_d("fishualize::Scarus_quoyi") +
+    scale_color_paletteer_d("fishualize::Scarus_quoyi") +
+    theme(axis.text.x = element_text(size = rel(0.8)),
         axis.ticks.y = element_blank(),
         legend.position = "none") +
-  labs(title = "Posterior distributions of rate and shape",
+    labs(title = "Posterior distributions of rate and shape",
        x = NULL) +
-  facet_wrap(. ~ name, scales = "free_y")
+    facet_wrap(. ~ .variable, scales = "free_y")
+})
+plot12_02a_post$p
 ```
 
 #### Full model {.unnumbered}
@@ -534,9 +505,11 @@ log(\mu) &= \frac{\exp{(\beta_{0,cid[i]})} \cdot population_i^{\beta_{1,cid[i]}}
 \end{align*}
 $$
 
-```{r ch12_b12_02b}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "75 secs."))
-b12.2b <- xfun::cache_rds({
+
+
+```{r ch12_fit12_02b}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "30 secs."))
+fit12_02b <- xfun::cache_rds({
   # we have to be careful when using waic with gamma-Poisson
   # but in this case we do it. We use t in the plot.
   out <- brm(data = dataKline,
@@ -549,55 +522,47 @@ b12.2b <- xfun::cache_rds({
                 prior(exponential(1), nlpar = b1, lb = 0),
                 prior(exponential(1), nlpar = g, lb = 0),
                 prior(exponential(1), class = shape)),
-      cores = detectCores(),
-      seed = 12,
+      iter = 1000, warmup = 500, chains = 2,
+      cores = detectCores(), seed = 1213,
       control = list(adapt_delta = .95))
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
   out},
-  file = "ch12_b12_02b")
+  file = "ch12_fit12_02b")
 tictoc::toc()
 ```
 
 ```{r}
-summary(b12.2b)
+fit12_02b
 ```
 
 add the *pareto k* for use in the plot later
 
 ```{r}
 # append k value to data
-dataKline <- dataKline %>%
-  mutate(ParetoK = b12.2b$criteria$loo$diagnostics$pareto_k)
+dataKline <- dataKline |>
+  mutate(ParetoK = fit12_02b$criteria$loo$diagnostics$pareto_k)
 stopifnot(!any(is.na(dataKline)))
 
-dataKline %>%
-  select(culture, ParetoK) %>%
+dataKline |>
+  select(culture, ParetoK) |>
   arrange(desc(ParetoK))
 ```
 
 and the fitted values are
 
-```{r}
-fitted <- list()
-fitted <- within(fitted, {
-  newdata <- dataKline %>%
-  distinct(cid, culture) %>%
+```{r ch12_epred12_02b}
+epred12_02b <- list()
+epred12_02b <- within(epred12_02b, {
+  df <- dataKline |>
+  distinct(cid, culture) |>
   expand(nesting(cid, culture), 
-         population = seq_range(dataKline$population, n = 20, pretty = TRUE))
-  
-  data <- epred_draws(b12.2b, newdata = newdata) %>%
-    as.data.frame()
-  
-  stats <- data %>%
-    select(cid, population, .epred) %>%
-    group_by(cid, population) %>%
+         population = seq_range(dataKline$population, n = 20, pretty = TRUE)) |>
+    add_epred_draws(fit12_02b, ndraws = 100) |>
     ggdist::mean_qi(.width = 0.89)
-})
   
-p <- list()
-p$poisgamma <- ggplot(dataKline,
+  p <- ggplot(dataKline,
                 aes(x = population, y = total_tools, color = cid, size = ParetoK)) +
-  geom_smooth(fitted$stats,
+  geom_smooth(df,
               mapping = aes(x = population, y = .epred, ymin = .lower,
                             ymax = .upper, fill = cid, color = cid),
               inherit.aes = FALSE, stat = "identity") +
@@ -610,52 +575,63 @@ p$poisgamma <- ggplot(dataKline,
   scale_size_continuous() +
   theme(legend.position = c(0.2, 0.85)) +
   labs(title = "Fitted values with the gamma-Poisson model",
-       subtitle = "model b12.2b",
+       subtitle = "model 12.2b",
        x = "population in thousands")
-p$poisgamma
+  
+  
+})
+# epred12_02b$df
+epred12_02b$p
 ```
 
-the main difference now is that since we use predictor $cid$ then the parameter $rate = b_0$ of the gamma distribution used to determined the $\lambda_i$ is allowed to vary by $cid$. Therefore we have different distribution possible by $cid$ and can change the distribution by culture as follows.
+the main difference now is that since we use predictor $cid$ then the parameter 
+$rate = b_0$ of the gamma distribution used to determined the $\lambda_i$ is 
+allowed to vary by $cid$. Therefore we have different possible distribution by 
+$cid$ and can change the distribution by culture as follows.
 
-```{r}
-predict <- list()
-predict <- within(predict, {
-  newdata <- dataKline %>%
-  distinct(cid, culture) %>%
-  expand(nesting(cid, culture), 
-         population = seq_range(dataKline$population, n = 20, pretty = TRUE))
+```{r ch12_pred12_02b}
+pred12_02b <- list()
+pred12_02b <- within(pred12_02b, {
   
-  data <- predicted_draws(b12.2b, newdata = newdata) %>%
-    as.data.frame()
-})
-# str(predict$data)
-
-ggplot(predict$data, aes(x = .prediction, color = cid, fill = cid)) +
-  geom_density() +
-  scale_color_paletteer_d("khroma::light") +
-  scale_fill_paletteer_d("khroma::light") +
-  coord_cartesian(xlim = c(0, 200)) +
-  theme(axis.text.x = element_text(size = 8),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank()) +
-  labs(title = "Predictive distributions by culture colored by cid",
-       subtitle = "model b12.2b", x = "total tools", y = NULL) +
+  df <- dataKline |>
+    distinct(cid, culture) |>
+    expand(nesting(cid, culture), 
+          population = seq_range(dataKline$population, n = 20, pretty = TRUE)) |>
+    add_predicted_draws(fit12_02b, ndraws = 100)
+  
+  p <- df |>
+    ggplot(aes(x = .prediction, color = cid, fill = cid)) +
+    geom_density() +
+    scale_color_paletteer_d("khroma::light") +
+    scale_fill_paletteer_d("khroma::light") +
+    coord_cartesian(xlim = c(0, 200)) +
+    theme(axis.text.x = element_text(size = 8),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank()) +
+    labs(title = "Predictive distributions by culture colored by cid",
+          subtitle = "model 12.2b", x = "total tools", y = NULL) +
   facet_wrap(. ~ culture)
+})
+pred12_02b$p
 ```
 
 ### Poisson-lognormal {.unnumbered}
 
+::: {.callout-tip}
 This is an extra section. The result is so useful it is worth adding here. See [Kurtz lognormal](https://solomonkurz.netlify.app/post/2021-07-12-got-overdispersion-try-observation-level-random-effects-with-the-poisson-lognormal-mixture/).
-
-it was also saved in a local file called **Poisson-lognormal_mixture_Solomon Kurz.html** in \*\*C:\Users\Public\MyStudies\Rethinking\_docs\*\*
+:::
 
 ## Zero-inflated outcomes
 
-> Make sure you read this section in @kurtz2020b. It is loaded with very useful informations. Especially when using `brms`.
+::: {.callout-tip}
+Make sure you read this section in @kurtz2020b. It is loaded with very useful 
+informations. Especially when using `brms`.
+:::
 
 ### Zero-inflated Poisson
 
-This tpe oof model is called a *hurdle model* in the literature. This type of model has served me very well in the context of business.
+This type of model is called a *hurdle model* in the literature. This type of 
+model has served me very well in the context of business.
 
 With zero-inflated Poisson both parameters $p$ and $\lambda$ can have their own equation.
 
@@ -669,33 +645,34 @@ $$
 
 We use `simstudy` to simulate this.
 
-```{r}
-sim <- list()
-sim <- within(sim, {
+```{r ch12_simMonastery}
+simMonastery <- list()
+simMonastery <- within(simMonastery, {
   defs <- defData(varname = "drink", dist = "categorical", formula = "0.8;0.2")
   defs <- defData(defs, varname = "work", dist = "poisson", formula = 1)
   defs <- defData(defs, varname = "output", dist = "nonrandom", 
                   formula ="(2 - drink) * work")
   data <- genData(n = 365, dtDefs = defs)
-  data <- genFactor(data, varname = "drink", labels = c("drinkNot", "drink"))
+  data <- genFactor(data, varname = "drink", labels = c("drinkNot", "drink")) |>
+    as.data.frame()
 })
-dataMonastery <- as.data.frame(sim$data)
 ```
 
 plot the data
 
 ```{r}
-ggplot(dataMonastery, aes(x = output)) +
+simMonastery$data |>
+  ggplot(aes(x = output)) +
   geom_histogram(aes(fill = fdrink), binwidth = 1) +
   scale_fill_paletteer_d("khroma::vibrant") +
-  stat_bin(aes(y = after_stat(count), label = ifelse(..count.., ..count.., "")), 
-           geom = "text", color = "ghostwhite", vjust = -0.5) +
+  stat_bin(aes(y = after_stat(count), label = ifelse(after_stat(count), after_stat(count), "")), 
+           geom = "text", bins = 30, color = "ghostwhite", vjust = -0.5) +
   theme(legend.position = c(0.8, 0.8),
         legend.title = element_blank(),
         axis.ticks.y = element_blank(),
         axis.text.y = element_blank()) +
   labs(title = "Frequency of monastery's output",
-       subtitle = sprintf("output for %d days", nrow(sim$data)),
+       subtitle = sprintf("output for %d days", nrow(simMonastery$data)),
        y = "nb of days")
 ```
 
@@ -711,45 +688,53 @@ log(\lambda) &= \alpha_\lambda \\
 \end{align*}
 $$
 
-In `brms`, $p_i$ is denoted `zi`. To use a non-default prior for `zi`, make sure to indicate `class = zi`. **Important to read @kurtz2020b**.
+In `brms`, $p_i$ is denoted `zi`. To use a non-default prior for `zi`, make 
+sure to indicate `class = zi`. **Important to read @kurtz2020b**.
 
-```{r ch12_b12_03}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "75 secs."))
-b12.3 <- xfun::cache_rds({
-  out <- brm(data = dataMonastery,
+```{r ch12_fit12_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "65 secs."))
+fit12_03 <- xfun::cache_rds({
+  out <- brm(data = simMonastery$data,
       family = zero_inflated_poisson,
       output ~ 1,
       prior = c(prior(normal(1, 0.5), class = Intercept),
                 prior(beta(2, 6), class = zi)),  # the brms default is beta(1, 1)
-      cores = detectCores(),
-      seed = 12)
-  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
-  out},
-  file = "ch12_b12_03")
+      iter = 1000, warmup = 500, chains = 2,
+      cores = detectCores(), seed = 1217)
+  brms::add_criterion(out, criterion = c("waic", "loo"))},
+  file = "ch12_fit12_03")
 tictoc::toc()
-summary(b12.3)
 ```
 
 and we generate a summary with `posterior::summarize_draws`
 
-```{r}
-samples <- list()
-samples$data <- as_draws(b12.3) %>%
-  mutate_variables(lambda = exp(b_Intercept))
-samples$stats <- samples$data %>%
-  summarize_draws() %>%
-  filter(variable != "lp__") %>%
-  mutate(across(.cols = where(is.numeric), round, digits = 2))
-samples$stats
+```{r ch12_summ_fit12_03}
+summ_fit12_03 <- list()
+summ_fit12_03 <- within(summ_fit12_03, {
+  data <- as_draws(fit12_03) |>
+    mutate_variables(lambda = exp(b_Intercept))
+  
+  stats <- data |>
+    summarize_draws() |>
+    filter(variable != "lp__") |>
+    mutate(across(.cols = where(is.numeric), round, digits = 2))
+})
+summ_fit12_03$stats
 ```
 
-The $b_Intercept$ represents $\lambda$ on the log scale, because the link function for $\lambda$. This can be confirm by looking at the summary which shows **Links: mu = log; zi = identity**.
+The $b_Intercept$ represents $\lambda$ on the log scale, because the link 
+function for $\lambda$. This can be confirmed by looking at the summary 
+which shows **Links: mu = log; zi = identity**.
 
-We observe that $lambda$ matches the actual rate of our simulation with `defData(defs, varname = "work", dist = "poisson", formula = 1)`.
+We observe that $lambda$ matches the actual rate of our simulation with 
+`defData(defs, varname = "work", dist = "poisson", formula = 1)`.
 
-When using `brms` the parameter $zi$ has link function *identity* as evidenced in the summary by **Links: mu = log; zi = identity**. In this case we have obtained $zi = 0.20$ which is close enough to McEleath's estimate of 0.23.
+When using `brms` the parameter $zi$ has link function *identity* as evidenced 
+in the summary by **Links: mu = log; zi = identity**. In this case we have 
+obtained $zi = 0.20$ which is close enough to McEleath's estimate of 0.23.
 
-We observe that $zi$ is the actual rate of our simulation with `defData(varname = "drink", dist = "categorical", formula = "0.8;0.2")`.
+We observe that $zi$ is the actual rate of our simulation with 
+`defData(varname = "drink", dist = "categorical", formula = "0.8;0.2")`.
 
 ## Ordered categorical outcomes
 
@@ -757,70 +742,80 @@ We observe that $zi$ is the actual rate of our simulation with `defData(varname 
 
 ```{r}
 data(Trolley)
-dataTrolley <- Trolley %>%
+dataTrolley <- Trolley |>
   mutate(response = factor(response, ordered = TRUE))
 rm(Trolley)
-skimr::skim(dataTrolley)
+dataTrolley |>
+  skim() |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
-and we can describe the data using the `summarytools` which does a great job at creating that sort or report.
 
 ### Describing and ordered distribution with intercepts
 
 The histogram of response
 
-```{r}
-p <- list()
-p$df <- dataTrolley %>%
-  count(response)
-p$freq <- ggplot(p$df, aes(x = response, y = n, fill = response)) +
-  geom_bar(stat = "identity") +
-  scale_fill_paletteer_d("khroma::bright") +
-  theme(legend.position = "none") +
-  labs(title = "Histogram of Trolley responses")
-# p$freq
+```{r ch12_plotTrolley}
+plotTrolley <- list()
+plotTrolley <- within(plotTrolley, {
+  df <- dataTrolley |>
+    count(response)
+  freq <- df |>
+    ggplot(aes(x = response, y = n, fill = response)) +
+    geom_bar(stat = "identity") +
+    scale_fill_paletteer_d("khroma::bright") +
+    theme(legend.position = "none") +
+    labs(title = "Histogram of Trolley responses")
+})
+# plotTrolley$freq
 ```
 
 The cumulative proportions plot
 
 ```{r}
-p$df2 <- dataTrolley %>%
-  count(response) %>%
-  arrange(response) %>%
-  mutate(pct = n / sum(n),
-         cum_pct = cumsum(pct))
-p$cumfreq <- ggplot(p$df2, aes(x = as.integer(response), y = cum_pct)) +
-  geom_line(color = "yellow", size = 1) +
-  geom_point(color = "orange", size = 2) +
-  labs(title = "Cumulative proportions", 
+plotTrolley <- within(plotTrolley, {
+  df2 <- dataTrolley |>
+    count(response) |>
+    arrange(response) |>
+    mutate(pct = n / sum(n),
+          cum_pct = cumsum(pct))
+  cumfreq <- ggplot(df2, aes(x = as.integer(response), y = cum_pct)) +
+    geom_line(color = "yellow", size = 1) +
+    geom_point(color = "orange", size = 2) +
+    coord_cartesian(ylim = c(0, 1)) +
+    labs(title = "Cumulative proportions", 
        x = "response", y = "cumulative probabilities")
-# p$cumfreq
+})
+# plotTrolley$cumfreq
 ```
 
 And the plot of `logit`
 
 ```{r}
-p$df3 <- dataTrolley %>%
-  count(response) %>%
-  mutate(pct = n / sum(n),
+plotTrolley <- within(plotTrolley, {
+  df3 <- dataTrolley |>
+    count(response) |>
+    mutate(pct = n / sum(n),
          cum_pct = cumsum(pct),
          logit = log(cum_pct / (1 - cum_pct)),
          logit_ctr = scale(logit, center = TRUE, scale = FALSE))
-# d.p3
-p$center <- ggplot(p$df3, aes(x = as.integer(response), y = logit)) +
-  geom_line(color = "pink", size = 1) +
-  geom_point(color = "violetred", size = 2) +
-  #   scale_x_continuous(breaks = scales::breaks_width(width = 1)) +
-  # scale_y_continuous(breaks = scales::breaks_width(width = 1)) +
-  labs(title = "Log of Cumulative Odds",
+
+  center <- df3 |>
+    ggplot(aes(x = as.integer(response), y = logit)) +
+    geom_line(color = "pink", size = 1) +
+    geom_point(color = "violetred", size = 2) +
+    labs(title = "Log of Cumulative Odds",
        y = "log of cumulative odds (centered)")
-# p$center
+})
+# plotTrolley$center
 ```
 
 and the 3 plots in figure 12.4 are
 
 ```{r}
-(p$freq + p$cumfreq + p$center) +
+#| fig-cap: "Figure 12.4"
+wrap_plots(plotTrolley[c("freq", "cumfreq", "center")]) +
   plot_annotation(title = "Figure 12.4")
 ```
 
@@ -837,86 +832,95 @@ $$
 
 and the fit with brms
 
-```{r ch12_b12_04}
-# define start values
-inits <- list(
-  `Intercept[1]` = -2,
-  `Intercept[2]` = -1,
-  `Intercept[3]` = 0,
-  `Intercept[4]` = 1,
-  `Intercept[5]` = 2,
-  `Intercept[6]` = 2.5
-)
-inits_list <- list(inits, inits, inits, inits)
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "13 mins."))
-b12.4 <- xfun::cache_rds({
+```{r ch12_fit12_04}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "5 mins."))
+fit12_04 <- xfun::cache_rds({
+  # define start values
+  inits <- list(
+    `Intercept[1]` = -2,
+    `Intercept[2]` = -1,
+    `Intercept[3]` = 0,
+    `Intercept[4]` = 1,
+    `Intercept[5]` = 2,
+    `Intercept[6]` = 2.5)
+  inits_list <- list(inits, inits, inits, inits)
   out <- brm(
     data = dataTrolley,
     family = cumulative,
     response ~ 1,
     prior = c(
       prior(normal(0, 1.5), class = Intercept)),
-    cores = detectCores(),
     # the start values
     init = inits_list,
-    seed = 12)
-  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
-  out},
-  file = "ch12_b12_04")
+    iter = 1000, warmup = 500, chains = 2,
+    cores = detectCores(), seed = 1223)
+  brms::add_criterion(out, criterion = c("waic", "loo"))},
+  file = "ch12_fit12_04")
 tictoc::toc()
 ```
 
 which gives the summary
 
 ```{r}
-print(b12.4)
+print(fit12_04)
 ```
 
 and we convert the intercepts to the normal scale
 
 ```{r}
-b12.4 %>%
-  fixef() %>%
-  brms::inv_logit_scaled()
-
-b12.4 %>%
-  fixef() %>%
-    gtools::inv.logit()
+fit12_04 |>
+  fixef() |>
+  brms::inv_logit_scaled() |>
+  round(digits = 3)
 ```
 
-**Important:** The SD i.e. `Est.Error` are not valid using the `inv_logit_scaled`, that is using a direct inverse exp function.
+::: {.callout-warning}
+The SD i.e. `Est.Error` are not valid using the `inv_logit_scaled`, 
+that is using a direct inverse exp function.
+:::
+
 
 They must be computed using a posterior sample.
 
-```{r}
-samples <- list()
-samples <- within(samples, {
-  data <- as_draws(b12.4) %>%
-    as.data.frame()
-  summ <- data %>%
-    select(!matches(match = "disc|lp__")) %>%
-    mutate(across(.cols = where(is.double), .fns = ~gtools::inv.logit(.))) %>%
-    pivot_longer(cols = everything()) %>%
+```{r ch12_summ12_04}
+summ12_04 <- list()
+summ12_04 <- within(summ12_04, {
+  data <- tidy_draws(fit12_04)
+  summ <- data |>
+    select(!matches(match = "__$|disc|lprior|chain|draw|iteration")) |>
+    mutate(across(.cols = where(is.double), .fns = ~gtools::inv.logit(.))) |>
+    pivot_longer(cols = everything()) |>
     mutate(name = sub(pattern = "^X[[:digit:]][.]b_", replacement = "", x = name),
            name = sub(pattern = "[.]$", replacement = "]", x = name),
-           name = sub(pattern = "[.]", replacement = "[", x = name)) %>%
-    group_by(name) %>%
-    ggdist::mean_qi(.width = 0.95)
+           name = sub(pattern = "[.]", replacement = "[", x = name)) |>
+    group_by(name) |>
+    ggdist::mean_qi(.width = 0.89) |>
+    mutate(across(.cols = where(is.numeric), .fns = round, digits = 3))
 })
 # glimpse(samples$data)
 # glimpse(samples$summ)
-samples$summ
+summ12_04$summ
 ```
 
-and to validate our fit, we see that the $value$ in the summary is the same as the $cum_pct$ previously computed.
+and to validate our fit, we see that the $value$ in the summary is the same as 
+the $cum_pct$ previously computed.
 
 ```{r}
-p$df3$cum_pct
+plotTrolley$df3$cum_pct |>
+  round(digits = 3)
 ```
 
 ### Adding predictor variables
 
-> This form automatically ensure the correct ordering of the outcome values, while still morphing the likelihood of each individual valueas the predictor $x_i$ changes value. Why is the linear model $\phi$ substracted from each intercept? Because if we decrease the log-cumulative-odds of every outcome value $k$ below the maximum, this necessarily shifts probability mass upwards towards higher outcome values.
+::: {.callout-note}
+This form automatically ensure the correct ordering of the outcome values, 
+while still morphing the likelihood of each individual value as the predictor 
+$x_i$ changes value. Why is the linear model $\phi$ substracted from each 
+intercept? Because if we decrease the log-cumulative-odds of every outcome 
+value $k$ below the maximum, this necessarily shifts probability mass upwards 
+towards higher outcome values.
+:::
+
 
 $$
 \begin{align*}
@@ -928,14 +932,16 @@ $$
 For example lets take model b12.4
 
 ```{r}
-fixef(b12.4)
+fixef(fit12_04)
 ```
 
 #### Logistic / Logit functions
 
-See the appendix A of this book for a detailed treatment of all these functions. They will be added the suffix *.new* to identify them.
+See the appendix A of this book for a detailed treatment of all these functions. 
+They will be added the suffix *.new* to identify them.
 
-The `logistic()` and `inv_logit()` functions are actually the same as `stats::plogis()`.
+The `logistic()` and `inv_logit()` functions are actually the same as 
+`stats::plogis()`.
 
 Also, the function `logit()` already exists as `stats::qlogis()`.
 
@@ -951,10 +957,11 @@ dordlogit.new <- function(x, phi = 0L, log = FALSE) {
 }
 ```
 
-which gives about the same result as R code 11.9 in McElreath on p. 386 with R code 12.20, and Kurtz.
+which gives about the same result as R code 11.9 in McElreath on p. 386 with 
+R code 12.20, and Kurtz.
 
 ```{r}
-probk <- dordlogit.new(fixef(b12.4)[, 1])
+probk <- dordlogit.new(fixef(fit12_04)[, 1])
 round(probk, 2)
 ```
 
@@ -966,12 +973,13 @@ sum(1:7 * probk)
 
 #### Subsracting from the log-cumulative odds
 
-If we substract from the *log-cumulative odds* then we shift the probability mass to higher outcome values.
+If we substract from the *log-cumulative odds* then we shift the probability 
+mass to higher outcome values.
 
 For example with model b12.4
 
 ```{r}
-probk <- dordlogit.new(fixef(b12.4)[, 1])
+probk <- dordlogit.new(fixef(fit12_04)[, 1])
 round(probk, 2)
 ```
 
@@ -984,13 +992,13 @@ sum(1:7 * probk)
 but if we substract 0.5
 
 ```{r}
-(dordlogit.new(fixef(b12.4)[, 1], phi = 0.5))
+(dordlogit.new(fixef(fit12_04)[, 1], phi = 0.5))
 ```
 
 then we have a higher expected value
 
 ```{r}
-sum(dordlogit.new(fixef(b12.4)[, 1], phi = 0.5) * 1:7)
+sum(dordlogit.new(fixef(fit12_04)[, 1], phi = 0.5) * 1:7)
 ```
 
 #### Ordered categorical with several predictors
@@ -1010,38 +1018,41 @@ $$
 
 and the fit is
 
-```{r ch12_b12_05}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "15 mins."))
-b12.5 <- xfun::cache_rds({
+```{r ch12_fit12_05}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "6 mins."))
+fit12_05 <- xfun::cache_rds({
   out <- brms::brm(data = dataTrolley,
                    family = cumulative,
                    formula = response ~ 1 + action + intention + contact +
                      action:intention + contact:intention,
                    prior = c(prior(normal(0, 1.5), class = Intercept),
                              prior(normal(0, 0.5), class = b)),
-                   cores = detectCores(),
-                   # inits = list(inits, inits),
-                   seed = 12)
-  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
-  out},
-  file = "ch12_b12_05")
+                   iter = 1000, warmup = 500, chains = 2,
+                   cores = detectCores(), seed = 1229)
+  brms::add_criterion(out, criterion = c("waic", "loo"))},
+  file = "ch12_fit12_05")
 tictoc::toc()
-summary(b12.5)
 ```
+
+```{r}
+fit12_05
+```
+
 
 and plot the coefficients
 
 ```{r}
-get_variables(b12.5)
+get_variables(fit12_05)
 ```
 
 ```{r}
 labs <- paste0("beta[", 1:5, "]")
 
-b12.5_post <- gather_draws(model = b12.5, `b_action.*`, `b_contact.*`, `b_intention.*`,
+post12_05 <- gather_draws(model = fit12_05, `b_action.*`, `b_contact.*`, `b_intention.*`,
                            regex = TRUE)
 
-ggplot(b12.5_post, aes(x = .value, y = .variable)) +
+post12_05 |> 
+  ggplot(aes(x = .value, y = .variable)) +
   geom_vline(xintercept = 0, alpha = 1/5, linetype = 3) +
   stat_gradientinterval(.width = .5, size = 1, point_size = 3/2, shape = 21,
                       point_fill = "darkgreen",
@@ -1084,9 +1095,9 @@ NOTE: The `brms` package also has a `rdirchlet()` function which is very useful 
 
 ```{r}
 data(Trolley)
-d <- Trolley
+dataTrolley <- Trolley
 rm(Trolley)
-d <- d %>% 
+dataTrolley <- dataTrolley |> 
   mutate(edu_new = 
            recode_factor(edu,
                   "Elementary School" = 1,
@@ -1097,11 +1108,11 @@ d <- d %>%
                   "Bachelor's Degree" = 6,
                   "Master's Degree" = 7,
                   "Graduate Degree" = 8,
-                  .ordered = TRUE) %>% 
+                  .ordered = TRUE) |>
            as.integer())
 
-d %>% 
-  distinct(edu, edu_new) %>% 
+dataTrolley |> 
+  distinct(edu, edu_new) |> 
   arrange(edu_new)
 ```
 
@@ -1121,10 +1132,10 @@ logit(p_k) &= \alpha_k - \phi_i \\
 \end{align*}
 $$
 
-```{r ch12_b12_06}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 mins."))
-b12.6 <- xfun::cache_rds({
-  out <- brm(data = d,
+```{r ch12_fit12_06}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "35 mins."))
+fit12_06 <- xfun::cache_rds({
+  out <- brm(data = dataTrolley,
       family = cumulative,
       response ~ 1 + action + contact + intention + mo(edu_new),  # note the `mo()` syntax
       prior = c(prior(normal(0, 1.5), class = Intercept),
@@ -1133,20 +1144,24 @@ b12.6 <- xfun::cache_rds({
                 # for monotonic variable edu_new
                 prior(normal(0, 0.143), class = b, coef = moedu_new),
                 prior(dirichlet(2, 2, 2, 2, 2, 2, 2), class = simo, coef = moedu_new1)),
-      cores = detectCores(),
-      seed = 12)
-  out <- brms::add_criterion(out, criterion = c("waic", "loo"))
-  out},
-  file = "ch12_b12_06")
+      iter = 1000, warmup = 500, chains = 2,
+      cores = detectCores(), seed = 1231)
+  brms::add_criterion(out, criterion = c("waic", "loo"))},
+  file = "ch12_fit12_06")
 tictoc::toc()
-summary(b12.6)
 ```
+
+```{r}
+fit12_06
+```
+
+
 
 ```{r}
 delta_labels <- c("Elem", "MidSch", "SHS", "HSG", "SCol", "Bach", "Mast", "Grad")
 
-dp <- posterior_samples(b12.6) %>% 
-  select(contains("simo_moedu_new1")) %>% 
+dp <- posterior_samples(fit12_06) |>
+  select(contains("simo_moedu_new1")) |> 
   setNames(paste0(delta_labels[2:8], "~(delta[", 1:7, "])"))
 
 GGally::ggpairs(dp, labeller = label_parsed) +
