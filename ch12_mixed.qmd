@@ -169,7 +169,7 @@ fit12_01 <- xfun::cache_rds({
     admit | trials(applications) ~ 0 + gid,
     prior = c(prior(normal(0, 1.5), class = b),
               prior(exponential(1), class = phi, lb = 2)),
-    iter = 1000, warmup = 500, chains = 2, 
+    iter = 1000, warmup = 500, chains = 2,
     cores = detectCores(), seed = 1201)},
   file = "ch12_fit12_01")
 tictoc::toc()

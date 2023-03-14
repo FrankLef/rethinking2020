@@ -7,7 +7,7 @@ library(tidyr)
 library(tidybayes)
 library(rethinking)
 library(brms)
-library(qs)
+# library(qs)
 library(loo)
 library(modelr)
 library(skimr)
@@ -15,22 +15,26 @@ library(simstudy)
 library(posterior)
 library(scales)
 library(dagitty)
+library(ggplot2)
 library(ggdag)
-library(ggdist)
-library(ggmcmc)
+# library(ggdist)
+# library(ggmcmc)
 library(bayesplot)
 library(patchwork)
 library(paletteer)
 ```
 
+
+Some options to facilitate the computations
+
 ```{r}
-# these options help stan run faster
-# source: http://mjskay.github.io/tidybayes/articles/tidy-brms.html
-rstan_options(auto_write = TRUE)
+#  For execution on a local, multicore CPU with excess RAM
 options(mc.cores = parallel::detectCores())
+#  To avoid recompilation of unchanged Stan programs
+rstan_options(auto_write = TRUE)
 ```
 
-We set the current theme used for plotting
+The default theme used by `ggplot2`
 
 ```{r}
 theme_set(ggthemes::theme_solarized_2())
@@ -51,16 +55,17 @@ theme_set(ggthemes::theme_solarized_2())
 
 ```{r}
 data(reedfrogs)
-dataFrogs <- reedfrogs %>%
+dataFrogs <- reedfrogs |>
   mutate(tank = seq_len(n()),
          tank = factor(tank))
 rm(reedfrogs)
-skimr::skim(dataFrogs)
+dataFrogs |>
+  skim()
 ```
 
 with the plot of data
 
-```{r}
+```{r ch13_plotFrogs}
 plotFrogs <- ggplot(dataFrogs, aes(x = as.integer(tank), y = propsurv)) +
   geom_point(color = "sienna") +
   geom_hline(yintercept = 0.8, color = "sienna1", linetype = "dashed") +
@@ -93,57 +98,53 @@ $$
 
 and we fit this
 
-```{r ch13_b13_01}
+```{r ch13_fit13_01}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b13.1 <- xfun::cache_rds({
+fit13_01 <- xfun::cache_rds({
   out <- brm(
     data = dataFrogs,
     family = binomial,
-    surv | trials(density) ~ 0 + tank,
+    formula = bf(surv | trials(density) ~ 0 + tank),
     prior = c(prior(normal(0, 1.5), class = b)),
-    cores = detectCores(), seed = 13)
-  out <- add_criterion(out, c("loo", "waic"))
-  out},
-  file = "ch13_b13_01")
+    iter = 1000, warmup = 500, chains = 2,
+    cores = detectCores(), seed = 1301)
+  add_criterion(out, c("loo", "waic"))},
+  file = "ch13_fit13_01")
 tictoc::toc()
 ```
 
-We will strive to use `tidybayes` and `posterior` whenever possible instead of solutions such as `coef[]`, `fixef` and `ranef`. It is the recommended way in documentation from `brms` and makes the work much easier.
 
 ```{r}
-get_variables(b13.1)
+fit13_01 |>
+  summarize_draws() |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
 ```
 
-```{r}
-b13.1 %>%
-  as_draws() %>%
-  summarize_draws()
-```
 
 and visualize the intercepts which correspond to the logit of the probabilities.
 
-```{r}
-p <- list()
-p <- within(p, {
-  data <- b13.1 %>%
-    as_draws() %>%
-    summarize_draws() %>%
-    filter(variable != "lp__") %>%
-    select(variable, a = mean) %>%
-    mutate(p = gtools::inv.logit(a)) %>%
-    rename(exp_surv_log_odds = a, exp_surv_prob = p) %>%
+```{r ch13_plot13_01}
+plot13_01 <- list()
+plot13_01 <- within(plot13_01, {
+  data <- fit13_01 |>
+    summarize_draws() |>
+    filter(variable != "lp__") |>
+    select(variable, a = mean) |>
+    mutate(p = inv_logit_scaled(a)) |>
+    rename(exp_surv_log_odds = a, exp_surv_prob = p) |>
     pivot_longer(cols = c(exp_surv_log_odds, exp_surv_prob))
-  plot <- ggplot(data, aes(x = value, fill = name, color = name)) + 
+
+  p <- ggplot(data, aes(x = value, fill = name, color = name)) +
     geom_dotplot() +
     scale_fill_manual(values = c("orange1", "orange4")) +
     scale_color_manual(values = c("orange1", "orange4")) +
     scale_y_continuous(breaks = NULL) +
     theme(legend.position = "none") +
+    facet_wrap(. ~ name, scales = "free_x") +
     labs(title = "Tank-level intercepts from the no-pooling model",
-         x = NULL, y = NULL) +
-    facet_wrap(. ~ name, scales = "free_x")
-})
-p$plot
+         x = NULL, y = NULL)
+  })
+plot13_01$p
 ```
 
 ### Multilevel
@@ -160,37 +161,33 @@ logit(p_i) &= \alpha_{tank[i]} \\
 \end{align*}
 $$
 
-and the fit is as follows. Note the prior `prior(exponential(0, 1), class = sd)` *which is parametrized in the standard deviation metric* (Kurtz). It is common for multilevel software to model the variance metric. This will be further explained in chapter 14.
+and the fit is as follows. Note the prior `prior(exponential(0, 1), class = sd)` 
+*which is parametrized in the standard deviation metric* (Kurtz). It is 
+common for multilevel software to model the variance metric. This will 
+be further explained in chapter 14.
 
-```{r ch13_b13_02}
+```{r ch13_fit13_02}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b13.2 <- xfun::cache_rds({
+fit13_02 <- xfun::cache_rds({
   out <- brm(
     data = dataFrogs,
     family = binomial,
-    surv | trials(density) ~ 1 + (1 | tank),
+    formula = bf(surv | trials(density) ~ 1 + (1 | tank)),
     prior = c(prior(normal(0, 1.5), class = Intercept),
             prior(exponential(1), class = sd)),
-    cores = detectCores(),
-    sample_prior = TRUE, seed = 13)
-  out <- add_criterion(out, c("loo", "waic"))
-  out},
-  file = "ch13_b13_02")
+    sample_prior = TRUE,
+    iter = 1000, warmup = 500, chains = 2,
+    cores = detectCores(), seed = 1303)
+  add_criterion(out, c("loo", "waic"))},
+  file = "ch13_fit13_02")
 tictoc::toc()
-summary(b13.2)
 ```
 
-```{r}
-get_variables(b13.2)
-```
 
 ```{r}
-b13.2 %>%
-  as_draws() %>%
-  subset_draws(variable = "tank\\[", regex = TRUE) %>%
-  summarize_draws(mean, median, sd, mad, ~quantile2(., probs = c(0.055, 0.945))) %>%
-  mutate(tank = as.integer(regmatches(variable, regexpr(pattern = "[[:digit:]]+", variable)))) %>%
-  relocate(tank)
+fit13_02 |>
+  gather_draws(r_tank[tank, term]) |>
+  mean_qi(.width = 0.89)
 ```
 
 ### Comparison
@@ -198,72 +195,68 @@ b13.2 %>%
 and compare the models
 
 ```{r}
-loo_compare(b13.1, b13.2, criterion = "waic")
+print(loo_compare(fit13_01, fit13_02, criterion = "waic"), simplify = FALSE)
 ```
 
-and convert the elpd_diif to the waic metric
 
 ```{r}
-loo_compare(b13.1, b13.2, criterion = "waic") %>%
-  as.data.frame() %>%
-  mutate(waic_diff = elpd_diff * -2,
-         waic_diff_se = se_diff * 2) %>%
-  select(elpd_diff, se_diff, waic_diff, waic_diff_se)
-```
-
-```{r}
-model_weights(b13.1, b13.2, weights = "waic") %>%
+model_weights(fit13_01, fit13_02, weights = "waic") |>
   round(digits = 2)
 ```
 
 ### Posterior distribution
 
 ```{r}
-summary(b13.2)
+fit13_02
 ```
 
-This time we don't have a list of intercepts as in `b13.2`. We have a descripion of their distribution $\alpha_j \sim \mathcal{N}(\bar{\alpha}, \sigma)$ where $Intercept = \bar{\alpha}$ and $sd(Intercept) = \sigma$.
+This time we don't have a list of intercepts as in `fit13_02`. We have a 
+description of their distribution $\alpha_j \sim \mathcal{N}(\bar{\alpha}, \sigma)$ 
+where $Intercept = \bar{\alpha}$ and $sd(Intercept) = \sigma$.
 
-The task of getting the posterior is easier with `tidybayes` and `posterior` than the way McElreath and Kurtz do it.
+The task of getting the posterior is easier with `tidybayes` and `posterior` 
+than the way McElreath and Kurtz do it.
 
-```{r}
+```{r ch13_epred13_02}
 # IMPORTANT: We use the median value, not the mean because of skewed
 #            binomial dist. You don't always have to use the mean!
-fitted <- list()
-fitted <- within(fitted, {
-  newdata <- dataFrogs
-  data <- epred_draws(b13.2, newdata = newdata) %>%
-    as.data.frame() %>%
-    select(tank, density, .epred) %>%
-    mutate(prop = .epred / density) %>%
-    group_by(tank) %>%
-    summarize(surv_prop = median(prop))
-})
-# fitted$data
+epred13_02 <- dataFrogs |>
+  add_epred_draws(fit13_02, ndraws = 500) |>
+  mutate(propsurv.epred = .epred / density) |>
+  median_qi(.width = 0.89)
+epred13_02
 ```
 
 ```{r}
 plotFrogs +
-  geom_point(fitted$data, mapping = aes(x = as.integer(tank), y = surv_prop),
+  geom_point(epred13_02, mapping = aes(x = as.integer(tank), y = propsurv.epred),
              inherit.aes = FALSE, shape = 1, size = 2, color = "darkorange")
 ```
 
-First, we take a sampling of size 100 of the 4000 draws from the posterior sample with `slice_sample(n = 100)`.
+First, we take a sampling of size 100 of the 4000 draws from the posterior 
+sample with `slice_sample(n = 100)`.
 
-Second, to simulate the **distribution** of the logodds values described by the `b_Intercept` and `tank_Intercepts` of **each draw** we create a sequence of 100 logodds values between -4 and 5 (based on the acutal range of -2, 3.5 shown just above) which is done by `expand(nesting(iter, b_Intercept, sd_tank__Intercept), x = seq(from = -4, to = 5, length.out = 100))` and which will result in 10000 lines.
+Second, to simulate the **distribution** of the logodds values described by the 
+`b_Intercept` and `tank_Intercepts` of **each draw** we create a sequence of 
+100 logodds values between -4 and 5 (based on the acutal range of -2, 3.5 
+shown just above) which is done by `expand(nesting(iter, b_Intercept, 
+sd_tank__Intercept), x = seq(from = -4, to = 5, length.out = 100))` and which will result in 10000 lines.
 
-Third, we compute the normal density for each of the 10000 lines using the `b_Intercept` and `tank_Intercepts` of each line. The normal density is used because the model is $\alpha_{tank} \sim \mathcal{N}(0, 5)$ and $\alpha \sim \mathcal{N}(0, 1)$. This is done with
+Third, we compute the normal density for each of the 10000 lines using the 
+`b_Intercept` and `tank_Intercepts` of each line. The normal density is 
+used because the model is $\alpha_{tank} \sim \mathcal{N}(0, 5)$ and 
+$\alpha \sim \mathcal{N}(0, 1)$. This is done with
 
 ```{r}
 samples <- list()
 samples <- within(samples, {
-  data1 <- as_draws_df(b13.2) %>%
-    slice_sample(n = 100) %>%
+  data1 <- as_draws_df(fit13_02) |>
+    slice_sample(n = 100) |>
     expand(nesting(.draw, b_Intercept, sd_tank__Intercept),
-           x = seq(from = -4, to = 5, length.out = 100)) %>%
+           x = seq(from = -4, to = 5, length.out = 100)) |>
     mutate(density = dnorm(x, mean = b_Intercept, sd = sd_tank__Intercept))
-  data2 <- as_draws_df(b13.2) %>%
-    slice_sample(n = 1000, replace = TRUE) %>%
+  data2 <- as_draws_df(fit13_02) |>
+    slice_sample(n = 1000, replace = TRUE) |>
     mutate(p_logit = rnorm(n(), mean = b_Intercept, sd = sd_tank__Intercept),
            p = gtools::inv.logit(p_logit))
   
@@ -328,8 +321,8 @@ sim <- within(sim, {
   data <- data.frame(
     pond = seq_len(nponds),
     Ni = rep(as.integer(c(5, 10, 25, 35)), each = 15),
-    true_a = rnorm(nponds, mean = a_bar, sd = sigma)) %>%
-    mutate(true_p = gtools::inv.logit(true_a))
+    true_a = rnorm(nponds, mean = a_bar, sd = sigma)) |>
+    mutate(true_p = inv_logit_scaled(true_a))
 })
 # because of stan, Ni must be an integer
 stopifnot(is.integer(sim$data$Ni))
@@ -364,74 +357,67 @@ therefore the simulation of $p_i$ must use the logistic function
 ```{r}
 sim <- within(sim, {
   set.seed(5005)
-  data <- data %>%
+  data <- data |>
     mutate(Si = rbinom(n(), prob = true_p, size = Ni))
   # data$Si <- rbinom(nponds, prob = data$true_p, size = data$Ni)
 })
 ```
 
-```{r}
-# near(inv_logit_scaled(sim$data$true_a), gtools::inv.logit(sim$data$true_a))
-```
 
 ### Compute the no-pooling estimates
 
 ```{r}
-sim$data <- sim$data %>%
+sim$data <- sim$data |>
   mutate(nopool_p = Si / Ni)
 # glimpse(sim$data)
 ```
 
 ### Compute the partial pooling estimates
 
-```{r ch13_b13_03}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
-b13.3 <- xfun::cache_rds({
+```{r ch13_fit13_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit13_03 <- xfun::cache_rds({
   out <- brm(
     data = sim$data,
     family = binomial,
-    Si | trials(Ni) ~ 1 + (1 | pond),
+    formula = bf(Si | trials(Ni) ~ 1 + (1 | pond)),
     prior = c(prior(normal(0, 1.5), class = Intercept),
             prior(exponential(1), class = sd)),
-    cores = detectCores(), seed = 13)
+    iter = 1000, warmup = 500, chains = 2,
+    cores = detectCores(), seed = 1307)
   out <- add_criterion(out, c("loo", "waic"))
   out},
-  file = "ch13_b13_03")
+  file = "ch13_fit13_03")
 tictoc::toc()
-summary(b13.3)
 ```
 
-The package `tidybayes` is handy when dealing with multi-level models. We will favor using it instead of the straight tidyverse approach from @kurtz2020b. Using `coef[]` etc. can create a lot of confusion. The `tidybayes` offers a unified naming convention that contribute to the learning process. For an expert, maybe not, for a beginnier yes, absolutely.
-
-A useful function to understand the use of `tidybayes` is `get_variables()` which gives us the variables' name structure to use.
-
-```{r}
-# get_variables(b13.3)
-```
 
 and we have our point summaries and interval as follows
 
+
+
 ```{r}
-as_draws(b13.3) %>%
-  subset_draws(variable = "pond\\[", regex = TRUE) %>%
-  summarize_draws(mean, median, sd, mad, ~quantile2(., probs = c(0.055, 0.945))) %>%
-  mutate(pond = as.integer(regmatches(variable, regexpr(pattern = "[[:digit:]]+", variable)))) %>%
-  relocate(pond)
+fit13_03 |>
+  spread_draws(r_pond[pond, term]) |>
+  summarize_draws() |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
-It is important to understand that `epred_draws` is not simply the result of `linpred-draws` converted with the inverse link function. It can be illustrated in this case as follows
+It is important to understand that `epred_draws` is not simply the result of 
+`linpred-draws` converted with the inverse link function. It can be illustrated 
+in this case as follows
 
 ```{r}
 # the linear/link-level predictor
-lp <- linpred_draws(b13.3, newdata = sim$data[, c("Ni", "pond")]) %>%
-  select(-.chain, -.iteration) %>%
+lp <- linpred_draws(fit13_03, newdata = sim$data[, c("Ni", "pond")]) |>
+  select(-.chain, -.iteration) |>
   summarize_draws()
 # the
-ep <- epred_draws(b13.3, newdata = sim$data[, c("Ni", "pond")]) %>%
-  select(-.chain, -.iteration) %>%
+ep <- epred_draws(fit13_03, newdata = sim$data[, c("Ni", "pond")]) |>
+  select(-.chain, -.iteration) |>
   summarize_draws()
 
-# the link-level precitor
+# the link-level predictor
 head(lp[, c("pond", "Ni", "mean")])
 # the expected posterior predictive
 head(ep[, c("pond", "Ni", "mean")])
@@ -445,35 +431,37 @@ head(data.frame(
 ))
 ```
 
-and we get the information on the level 1, the fixed effect, with `fixef(b13.3)` and the level 2, random effects, with `ran`ef(b13.3)\`
+and we get the information on the level 1, the fixed effect, with `fixef(b13.3)` 
+and the level 2, random effects, with `ranef(fit13_03)`
 
 ```{r}
-# fixef(b13.3)
-# ranef(b13.3)
+# fixef(fit13_03)
+# ranef(fit13_03)
 ```
 
 and the whole thing is obtained with the `fit` which calls the stan data
 
 ```{r}
-# b13.3$fit
+# fit13_03$fit
 ```
 
-> In this work we favor using `tidybayes` and `posterior`. fixef(b13.3), ranef(b13.3), b13.3\$fit and coef()\[, ,\] are avoided.
 
-```{r}
-coef(b13.3)$pond[, , ] %>%
-  as.data.frame()
-```
+::: {.callout-note}
+In this work we favor using `tidybayes` and `posterior`. `fixef(fit13_03)`, 
+`ranef(fit13_03)`, `fit13_03$fit` and `coef()\[, ,\]` are avoided.
+:::
+
+
 
 ```{r}
 sim <- within(sim, {
-  linpred <- linpred_draws(b13.3, newdata = sim$data[, c("Ni", "pond")]) %>%
-    select(-.chain, -.iteration) %>%
+  linpred <- linpred_draws(fit13_03, newdata = sim$data[, c("Ni", "pond")]) |>
+    select(-.chain, -.iteration) |>
     summarize_draws()
 
-  data <- data %>%
-    # bind_cols(partpool_p) %>%
-    mutate(partpool_p = gtools::inv.logit(linpred$mean)) %>%
+  data <- data |>
+    # bind_cols(partpool_p) |>
+    mutate(partpool_p = inv_logit_scaled(linpred$mean)) |>
     mutate(nopool_error = abs(nopool_p - true_p),
            partpool_error = abs(partpool_p - true_p))
   })
@@ -497,8 +485,6 @@ ggplot(sim$data, aes(x = pond, y = nopool_error)) +
        subtitle = "Same results as Kurtz, difference with McElreath caused by the seed",
        x = NULL, y = NULL)
 ```
-
-> **Important**: The `coef` gives the coefficients of the posterior distribution. It is the same as `linpred`. It reflects all the levels of the multilevel model, that is both the fixed effects, obtained by `fixef()`, and the random effects, obtained by `ranef()`, on the posterior ditribution. In our current model which only has an intercept, it is therefore, also, the average by pond.
 
 ## More than one type of cluster
 
@@ -525,119 +511,129 @@ We load the data
 
 ```{r}
 data(chimpanzees)
-dataChimp <- chimpanzees %>%
+dataChimp <- chimpanzees |>
   mutate(actor = factor(actor),
          block = factor(block),
          treatment = factor(1 + prosoc_left + 2 * condition,
                             levels = as.character(1:4),
                             labels = c("R/N", "L/N", "R/P", "L/P")))
 rm(chimpanzees)
-glimpse(dataChimp)
+dataChimp |>
+  skim() |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
-```{r ch13_b13_04}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b13.4 <- xfun::cache_rds({
+
+```{r ch13_fit13_04}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "75 secs."))
+fit13_04 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
-      family = binomial,
-      bf(pulled_left | trials(1) ~ a + b,
-         a ~ 1 + (1 | actor) + (1 | block),
-         b ~ 0 + treatment,
-         nl = TRUE),
-      prior = c(prior(normal(0, 0.5), nlpar = b),
-                prior(normal(0, 1.5), class = b, coef = Intercept, nlpar = a),
-                prior(exponential(1), class = sd, group = actor, nlpar = a),
-                prior(exponential(1), class = sd, group = block, nlpar = a)),
-      iter = 2000, warmup = 1000, chains = 4, cores = 4,
-      seed = 13)
-  out <- add_criterion(out, c("loo", "waic"))
-  out},
-  file = "ch13_b13_04")
+      family = bernoulli,
+      formula = bf(pulled_left ~ 1 + treatment + (1 | actor) + (1 | block)),
+      prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(normal(0, 0.5), class = b),
+                prior(exponential(1), class = sd, group = actor),
+                prior(exponential(1), class = sd, group = block)),
+      iter = 1000, warmup = 500, chains = 2, 
+      cores = detectCores(), seed = 1319)
+  add_criterion(out, c("loo", "waic"))},
+  file = "ch13_fit13_04")
 tictoc::toc()
 ```
 
 the posterior samples is
 
-```{r}
-# get_variables(b13.4)
-```
 
-```{r}
-samples <- list()
-samples <- within(samples, {
-  data <- as_draws_df(b13.4)
-  summ <- as_draws(b13.4) %>%
-    summarize_draws %>%
-    filter(variable != "lp__")
+```{r ch13_post13_04}
+post13_04 <- list()
+post13_04 <- within(post13_04, {
+  summ <- summarize_draws(fit13_04, mean, ~quantile(.x, probs = c(0.055, 0.945))) |>
+    filter(!grepl(pattern = "^lp.+", x = variable)) |>
+    rename(.lower = `5.5%`,
+           .upper = `94.5%`)
+  sd <- gather_draws(fit13_04, `sd_.*`, regex = TRUE)
 })
+# glimpse(post13_04$summ)
 ```
 
 and we look at the standard deviation of the random effect of actor
 
-```{r}
-p <- list()
-p <- within(p, {
-  dens <- ggplot(samples$data) +
-    tidybayes::stat_halfeye(aes(x = sd_actor__a_Intercept), .width = 0.95, fill = "orange") +
-    tidybayes::stat_halfeye(aes(x = sd_block__a_Intercept), .width = 0.95, fill = "darkgreen") +
+```{r ch13_plot13_04}
+#| fig-cap: "Figure 13.4"
+plot13_04 <- list()
+plot13_04 <- within(plot13_04, {
+  dens <- post13_04$sd |> 
+    ggplot(aes(x = .value, color = .variable)) +
+    geom_density(adjust = 0.5, linewidth = 1) +
+    scale_color_paletteer_d("ggthemes::Classic_10") +
+    # tidybayes::stat_halfeye(.width = 0.89, fill = "orange") +
+    # tidybayes::stat_halfeye(aes(x = sd_block__a_Intercept), .width = 0.95, fill = "darkgreen") +
     coord_cartesian(xlim = c(0, 4)) +
+    theme(legend.position = c(0.6, 0.8),
+          legend.background = element_rect(fill = "transparent"),
+          legend.title = element_blank()) +
     labs(title = expression(sigma[actor] *", "* sigma[block]),
          x = expression(sigma), y = NULL)
-  coef <- ggplot(samples$summ, aes(x = mean, xmin = q5, xmax = q95, y = variable)) + 
+  
+  coef <- post13_04$summ |>
+    ggplot(aes(x = mean, xmin = .lower, xmax = .upper, y = variable)) + 
     geom_pointinterval(fatten_point = 3,color = "navyblue") +
     ggrepel::geom_text_repel(aes(label = round(mean, 2)), size = 3, color = "purple") +
     theme(legend.position = "none") +
-    labs(x = NULL, y = NULL)
+    labs(title = "Posterior distribution",
+         subtitle = "With mean and 89% CI",
+         x = NULL, y = NULL)
   
 })
-# p$dens
-# p$coef
-wrap_plots(p)
+wrap_plots(plot13_04) +
+  plot_annotation(
+    title = "Posterior distributions"
+  )
 ```
 
-```{r ch13_b13_05}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
-b13.5 <- xfun::cache_rds({
+
+
+```{r ch13_fit13_05}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit13_05 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
-      family = binomial,
-      bf(pulled_left | trials(1) ~ a + b,
-         a ~ 1 + (1 | actor),
-         b ~ 0 + treatment,
-         nl = TRUE),
-      prior = c(prior(normal(0, 0.5), nlpar = b),
-                prior(normal(0, 1.5), class = b, coef = Intercept, nlpar = a),
-                prior(exponential(1), class = sd, group = actor, nlpar = a)),
-      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 13)
-  out <- add_criterion(out, c("loo", "waic"))
-  out},
-  file = "ch13_b13_05")
+      family = bernoulli,
+      bf(pulled_left ~ 1 + (1 | actor) + treatment),
+      prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(normal(0, 0.5), class = b),
+                prior(exponential(1), class = sd, group = actor)),
+      iter = 1000, warmup = 500, chains = 2, 
+      cores = detectCores(), seed = 1321)
+  add_criterion(out, c("loo", "waic"))},
+  file = "ch13_fit13_05")
 tictoc::toc()
 ```
 
 ```{r}
-loo_compare(b13.4, b13.5, criterion = "waic")
+loo_compare(fit13_04, fit13_05, criterion = "waic")
 ```
 
 ### Even more clusters
 
-```{r ch13_b13_06}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "140 secs."))
-b13.6 <- xfun::cache_rds({
+```{r ch13_fit13_06}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+fit13_06 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
-      family = binomial,
-      pulled_left | trials(1) ~ 1 + (1 | actor) + (1 | block) + (1 | treatment),
+      family = bernoulli,
+      pulled_left ~ 1 + (1 | actor) + (1 | block) + (1 | treatment),
       prior = c(prior(normal(0, 1.5), class = Intercept),
-                prior(exponential(1), class = sd)),
-      iter = 2000, warmup = 1000, chains = 4, cores = 4,
-      seed = 13)
-  out <- add_criterion(out, c("loo", "waic"))
-  out},
-  file = "ch13_b13_06")
+                prior(exponential(1), class = sd, group = actor),
+                prior(exponential(1), class = sd, group = block),
+                prior(exponential(1), class = sd, group = treatment)),
+      iter = 1000, warmup = 500, chains = 2, 
+      cores = detectCores(), seed = 1327)
+  add_criterion(out, c("loo", "waic"))},
+  file = "ch13_fit13_06")
 tictoc::toc()
 ```
 
 ```{r}
-loo_compare(b13.4, b13.5, b13.6, criterion = "waic")
+loo_compare(fit13_04, fit13_05, fit13_06, criterion = "waic")
 ```
 
 ## Divergent transitions and non-centered priors
@@ -664,13 +660,13 @@ fitd <- within(fitd, {
     treatment = unique(dataChimp$treatment),
     block = 1
   )
-  data <- epred_draws(b13.4, newdata = newdata) %>%
-    select(-.chain, -.iteration, -.draw) %>%
+  data <- epred_draws(fit13_04, newdata = newdata) |>
+    select(-.chain, -.iteration, -.draw) |>
     summarize_draws()
   # and the empirical frequencies are
-  obs <- dataChimp %>%
-    filter(actor == chimp) %>%
-    group_by(treatment) %>%
+  obs <- dataChimp |>
+    filter(actor == chimp) |>
+    group_by(treatment) |>
     summarize(prob = mean(pulled_left))
   p <- ggplot(obs, aes(x = treatment, y = prob, group = 1)) +
     geom_lineribbon(data, 
@@ -697,13 +693,13 @@ fitd <- within(fitd, {
     treatment = unique(dataChimp$treatment),
     block = 1
   )
-  data <- epred_draws(b13.4, newdata = newdata) %>%
-    select(-.chain, -.iteration, -.draw) %>%
+  data <- epred_draws(fit13_04, newdata = newdata) |>
+    select(-.chain, -.iteration, -.draw) |>
     summarize_draws()
   # and the empirical frequencies are
-  obs <- dataChimp %>%
-    filter(actor == chimp) %>%
-    group_by(treatment) %>%
+  obs <- dataChimp |>
+    filter(actor == chimp) |>
+    group_by(treatment) |>
     summarize(prob = mean(pulled_left))
   p <- ggplot(obs, aes(x = treatment, y = prob, group = 1)) +
     geom_lineribbon(data, 
