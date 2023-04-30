@@ -44,13 +44,6 @@ theme_set(ggthemes::theme_solarized_2())
 #   )
 ```
 
-```{r}
-# data(iris)
-# ggplot(iris, aes(x = Petal.Length, y = Sepal.Length, color = Species)) +
-#   geom_point() +
-#   labs(title = "Iris dataset", subtitle = sprintf("%d lines", nrow(iris)))
-```
-
 ## Example: Multilevel tadpoles
 
 ```{r}
@@ -60,7 +53,9 @@ dataFrogs <- reedfrogs |>
          tank = factor(tank))
 rm(reedfrogs)
 dataFrogs |>
-  skim()
+  skim() |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 with the plot of data
@@ -98,6 +93,16 @@ $$
 
 and we fit this
 
+
+```{r}
+# get_prior(
+#   data = dataFrogs,
+#   formula = bf(surv | trials(density) ~ 1 + tank),
+#   family = binomial)
+```
+
+This fit gives the closest waic to the one shown in R code 13.4 on p. 404.
+
 ```{r ch13_fit13_01}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 fit13_01 <- xfun::cache_rds({
@@ -105,19 +110,25 @@ fit13_01 <- xfun::cache_rds({
     data = dataFrogs,
     family = binomial,
     formula = bf(surv | trials(density) ~ 0 + tank),
-    prior = c(prior(normal(0, 1.5), class = b)),
+    prior = c(
+      # NOTE: No intercept, this gives the closest waic similar to the textbook
+      # prior(normal(0, 1), class = Intercept),
+      prior(normal(0, 1.5), class = b)),
     iter = 1000, warmup = 500, chains = 2,
     cores = detectCores(), seed = 1301)
   add_criterion(out, c("loo", "waic"))},
-  file = "ch13_fit13_01")
+  file = "ch13_fit13_01", rerun = FALSE)
 tictoc::toc()
 ```
 
 
 ```{r}
 fit13_01 |>
-  summarize_draws() |>
-  mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
+  spread_draws(`b_.+`, regex = TRUE) |>
+  summarize_draws("mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
+                  default_convergence_measures()) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
+         across(.cols = starts_with("ess"), .fns = as.integer))
 ```
 
 
@@ -151,6 +162,7 @@ plot13_01$p
 
 and now the multilevel model
 
+
 $$
 \begin{align*}
 surv_i &\sim \mathcal{Binomial}(n_i, p_i) \\
@@ -166,28 +178,41 @@ and the fit is as follows. Note the prior `prior(exponential(0, 1), class = sd)`
 common for multilevel software to model the variance metric. This will 
 be further explained in chapter 14.
 
+```{r}
+get_prior(
+  data = dataFrogs,
+  formula = bf(surv | trials(density) ~ 1 + (1 | tank)),
+  family = binomial)
+```
+This fit gives the closest waic to the one shown in R code 13.4 on p. 404.
+
 ```{r ch13_fit13_02}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit13_02 <- xfun::cache_rds({
   out <- brm(
     data = dataFrogs,
     family = binomial,
     formula = bf(surv | trials(density) ~ 1 + (1 | tank)),
-    prior = c(prior(normal(0, 1.5), class = Intercept),
-            prior(exponential(1), class = sd)),
+    prior = c(
+      prior(normal(0, 1.5), class = Intercept),
+      prior(normal(0, 1), class = sd, coef = Intercept, group = tank),
+      prior(exponential(1), class = sd, group = tank)),
     sample_prior = TRUE,
     iter = 1000, warmup = 500, chains = 2,
     cores = detectCores(), seed = 1303)
   add_criterion(out, c("loo", "waic"))},
-  file = "ch13_fit13_02")
+  file = "ch13_fit13_02", rerun = FALSE)
 tictoc::toc()
 ```
 
 
 ```{r}
 fit13_02 |>
-  gather_draws(r_tank[tank, term]) |>
-  mean_qi(.width = 0.89)
+  spread_draws(`b_.+`, `sd_.+`,`r_.+`, regex = TRUE) |>
+  summarize_draws("mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
+                  default_convergence_measures()) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
+         across(.cols = starts_with("ess"), .fns = as.integer))
 ```
 
 ### Comparison
@@ -387,7 +412,7 @@ fit13_03 <- xfun::cache_rds({
     cores = detectCores(), seed = 1307)
   out <- add_criterion(out, c("loo", "waic"))
   out},
-  file = "ch13_fit13_03")
+  file = "ch13_fit13_03", rerun = FALSE)
 tictoc::toc()
 ```
 
@@ -398,9 +423,11 @@ and we have our point summaries and interval as follows
 
 ```{r}
 fit13_03 |>
-  spread_draws(r_pond[pond, term]) |>
-  summarize_draws() |>
-  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
+  spread_draws(`b_.+`, `sd_.+`,`r_.+`, regex = TRUE) |>
+  summarize_draws("mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
+                  default_convergence_measures()) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
+         across(.cols = starts_with("ess"), .fns = as.integer))
 ```
 
 It is important to understand that `epred_draws` is not simply the result of 
@@ -447,7 +474,7 @@ and the whole thing is obtained with the `fit` which calls the stan data
 
 
 ::: {.callout-note}
-In this work we favor using `tidybayes` and `posterior`. `fixef(fit13_03)`, 
+In this project we favor using `tidybayes` and `posterior`. `fixef(fit13_03)`, 
 `ranef(fit13_03)`, `fit13_03$fit` and `coef()\[, ,\]` are avoided.
 :::
 
@@ -524,22 +551,55 @@ dataChimp |>
 ```
 
 
+
+```{r}
+get_prior(
+  data = dataChimp,
+  formula = bf(pulled_left ~ 0 + a + b + g,
+               a ~ 1 + (1 | actor),
+               b ~ 0 + treatment,
+               g ~ 0 + (1 | block),
+               nl = TRUE),
+  family = bernoulli)
+```
+
+::: {.callout-note}
+
+This fit gives the same waic as found on page 418 of section 13.3.1.
+:::
+
+
 ```{r ch13_fit13_04}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "75 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit13_04 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
       family = bernoulli,
-      formula = bf(pulled_left ~ 1 + treatment + (1 | actor) + (1 | block)),
-      prior = c(prior(normal(0, 1.5), class = Intercept),
-                prior(normal(0, 0.5), class = b),
-                prior(exponential(1), class = sd, group = actor),
-                prior(exponential(1), class = sd, group = block)),
+      formula = bf(pulled_left ~ 0 + a + b + g,
+                   a ~ 1 + (1 | actor),
+                   b ~ 0 + treatment,
+                   g ~ 0 + (1 | block),
+                   nl = TRUE),
+      prior = c(prior(normal(0, 1.5), class = sd, coef = Intercept, group = actor, nlpar = a),
+                prior(exponential(1), class = sd, group = actor, nlpar = a),
+                prior(normal(0, 1), class = b, nlpar = b),
+                prior(normal(0, 1), class = sd, coef = Intercept, group = block, nlpar = g),
+                prior(exponential(1), class = sd, group = block, nlpar = g)
+                ),
       iter = 1000, warmup = 500, chains = 2, 
       cores = detectCores(), seed = 1319)
   add_criterion(out, c("loo", "waic"))},
-  file = "ch13_fit13_04")
+  file = "ch13_fit13_04", rerun = FALSE)
 tictoc::toc()
 ```
+
+
+```{r}
+summarize_draws(fit13_04, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
+                default_convergence_measures()) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
+         across(.cols = starts_with("ess"), .fns = as.integer))
+```
+
 
 the posterior samples is
 
@@ -579,6 +639,7 @@ plot13_04 <- within(plot13_04, {
     ggplot(aes(x = mean, xmin = .lower, xmax = .upper, y = variable)) + 
     geom_pointinterval(fatten_point = 3,color = "navyblue") +
     ggrepel::geom_text_repel(aes(label = round(mean, 2)), size = 3, color = "purple") +
+    geom_vline(xintercept = 0) +
     theme(legend.position = "none") +
     labs(title = "Posterior distribution",
          subtitle = "With mean and 89% CI",
@@ -592,48 +653,93 @@ wrap_plots(plot13_04) +
 ```
 
 
+```{r}
+get_prior(
+  data = dataChimp,
+  formula = bf(pulled_left ~ 0 + a + b,
+               a ~ 1 + (1 | actor),
+               b ~ 0 + treatment,
+               nl = TRUE),
+  family = bernoulli)
+```
+
+::: {.callout-note}
+
+This fit gives the same waic as found on page 418 of section 13.3.1.
+:::
+
 
 ```{r ch13_fit13_05}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 fit13_05 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
       family = bernoulli,
-      bf(pulled_left ~ 1 + (1 | actor) + treatment),
-      prior = c(prior(normal(0, 1.5), class = Intercept),
-                prior(normal(0, 0.5), class = b),
-                prior(exponential(1), class = sd, group = actor)),
+      formula = bf(pulled_left ~ 0 + a + b,
+                   a ~ 1 + (1 | actor),
+                   b ~ 0 + treatment,
+                   nl = TRUE),
+      prior = c(prior(normal(0, 1.5), class = sd, coef = Intercept, group = actor, nlpar = a),
+                prior(exponential(1), class = sd, group = actor, nlpar = a),
+                prior(normal(0, 0.5), class = b, nlpar = b)
+                ),
       iter = 1000, warmup = 500, chains = 2, 
-      cores = detectCores(), seed = 1321)
+      cores = detectCores(), seed = 1319)
   add_criterion(out, c("loo", "waic"))},
-  file = "ch13_fit13_05")
+  file = "ch13_fit13_05", rerun = FALSE)
 tictoc::toc()
 ```
 
+and we obtain the same results as on p. 418 of section 13.3.1.
+
+
 ```{r}
-loo_compare(fit13_04, fit13_05, criterion = "waic")
+print(loo_compare(fit13_04, fit13_05, criterion = "waic"), simplify = FALSE)
 ```
 
 ### Even more clusters
 
+
+```{r}
+get_prior(
+  data = dataChimp,
+  formula = bf(pulled_left ~ 0 + a + b + g,
+               a ~ 1 + (1 | actor),
+               b ~ 0 + (1 | treatment),
+               g ~ 0 + (1 | block),
+               nl = TRUE),
+  family = bernoulli)
+```
+
+
 ```{r ch13_fit13_06}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit13_06 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
       family = bernoulli,
-      pulled_left ~ 1 + (1 | actor) + (1 | block) + (1 | treatment),
-      prior = c(prior(normal(0, 1.5), class = Intercept),
-                prior(exponential(1), class = sd, group = actor),
-                prior(exponential(1), class = sd, group = block),
-                prior(exponential(1), class = sd, group = treatment)),
+      formula = bf(pulled_left ~ 0 + a + b + g,
+                   a ~ 1 + (1 | actor),
+                   b ~ 0 + (1 | treatment),
+                   g ~ 0 + (1 | block),
+                   nl = TRUE),
+      prior = c(prior(normal(0, 1.5), class = sd, coef = Intercept, group = actor, nlpar = a),
+                prior(exponential(1), class = sd, group = actor, nlpar = a),
+                prior(normal(0, 1), class = sd, coef = Intercept, group = treatment, nlpar = b),
+                prior(exponential(1), class = sd, group = treatment, nlpar = b),
+                prior(normal(0, 1), class = sd, coef = Intercept, group = block, nlpar = g),
+                prior(exponential(1), class = sd, group = block, nlpar = g)
+                ),
       iter = 1000, warmup = 500, chains = 2, 
-      cores = detectCores(), seed = 1327)
+      cores = detectCores(), seed = 1319)
   add_criterion(out, c("loo", "waic"))},
-  file = "ch13_fit13_06")
+  file = "ch13_fit13_06", rerun = FALSE)
 tictoc::toc()
 ```
 
+
+
 ```{r}
-loo_compare(fit13_04, fit13_05, fit13_06, criterion = "waic")
+print(loo_compare(fit13_04, fit13_05, fit13_06, criterion = "waic"), 
+      simplify = FALSE)
 ```
 
 ## Divergent transitions and non-centered priors

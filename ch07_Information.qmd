@@ -18,7 +18,6 @@ library(patchwork)
 library(paletteer)
 ```
 
-
 Some options to facilitate the computations
 
 ```{r}
@@ -36,14 +35,9 @@ ggplot2::theme_set(ggthemes::theme_gdocs())
 ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
 
-
-
 An important point to remember is mentioned in @elreath2020, introduction of chapter 7.
 
-> ... Whatever you think about null hypothesis significance testing in general, 
-using it to select among structurally diferent models is a mistake. 
-*p-value* are not designed to help you navigate between underfitting 
-and overfitting.
+> ... Whatever you think about null hypothesis significance testing in general, using it to select among structurally diferent models is a mistake. *p-value* are not designed to help you navigate between underfitting and overfitting.
 
 ## The problem with parameters
 
@@ -59,9 +53,7 @@ $$
 
 ### More parameters always improve fit **OVERFITTING**
 
-Get the data and standardize it. In section 7.1.1 @elreath2020 explains that 
-we rescale brain size instead of standardizing it because 
-*we want to preserve zero* as a reference point.
+Get the data and standardize it. In section 7.1.1 @elreath2020 explains that we rescale brain size instead of standardizing it because *we want to preserve zero* as a reference point.
 
 ```{r}
 dataBrains <- tibble(
@@ -97,8 +89,7 @@ plotBrains <- within(plotBrains, {
 plotBrains$p
 ```
 
-See [hadley](https://www.youtube.com/watch?v=rz3_FDVt9eg&t=2339s) 
-for very nice discussion on how to process several models in one dataframe.
+See [hadley](https://www.youtube.com/watch?v=rz3_FDVt9eg&t=2339s) for very nice discussion on how to process several models in one dataframe.
 
 ### Too few parameters hurts **UNDERFITTING**
 
@@ -135,7 +126,6 @@ weather$df1 |> gt::gt(rowname_col = "rowname") |>
     gt::tab_options(column_labels.hidden = TRUE)
 ```
 
-
 The new weather person has this data
 
 ```{r}
@@ -152,7 +142,6 @@ weather <- within(weather, {
 weather$df2 |> gt::gt(rowname_col = "rowname") |>
     gt::tab_options(column_labels.hidden = TRUE)
 ```
-
 
 would be, i.e. the expected nb of correct predictions,
 
@@ -280,7 +269,7 @@ The is the basis for the $AIC$, the **Akaike Information Criteria**
 
 $$
 AIC = D_{train} + 2 \cdot p = -2\cdot lppd + 2 \cdot p
-$$ 
+$$
 
 AIC is used when
 
@@ -302,8 +291,7 @@ $$
 
 $$
 WAIC = -2 (lppd - p_{WAIC})
-$$ 
-
+$$
 
 The penalty term is also called the **effective number of parameters** which is really not the right mathematical way of writing it. See discussion in section 7.4.2.
 
@@ -384,7 +372,7 @@ A last point about model comparison is that comparing the pointwise weights. See
 
 $$
 w_i = \frac{exp(-0.5 \Delta_i)}{\sum_j exp(-0.5 \Delta_j)}
-$$ 
+$$
 
 which can be obtained with `brms::model_weights`
 
@@ -440,18 +428,22 @@ ggplot(dp, aes(x = pareto_k, y = p_waic, color = Loc == "ID")) +
          caption = "Different than McElreath but ok with Kurtz (same conclusions for both)")
 ```
 
-Therefore we have **ID** which has too much influence. The solution is to use **robust regression**, a wonderful solution described by McElreath at the end of section 7.5.2.
+Therefore we have **ID** which has too much influence. The solution is to use 
+**robust regression**, a wonderful solution described by McElreath at the end 
+of section 7.5.2.
 
 See Kurtz on how to do it with `brms` as follows. We use $\nu = 2$, same as McElreath.
 
-Make sure you read McElreath and Kurtz on the t-distribution. A few things are important to remember. e.g. the parameter $\sigma$ is not the standard deviation in t-distribution.
+Make sure you read McElreath and Kurtz on the t-distribution. A few things are 
+important to remember. e.g. the parameter $\sigma$ is not the standard deviation 
+in t-distribution.
 
 ```{r ch07_b05_03t}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 b5.3t <- xfun::cache_rds({
   out <- brm(data = dataWaffle, 
       family = student,
-      bf(D ~ 1 + M + A, nu = 2),
+      formula = bf(D ~ 1 + M + A, nu = 2),
       prior = c(prior(normal(0, 0.2), class = Intercept),
                 prior(normal(0, 0.5), class = b),
                 prior(exponential(1), class = sigma)),
@@ -466,8 +458,7 @@ tictoc::toc()
 summary(b5.3t)
 ```
 
-and now we have a more robust results, i.e. where the influence from ID and 
-ME is lessened.
+and now we have a more robust results, i.e. where the influence from ID and ME is lessened.
 
 ```{r}
 dp <- tibble(pareto_k = b5.3t$criteria$loo$diagnostics$pareto_k,
