@@ -170,6 +170,7 @@ be further explained in chapter 14.
 
 ```{r}
 #| echo: false
+#| output: false
 get_prior(
   data = dataFrogs,
   formula = bf(surv | trials(density) ~ 1 + (1 | tank)),
@@ -545,6 +546,7 @@ dataChimp |>
 
 ```{r}
 #| echo: false
+#| output: false
 get_prior(
   data = dataChimp,
   formula = bf(pulled_left ~ 0 + a + b + g,
@@ -647,6 +649,7 @@ wrap_plots(plot13_04) +
 
 ```{r}
 #| echo: false
+#| output: false
 get_prior(
   data = dataChimp,
   formula = bf(pulled_left ~ 0 + a + b,
@@ -694,6 +697,7 @@ print(loo_compare(fit13_04, fit13_05, criterion = "waic"), simplify = FALSE)
 
 ```{r}
 #| echo: false
+#| output: false
 get_prior(
   data = dataChimp,
   formula = bf(pulled_left ~ 0 + a + b + g,
