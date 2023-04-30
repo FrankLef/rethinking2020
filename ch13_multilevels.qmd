@@ -91,16 +91,6 @@ logit(p_i) &= \alpha_{tank[i]} \\
 \end{align*}
 $$
 
-and we fit this
-
-
-```{r}
-# get_prior(
-#   data = dataFrogs,
-#   formula = bf(surv | trials(density) ~ 1 + tank),
-#   family = binomial)
-```
-
 This fit gives the closest waic to the one shown in R code 13.4 on p. 404.
 
 ```{r ch13_fit13_01}
@@ -179,6 +169,7 @@ common for multilevel software to model the variance metric. This will
 be further explained in chapter 14.
 
 ```{r}
+#| echo: false
 get_prior(
   data = dataFrogs,
   formula = bf(surv | trials(density) ~ 1 + (1 | tank)),
@@ -553,6 +544,7 @@ dataChimp |>
 
 
 ```{r}
+#| echo: false
 get_prior(
   data = dataChimp,
   formula = bf(pulled_left ~ 0 + a + b + g,
@@ -654,6 +646,7 @@ wrap_plots(plot13_04) +
 
 
 ```{r}
+#| echo: false
 get_prior(
   data = dataChimp,
   formula = bf(pulled_left ~ 0 + a + b,
@@ -700,6 +693,7 @@ print(loo_compare(fit13_04, fit13_05, criterion = "waic"), simplify = FALSE)
 
 
 ```{r}
+#| echo: false
 get_prior(
   data = dataChimp,
   formula = bf(pulled_left ~ 0 + a + b + g,
