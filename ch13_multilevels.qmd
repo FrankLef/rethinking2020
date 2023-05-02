@@ -101,8 +101,6 @@ fit13_01 <- xfun::cache_rds({
     family = binomial,
     formula = bf(surv | trials(density) ~ 0 + tank),
     prior = c(
-      # NOTE: No intercept, this gives the closest waic similar to the textbook
-      # prior(normal(0, 1), class = Intercept),
       prior(normal(0, 1.5), class = b)),
     iter = 1000, warmup = 500, chains = 2,
     cores = detectCores(), seed = 1301)
@@ -187,8 +185,7 @@ fit13_02 <- xfun::cache_rds({
     formula = bf(surv | trials(density) ~ 1 + (1 | tank)),
     prior = c(
       prior(normal(0, 1.5), class = Intercept),
-      prior(normal(0, 1), class = sd, coef = Intercept, group = tank),
-      prior(exponential(1), class = sd, group = tank)),
+      prior(exponential(1), class = sd)),
     sample_prior = TRUE,
     iter = 1000, warmup = 500, chains = 2,
     cores = detectCores(), seed = 1303)
@@ -549,17 +546,18 @@ dataChimp |>
 #| output: false
 get_prior(
   data = dataChimp,
-  formula = bf(pulled_left ~ 0 + a + b + g,
-               a ~ 1 + (1 | actor),
+  formula = bf(pulled_left ~ 0 + a + b,
+               a ~ 1 + (1 | actor) + (1 | block),
                b ~ 0 + treatment,
-               g ~ 0 + (1 | block),
                nl = TRUE),
   family = bernoulli)
 ```
 
 ::: {.callout-note}
 
-This fit gives the same waic as found on page 418 of section 13.3.1.
+This fit does not give the exact result obtained by McElreath. This is caused
+by the fact that `brms` non-centered parametrization. See Kurtz in his sections
+13.3.1 about that.
 :::
 
 
@@ -568,16 +566,14 @@ tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit13_04 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
       family = bernoulli,
-      formula = bf(pulled_left ~ 0 + a + b + g,
-                   a ~ 1 + (1 | actor),
+      formula = bf(pulled_left ~ 0 + a + b,
+                   a ~ 1 + (1 | actor) + (1 | block),
                    b ~ 0 + treatment,
-                   g ~ 0 + (1 | block),
                    nl = TRUE),
-      prior = c(prior(normal(0, 1.5), class = sd, coef = Intercept, group = actor, nlpar = a),
+      prior = c(prior(normal(0, 1.5), class = b, coef = Intercept, nlpar = a),
                 prior(exponential(1), class = sd, group = actor, nlpar = a),
-                prior(normal(0, 1), class = b, nlpar = b),
-                prior(normal(0, 1), class = sd, coef = Intercept, group = block, nlpar = g),
-                prior(exponential(1), class = sd, group = block, nlpar = g)
+                prior(exponential(1), class = sd, group = block, nlpar = a),
+                prior(normal(0, 0.5), class = b, nlpar = b)
                 ),
       iter = 1000, warmup = 500, chains = 2, 
       cores = detectCores(), seed = 1319)
@@ -674,7 +670,7 @@ fit13_05 <- xfun::cache_rds({
                    a ~ 1 + (1 | actor),
                    b ~ 0 + treatment,
                    nl = TRUE),
-      prior = c(prior(normal(0, 1.5), class = sd, coef = Intercept, group = actor, nlpar = a),
+      prior = c(prior(normal(0, 1.5), class = b, coef = Intercept, nlpar = a),
                 prior(exponential(1), class = sd, group = actor, nlpar = a),
                 prior(normal(0, 0.5), class = b, nlpar = b)
                 ),
@@ -700,32 +696,19 @@ print(loo_compare(fit13_04, fit13_05, criterion = "waic"), simplify = FALSE)
 #| output: false
 get_prior(
   data = dataChimp,
-  formula = bf(pulled_left ~ 0 + a + b + g,
-               a ~ 1 + (1 | actor),
-               b ~ 0 + (1 | treatment),
-               g ~ 0 + (1 | block),
-               nl = TRUE),
+  formula = bf(pulled_left ~ 1 + (1 | actor) + (1 | treatment) + (1 | block)),
   family = bernoulli)
 ```
 
 
 ```{r ch13_fit13_06}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 fit13_06 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
       family = bernoulli,
-      formula = bf(pulled_left ~ 0 + a + b + g,
-                   a ~ 1 + (1 | actor),
-                   b ~ 0 + (1 | treatment),
-                   g ~ 0 + (1 | block),
-                   nl = TRUE),
-      prior = c(prior(normal(0, 1.5), class = sd, coef = Intercept, group = actor, nlpar = a),
-                prior(exponential(1), class = sd, group = actor, nlpar = a),
-                prior(normal(0, 1), class = sd, coef = Intercept, group = treatment, nlpar = b),
-                prior(exponential(1), class = sd, group = treatment, nlpar = b),
-                prior(normal(0, 1), class = sd, coef = Intercept, group = block, nlpar = g),
-                prior(exponential(1), class = sd, group = block, nlpar = g)
-                ),
+      formula = bf(pulled_left ~ 1 + (1 | actor) + (1 | treatment) + (1 | block)),
+      prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(exponential(1), class = sd)),
       iter = 1000, warmup = 500, chains = 2, 
       cores = detectCores(), seed = 1319)
   add_criterion(out, c("loo", "waic"))},
