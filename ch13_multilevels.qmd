@@ -546,10 +546,11 @@ dataChimp |>
 #| output: false
 get_prior(
   data = dataChimp,
-  formula = bf(pulled_left ~ 0 + a + b,
-               a ~ 1 + (1 | actor) + (1 | block),
-               b ~ 0 + treatment,
-               nl = TRUE),
+  formula = bf(pulled_left ~ 0 + a + g + b,
+                   a ~ 1 + (1 | actor),
+                   g ~ 0 + block,
+                   b ~ 0 + treatment,
+                   nl = TRUE),
   family = bernoulli)
 ```
 
@@ -566,15 +567,19 @@ tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit13_04 <- xfun::cache_rds({
   out <- brm(data = dataChimp,
       family = bernoulli,
-      formula = bf(pulled_left ~ 0 + a + b,
-                   a ~ 1 + (1 | actor) + (1 | block),
+      formula = bf(pulled_left ~ 0 + a + g + b,
+                   a ~ 1 + (1 | actor),
+                   g ~ 0 + block,
                    b ~ 0 + treatment,
                    nl = TRUE),
       prior = c(prior(normal(0, 1.5), class = b, coef = Intercept, nlpar = a),
                 prior(exponential(1), class = sd, group = actor, nlpar = a),
-                prior(exponential(1), class = sd, group = block, nlpar = a),
+                prior(normal(0, sigma_g), class = b, nlpar = g),
+                prior("target += exponential_lpdf(sigma_g | 1)", check = FALSE),
                 prior(normal(0, 0.5), class = b, nlpar = b)
                 ),
+      stanvars = c(stanvar(scode = "  real<lower=0> sigma_g;", 
+                           block = "parameters")),
       iter = 1000, warmup = 500, chains = 2, 
       cores = detectCores(), seed = 1319)
   add_criterion(out, c("loo", "waic"))},
@@ -586,6 +591,7 @@ tictoc::toc()
 ```{r}
 summarize_draws(fit13_04, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
                 default_convergence_measures()) |>
+  filter(!grepl("^lp", x = variable)) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
          across(.cols = starts_with("ess"), .fns = as.integer))
 ```
@@ -725,9 +731,12 @@ print(loo_compare(fit13_04, fit13_05, fit13_06, criterion = "waic"),
 
 ## Divergent transitions and non-centered priors
 
-```{r echo=FALSE}
+```{r }
+#| echo: false
 message("Not covered")
 ```
+
+
 
 ## Multilevel posterior predictions
 
