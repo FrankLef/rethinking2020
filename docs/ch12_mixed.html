@@ -427,7 +427,7 @@ Link function: logit </code></pre>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_01"</span>)</span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.11 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -855,7 +855,7 @@ log(\mu) &amp;= \beta_0 \\
 <span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_02a"</span>)</span>
 <span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.2 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.13 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -987,7 +987,7 @@ log(\mu) &amp;= \frac{\exp{(\beta_{0,cid[i]})} \cdot population_i^{\beta_{1,cid[
 <span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_02b"</span>)</span>
 <span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 30 secs., use the cache.: 0.22 sec elapsed</code></pre>
+<pre><code>run time of 30 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1213,7 +1213,7 @@ log(\lambda) &amp;= \alpha_\lambda \\
 <span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_03"</span>)</span>
 <span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 65 secs., use the cache.: 0.25 sec elapsed</code></pre>
+<pre><code>run time of 65 secs., use the cache.: 0.19 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we generate a summary with <code>posterior::summarize_draws</code></p>
@@ -1550,7 +1550,7 @@ logit(p_k) &amp;= \alpha_k - \phi \\
 <span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_04"</span>)</span>
 <span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 5 mins., use the cache.: 0.28 sec elapsed</code></pre>
+<pre><code>run time of 5 mins., use the cache.: 0.2 sec elapsed</code></pre>
 </div>
 </div>
 <p>which gives the summary</p>
@@ -1719,9 +1719,9 @@ Intercept[6]  1.7702158 0.02761296  1.7142981  1.8230910</code></pre>
 </div>
 </div>
 </section>
-<section id="subsracting-from-the-log-cumulative-odds" class="level4" data-number="12.3.3.2">
-<h4 data-number="12.3.3.2" class="anchored" data-anchor-id="subsracting-from-the-log-cumulative-odds"><span class="header-section-number">12.3.3.2</span> Subsracting from the log-cumulative odds</h4>
-<p>If we substract from the <em>log-cumulative odds</em> then we shift the probability mass to higher outcome values.</p>
+<section id="subtracting-from-the-log-cumulative-odds" class="level4" data-number="12.3.3.2">
+<h4 data-number="12.3.3.2" class="anchored" data-anchor-id="subtracting-from-the-log-cumulative-odds"><span class="header-section-number">12.3.3.2</span> Subtracting from the log-cumulative odds</h4>
+<p>If we subtract from the <em>log-cumulative odds</em> then we shift the probability mass to higher outcome values.</p>
 <p>For example with model b12.4</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>probk <span class="ot">&lt;-</span> <span class="fu">dordlogit.new</span>(<span class="fu">fixef</span>(fit12_04)[, <span class="dv">1</span>])</span>
@@ -1787,7 +1787,7 @@ logit(Pr(y_i \leq k)) &amp;= \frac{Pr(y_i \leq k)}{1 - Pr(y_i \leq k)}  = \alpha
 <span id="cb76-12"><a href="#cb76-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_05"</span>)</span>
 <span id="cb76-13"><a href="#cb76-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 6 mins., use the cache.: 0.31 sec elapsed</code></pre>
+<pre><code>run time of 6 mins., use the cache.: 0.21 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1837,22 +1837,20 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>labs <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"beta["</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="st">"]"</span>)</span>
-<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>post12_05 <span class="ot">&lt;-</span> <span class="fu">gather_draws</span>(<span class="at">model =</span> fit12_05, <span class="st">`</span><span class="at">b_action.*</span><span class="st">`</span>, <span class="st">`</span><span class="at">b_contact.*</span><span class="st">`</span>, <span class="st">`</span><span class="at">b_intention.*</span><span class="st">`</span>,</span>
-<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">regex =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>post12_05 <span class="sc">|&gt;</span> </span>
-<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> .value, <span class="at">y =</span> .variable)) <span class="sc">+</span></span>
-<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">5</span>, <span class="at">linetype =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_gradientinterval</span>(<span class="at">.width =</span> .<span class="dv">5</span>, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">point_size =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">2</span>, <span class="at">shape =</span> <span class="dv">21</span>,</span>
-<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a>                      <span class="at">point_fill =</span> <span class="st">"darkgreen"</span>,</span>
-<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a>                      <span class="at">fill =</span><span class="st">"green"</span>,</span>
-<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a>                      <span class="at">color =</span> <span class="st">"darkgreen"</span>) <span class="sc">+</span></span>
-<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="st">"marginal posterior"</span>, <span class="at">breaks =</span> <span class="sc">-</span><span class="dv">5</span><span class="sc">:</span><span class="dv">0</span> <span class="sc">/</span> <span class="dv">4</span>) <span class="sc">+</span></span>
-<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.4</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb82-15"><a href="#cb82-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"marginal posterior"</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
-<span id="cb82-16"><a href="#cb82-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Model b12.5 coefficients"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>post12_05 <span class="ot">&lt;-</span> <span class="fu">gather_draws</span>(<span class="at">model =</span> fit12_05, <span class="st">`</span><span class="at">b_action.*</span><span class="st">`</span>, <span class="st">`</span><span class="at">b_contact.*</span><span class="st">`</span>, <span class="st">`</span><span class="at">b_intention.*</span><span class="st">`</span>,</span>
+<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>                           <span class="at">regex =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>post12_05 <span class="sc">|&gt;</span> </span>
+<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> .value, <span class="at">y =</span> .variable)) <span class="sc">+</span></span>
+<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">5</span>, <span class="at">linetype =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_gradientinterval</span>(<span class="at">.width =</span> .<span class="dv">5</span>, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">point_size =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">2</span>, <span class="at">shape =</span> <span class="dv">21</span>,</span>
+<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>                      <span class="at">point_fill =</span> <span class="st">"darkgreen"</span>,</span>
+<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a>                      <span class="at">fill =</span><span class="st">"green"</span>,</span>
+<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a>                      <span class="at">color =</span> <span class="st">"darkgreen"</span>) <span class="sc">+</span></span>
+<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="st">"marginal posterior"</span>, <span class="at">breaks =</span> <span class="sc">-</span><span class="dv">5</span><span class="sc">:</span><span class="dv">0</span> <span class="sc">/</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.4</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"marginal posterior"</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Model b12.5 coefficients"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: fill_type = "gradient" is not supported by the current graphics device.
  - Falling back to fill_type = "segments".
@@ -1862,7 +1860,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
  - See help("geom_slabinterval") for more information.</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="ch12_mixed_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid" width="672"></p>
+<p><img src="ch12_mixed_files/figure-html/ch12_post12_05-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
@@ -1891,7 +1889,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb84-15"><a href="#cb84-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"index of variable in vector"</span>,</span>
 <span id="cb84-16"><a href="#cb84-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"probability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch12_mixed_files/figure-html/unnamed-chunk-34-1.png" class="img-fluid" width="672"></p>
+<p><img src="ch12_mixed_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>NOTE: The <code>brms</code> package also has a <code>rdirchlet()</code> function which is very useful when investigating priors. See <span class="citation" data-cites="kurtz2020b">Kurz (<a href="references.html#ref-kurtz2020b" role="doc-biblioref">2020</a>)</span> for details.</p>
@@ -1964,7 +1962,7 @@ logit(p_k) &amp;= \alpha_k - \phi_i \\
 <span id="cb87-15"><a href="#cb87-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_06"</span>)</span>
 <span id="cb87-16"><a href="#cb87-16" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 35 mins., use the cache.: 0.39 sec elapsed</code></pre>
+<pre><code>run time of 35 mins., use the cache.: 0.23 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2023,7 +2021,7 @@ recommended alternatives.</code></pre>
 <span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">theme_hc</span>() <span class="sc">+</span></span>
 <span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch12_mixed_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid" width="672"></p>
+<p><img src="ch12_mixed_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>

@@ -971,9 +971,9 @@ which gives and expected value of
 sum(1:7 * probk)
 ```
 
-#### Subsracting from the log-cumulative odds
+#### Subtracting from the log-cumulative odds
 
-If we substract from the *log-cumulative odds* then we shift the probability 
+If we subtract from the *log-cumulative odds* then we shift the probability 
 mass to higher outcome values.
 
 For example with model b12.4
@@ -1045,9 +1045,7 @@ and plot the coefficients
 get_variables(fit12_05)
 ```
 
-```{r}
-labs <- paste0("beta[", 1:5, "]")
-
+```{r ch12_post12_05}
 post12_05 <- gather_draws(model = fit12_05, `b_action.*`, `b_contact.*`, `b_intention.*`,
                            regex = TRUE)
 
@@ -1089,7 +1087,8 @@ ggplot(dp, aes(x = index, y = prob, group = row)) +
        y = "probability")
 ```
 
-NOTE: The `brms` package also has a `rdirchlet()` function which is very useful when investigating priors. See @kurtz2020b for details.
+NOTE: The `brms` package also has a `rdirchlet()` function which is very useful 
+when investigating priors. See @kurtz2020b for details.
 
 ### Data
 
