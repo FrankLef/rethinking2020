@@ -45,8 +45,7 @@ theme_set(
 ```
 
 ::: callout-note
-Starting with this chapter, the `posterior::rvar()` datatype will be used 
-as much as possible. See [tidy-posterior](https://cran.r-project.org/web/packages/tidybayes/vignettes/tidy-posterior.html) for more details.
+Starting with this chapter, the `posterior::rvar()` datatype will be used as much as possible. See [tidy-posterior](https://cran.r-project.org/web/packages/tidybayes/vignettes/tidy-posterior.html) for more details.
 :::
 
 ## Binomial regression

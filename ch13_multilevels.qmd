@@ -24,7 +24,6 @@ library(patchwork)
 library(paletteer)
 ```
 
-
 Some options to facilitate the computations
 
 ```{r}
@@ -109,7 +108,6 @@ fit13_01 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r}
 fit13_01 |>
   spread_draws(`b_.+`, regex = TRUE) |>
@@ -118,7 +116,6 @@ fit13_01 |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
          across(.cols = starts_with("ess"), .fns = as.integer))
 ```
-
 
 and visualize the intercepts which correspond to the logit of the probabilities.
 
@@ -150,7 +147,6 @@ plot13_01$p
 
 and now the multilevel model
 
-
 $$
 \begin{align*}
 surv_i &\sim \mathcal{Binomial}(n_i, p_i) \\
@@ -161,10 +157,7 @@ logit(p_i) &= \alpha_{tank[i]} \\
 \end{align*}
 $$
 
-and the fit is as follows. Note the prior `prior(exponential(0, 1), class = sd)` 
-*which is parametrized in the standard deviation metric* (Kurtz). It is 
-common for multilevel software to model the variance metric. This will 
-be further explained in chapter 14.
+and the fit is as follows. Note the prior `prior(exponential(0, 1), class = sd)` *which is parametrized in the standard deviation metric* (Kurtz). It is common for multilevel software to model the variance metric. This will be further explained in chapter 14.
 
 ```{r}
 #| echo: false
@@ -195,7 +188,6 @@ fit13_02 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r}
 fit13_02 |>
   spread_draws(`b_.+`, `sd_.+`,`r_.+`, regex = TRUE) |>
@@ -213,7 +205,6 @@ and compare the models
 print(loo_compare(fit13_01, fit13_02, criterion = "waic"), simplify = FALSE)
 ```
 
-
 ```{r}
 model_weights(fit13_01, fit13_02, weights = "waic") |>
   round(digits = 2)
@@ -225,12 +216,9 @@ model_weights(fit13_01, fit13_02, weights = "waic") |>
 fit13_02
 ```
 
-This time we don't have a list of intercepts as in `fit13_02`. We have a 
-description of their distribution $\alpha_j \sim \mathcal{N}(\bar{\alpha}, \sigma)$ 
-where $Intercept = \bar{\alpha}$ and $sd(Intercept) = \sigma$.
+This time we don't have a list of intercepts as in `fit13_02`. We have a description of their distribution $\alpha_j \sim \mathcal{N}(\bar{\alpha}, \sigma)$ where $Intercept = \bar{\alpha}$ and $sd(Intercept) = \sigma$.
 
-The task of getting the posterior is easier with `tidybayes` and `posterior` 
-than the way McElreath and Kurtz do it.
+The task of getting the posterior is easier with `tidybayes` and `posterior` than the way McElreath and Kurtz do it.
 
 ```{r ch13_epred13_02}
 # IMPORTANT: We use the median value, not the mean because of skewed
@@ -248,19 +236,11 @@ plotFrogs +
              inherit.aes = FALSE, shape = 1, size = 2, color = "darkorange")
 ```
 
-First, we take a sampling of size 100 of the 4000 draws from the posterior 
-sample with `slice_sample(n = 100)`.
+First, we take a sampling of size 100 of the 4000 draws from the posterior sample with `slice_sample(n = 100)`.
 
-Second, to simulate the **distribution** of the logodds values described by the 
-`b_Intercept` and `tank_Intercepts` of **each draw** we create a sequence of 
-100 logodds values between -4 and 5 (based on the acutal range of -2, 3.5 
-shown just above) which is done by `expand(nesting(iter, b_Intercept, 
-sd_tank__Intercept), x = seq(from = -4, to = 5, length.out = 100))` and which will result in 10000 lines.
+Second, to simulate the **distribution** of the logodds values described by the `b_Intercept` and `tank_Intercepts` of **each draw** we create a sequence of 100 logodds values between -4 and 5 (based on the acutal range of -2, 3.5 shown just above) which is done by `expand(nesting(iter, b_Intercept,  sd_tank__Intercept), x = seq(from = -4, to = 5, length.out = 100))` and which will result in 10000 lines.
 
-Third, we compute the normal density for each of the 10000 lines using the 
-`b_Intercept` and `tank_Intercepts` of each line. The normal density is 
-used because the model is $\alpha_{tank} \sim \mathcal{N}(0, 5)$ and 
-$\alpha \sim \mathcal{N}(0, 1)$. This is done with
+Third, we compute the normal density for each of the 10000 lines using the `b_Intercept` and `tank_Intercepts` of each line. The normal density is used because the model is $\alpha_{tank} \sim \mathcal{N}(0, 5)$ and $\alpha \sim \mathcal{N}(0, 1)$. This is done with
 
 ```{r}
 samples <- list()
@@ -378,7 +358,6 @@ sim <- within(sim, {
 })
 ```
 
-
 ### Compute the no-pooling estimates
 
 ```{r}
@@ -406,10 +385,7 @@ fit13_03 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 and we have our point summaries and interval as follows
-
-
 
 ```{r}
 fit13_03 |>
@@ -420,9 +396,7 @@ fit13_03 |>
          across(.cols = starts_with("ess"), .fns = as.integer))
 ```
 
-It is important to understand that `epred_draws` is not simply the result of 
-`linpred-draws` converted with the inverse link function. It can be illustrated 
-in this case as follows
+It is important to understand that `epred_draws` is not simply the result of `linpred-draws` converted with the inverse link function. It can be illustrated in this case as follows
 
 ```{r}
 # the linear/link-level predictor
@@ -448,8 +422,7 @@ head(data.frame(
 ))
 ```
 
-and we get the information on the level 1, the fixed effect, with `fixef(b13.3)` 
-and the level 2, random effects, with `ranef(fit13_03)`
+and we get the information on the level 1, the fixed effect, with `fixef(b13.3)` and the level 2, random effects, with `ranef(fit13_03)`
 
 ```{r}
 # fixef(fit13_03)
@@ -462,13 +435,9 @@ and the whole thing is obtained with the `fit` which calls the stan data
 # fit13_03$fit
 ```
 
-
-::: {.callout-note}
-In this project we favor using `tidybayes` and `posterior`. `fixef(fit13_03)`, 
-`ranef(fit13_03)`, `fit13_03$fit` and `coef()\[, ,\]` are avoided.
+::: callout-note
+In this project we favor using `tidybayes` and `posterior`. `fixef(fit13_03)`, `ranef(fit13_03)`, `fit13_03$fit` and `coef()\[, ,\]` are avoided.
 :::
-
-
 
 ```{r}
 sim <- within(sim, {
@@ -540,8 +509,6 @@ dataChimp |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
-
-
 ```{r}
 #| echo: false
 #| output: false
@@ -555,13 +522,9 @@ get_prior(
   family = bernoulli)
 ```
 
-::: {.callout-note}
-
-This fit does not give the exact result obtained by McElreath. This is caused
-by the fact that `brms` non-centered parametrization. See Kurtz in his sections
-13.3.1 about that.
+::: callout-note
+This fit does not give the exact result obtained by McElreath. This is caused by the fact that `brms` non-centered parametrization. See Kurtz in his sections 13.3.1 about that.
 :::
-
 
 ```{r ch13_fit13_04}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
@@ -588,7 +551,6 @@ fit13_04 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r}
 summarize_draws(fit13_04, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
                 default_convergence_measures()) |>
@@ -597,9 +559,7 @@ summarize_draws(fit13_04, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
          across(.cols = starts_with("ess"), .fns = as.integer))
 ```
 
-
 the posterior samples is
-
 
 ```{r ch13_post13_04}
 post13_04 <- list()
@@ -649,7 +609,6 @@ wrap_plots(plot13_04) +
   )
 ```
 
-
 ```{r}
 #| echo: false
 #| output: false
@@ -662,11 +621,9 @@ get_prior(
   family = bernoulli)
 ```
 
-::: {.callout-note}
-
+::: callout-note
 This fit gives the same waic as found on page 418 of section 13.3.1.
 :::
-
 
 ```{r ch13_fit13_05}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
@@ -690,13 +647,11 @@ tictoc::toc()
 
 and we obtain the same results as on p. 418 of section 13.3.1.
 
-
 ```{r}
 print(loo_compare(fit13_04, fit13_05, criterion = "waic"), simplify = FALSE)
 ```
 
 ### Even more clusters
-
 
 ```{r}
 #| echo: false
@@ -706,7 +661,6 @@ get_prior(
   formula = bf(pulled_left ~ 1 + (1 | actor) + (1 | treatment) + (1 | block)),
   family = bernoulli)
 ```
-
 
 ```{r ch13_fit13_06}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
@@ -723,8 +677,6 @@ fit13_06 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
-
 ```{r}
 print(loo_compare(fit13_04, fit13_05, fit13_06, criterion = "waic"), 
       simplify = FALSE)
@@ -736,8 +688,6 @@ print(loo_compare(fit13_04, fit13_05, fit13_06, criterion = "waic"),
 #| echo: false
 message("Not covered")
 ```
-
-
 
 ## Multilevel posterior predictions
 

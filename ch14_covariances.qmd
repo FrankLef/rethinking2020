@@ -2,13 +2,39 @@
 
 ```{r}
 #| include: false
+library(dplyr)
+library(tidyr)
+library(tidybayes)
 library(rethinking)
 library(brms)
-library(tidybayes)
-library(tidyr)
-library(dplyr)
+library(loo)
+library(modelr)
+library(skimr)
+library(simstudy)
+library(posterior)
+library(scales)
+library(dagitty)
 library(ggplot2)
+library(ggdag)
 library(bayesplot)
+library(patchwork)
+library(paletteer)
+```
+
+Some options to facilitate the computations
+
+```{r}
+#  For execution on a local, multicore CPU with excess RAM
+options(mc.cores = parallel::detectCores())
+#  To avoid recompilation of unchanged Stan programs
+rstan_options(auto_write = TRUE)
+```
+
+The default theme used by `ggplot2`
+
+```{r}
+theme_set(ggthemes::theme_stata(base_size = 11, base_family = "sans", 
+                                scheme = "s2color"))
 ```
 
 
@@ -17,18 +43,25 @@ library(bayesplot)
 ### Simulate the population
 
 ```{r}
-a <- 3.5  # average morning wait time
-b <- -1  # average difference afternoon wait time
-sigma_a <- 1  # std dev of intercepts
-sigma_b <- 0.5  # std dev of slopes
-rho_val <- -0.7  # correlation between intercepts and slopes
-
-# these lines simply combines the constants just above
-mu <- c(a, b)  # vector of means
-cov_ab <- sigma_a * sigma_b * rho_val
+simCafes <- list()
+simCafes <- within(simCafes, {
+  # a := average morning wait time
+  # b := average difference afternoon wait time
+  Mu <- c("a" = 3.5, "b" = -1)
+  
+  # a := std dev of intercepts
+  # b := std dev of slopes
+  sigmas <- c("a" = 1, "b" = 0.5)
+  
+  # correlation between intercepts and slopes
+  rho <- -0.7
+  
+  cov_ab <- prod(sigmas) * rho
+})
 ```
 
-McElrath mentions a difficulty using the `matrix` function. He misses that there is the argument `byrow` which resolve this.
+McElreath mentions a difficulty using the `matrix` function. He misses the 
+argument `byrow` which resolve this.
 
 ```{r}
 # use byrow = TRUE to solve McElrath's issue
@@ -38,37 +71,41 @@ matrix(1:4, nrow = 2, ncol = 2, byrow = TRUE)
 we get the covariance matrix `sigma` as follows
 
 ```{r}
-sigmas <- c(sigma_a, sigma_b)  # vector of sigmas
-rho <- matrix(c(1, rho_val, rho_val, 1), nrow = 2)  # matrix of correlation
-sigma <- diag(sigmas) %*% rho %*% diag(sigmas)
+simCafes <- within(simCafes, {
+  # matrix of correlation
+  Rho <- matrix(c(1, rho, rho, 1), nrow = 2)
+  
+  # covariance matrix
+  Sigma <- diag(sigmas) %*% Rho %*% diag(sigmas)
+})
 ```
 
 and we simulate the bivariate normal distribution
 
 ```{r}
-n_cafes <- 20
-set.seed(13)
-vary_effects <- MASS::mvrnorm(n = n_cafes, mu = mu, Sigma = sigma) %>%
-  as_tibble() %>%
-  rename("a_cafe" = V1,
-         "b_cafe" = V2) %>%
-  mutate(cafe = seq_len(n_cafes)) %>%
-  relocate(cafe, after = 0)
-# str(vary_effects)
+simCafes <- within(simCafes, {
+  n_cafes <- 20
+
+  set.seed(1409)
+  vary_effects <- MASS::mvrnorm(n = n_cafes, mu = Mu, Sigma = Sigma) |>
+    as.data.frame() |>
+    mutate(cafe = seq_len(n_cafes)) |>
+    relocate(cafe)
+})
+# glimpse(simCafes$vary_effects)
 ```
 
 and we plot the simulated data which represents the intercept and slope
 
 ```{r}
-ggplot(vary_effects, aes(x = a_cafe, y = b_cafe)) +
-  geom_point() +
-  ggthemes::theme_solarized() +
-  # stat_density2d(aes(color = ..level..)) +
-  stat_ellipse(type = "norm", level = 0.25, linetype = "dotted", size = 0.25) +
-  stat_ellipse(type = "norm", level = 0.50, linetype = "dotted", size = 0.25) +
-  stat_ellipse(type = "norm", level = 0.75, linetype = "dotted", size = 0.25) +
+simCafes$vary_effects |>
+  ggplot(aes(x = a, y = b)) +
+  geom_point(shape = 1, size = 3, color = "purple") +
+  lapply(X = 1:5 / 5, FUN = function(x) {
+      stat_ellipse(type = "norm", level = x, linetype = "dotted", size = 0.25)}) +
   theme(legend.position = "none") +
-  labs(title = sprintf("Distribution of intercept and slopes for %d cafes", n_cafes),
+  labs(title = sprintf("Distribution of intercept and slopes for %d cafes", 
+                       simCafes$n_cafes),
        x = "intercepts (a_cafe)", y = "slope (b_cafe)")
 ```
 
@@ -77,39 +114,36 @@ ggplot(vary_effects, aes(x = a_cafe, y = b_cafe)) +
 Now using the simulated intercepts and slopes, we create the simulated visits to each cafe.
 
 ```{r}
-n_visits <- 10  # nb of visits to each cafe by robot
-sigma <- 0.5  # std dev within cafes
-
-set.seed(13)
-d <- vary_effects %>%
-  expand(nesting(cafe, a_cafe, b_cafe), visit = seq_len(n_visits)) %>%
-  mutate(afternoon = rep(0:1, times = n()/2)) %>%
-  mutate(mu = a_cafe + b_cafe * afternoon) %>%
-  mutate(wait = rnorm(n = n(), mean = mu, sd = sigma))
+simCafes <- within(simCafes, {
+  n_visits <- 10  # nb of visits to each cafe by robot
+  sigma <- 0.5  # std dev within cafes
+  
+  set.seed(1409)
+  data <- vary_effects |>
+    expand(nesting(cafe, a, b), visit = seq_len(n_visits)) |>
+    mutate(afternoon = rep(0:1, times = n()/2)) |>
+    mutate(mu = a + b * afternoon) |>
+    mutate(wait = rnorm(n = n(), mean = mu, sd = sigma))
+})
+# glimpse(simCafes$vary_effects)
+# glimpse(simCafes$data)
 ```
 
-and plot the simulated observations. We first create dataframe used for plotting
+and plot the simulated observations.
 
 ```{r}
-pdf <- d %>%
+simCafes$data |>
   mutate(afternoon = if_else(afternoon == 0, "M", "A"),
-         day = rep(rep(1:5, each = 2), times = n_cafes),
-         cafe = paste("cafe", cafe)) %>%
-  filter(cafe %in% c("cafe 3", "cafe 5"))
-# str(pdf)
-```
-
-and we create he plot
-
-```{r}
-ggplot(pdf, aes(x = visit, y = wait, group = day)) +
+         day = rep(rep(1:5, each = 2), times = simCafes$n_cafes),
+         label = paste("cafe", simCafes$data$cafe)) |>
+  filter(cafe %in% c(1, 5)) |>
+  ggplot(aes(x = visit, y = wait, group = day)) +
   geom_point(aes(color = afternoon), size = 2) +
   geom_line(color = "green") +
   scale_color_manual(values = c("M" = "royalblue", "A" = "hotpink")) +
-  ggthemes::theme_solarized_2() +
   theme(legend.position = "none") +
   labs(title = "Varying slopes simulation") +
-  facet_wrap(~ cafe, ncol = 1)
+  facet_wrap(~ label, ncol = 1)
 ```
 
 ### The varying slopes model
@@ -132,7 +166,7 @@ wait_i \sim \mathcal{N}(\mu_i, \sigma) \\
 ,
 \textbf{S}
 ) \\
-S=
+\Sigma =
 \begin{bmatrix}
 \sigma_{\alpha} & 0 \\
 0 & \sigma_{\beta}
@@ -155,6 +189,145 @@ S=
 \rho & 1
 \end{bmatrix} \sim \mathcal{LKJcorr}(K=2, \eta=2)
 $$
+
+```{r ch14_fit14_01}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+fit14_01 <- xfun::cache_rds({
+  out <- brm(
+    data = simCafes$data,
+    family = gaussian,
+    formula = wait ~ 1 + afternoon + (1 + afternoon | cafe),
+    prior = c(
+      prior(normal(5, 2), class = Intercept),
+      prior(normal(-1, 0.5), class = b),
+      prior(exponential(1), class = sd),
+      prior(exponential(1), class = sigma),
+      prior(lkj(2), class = cor)),
+    sample_prior = TRUE,
+    iter = 1000, warmup = 500, chains = 2,
+    cores = detectCores(), seed = 1423)
+  add_criterion(out, c("loo", "waic"))},
+  file = "ch14_fit14_01", rerun = FALSE)
+tictoc::toc()
+```
+
+
+
+```{r ch14_post14_01}
+post14_01 <- list()
+post14_01 <- within(post14_01, {
+  prior <- prior_draws(x = fit14_01)
+  
+  post <- tidy_draws(model = fit14_01)
+  
+  # dataframe of correlations to plot
+  corr = data.frame("value" = c(prior$cor_cafe, post$cor_cafe__Intercept__afternoon),
+                    "id" = c(rep("prior", nrow(prior)), rep("post", nrow(post))))
+
+  coefs <- fit14_01 |>
+    spread_draws(b_Intercept, b_afternoon, r_cafe[cafe, term]) |>
+    pivot_wider(id_cols = c("b_Intercept", "b_afternoon", "cafe"),
+                names_from = "term", values_from = "r_cafe") |>
+    group_by(cafe) |>
+    summarize(b_Intercept = mean(b_Intercept), b_afternoon = mean(b_afternoon),
+              r_afternoon = mean(afternoon), r_Intercept = mean(Intercept)) |>
+    mutate(Intercept = b_Intercept + r_Intercept,
+           afternoon = b_afternoon + r_afternoon) |>
+    select(cafe, Intercept, afternoon) |>
+    identity()
+  all <- simCafes$vary_effects |>
+    rename("Intercept" = a, "afternoon" = b)
+  
+  all <- bind_rows("real" = all, "post" = coefs, .id = "id")
+})
+# glimpse(post14_01$post)
+# glimpse(post14_01$coefs)
+# glimpse(post14_01$all)
+```
+
+```{r ch14_plot14_01}
+plot14_01 <- list()
+plot14_01 <- within(plot14_01, {
+  cor <- post14_01$corr |> 
+    ggplot(aes(x = value, color = id, linetype = id)) +
+    geom_density(size = 1, adjust = 0.75) +
+    scale_color_manual(values = c("prior" = "black", "post" = "blue")) +
+    scale_linetype_manual(values = c("prior" = "longdash", "post" = "solid")) +
+    theme(legend.position = c(0.8, 0.8), legend.title = element_blank()) +
+    labs(title = "Posterior and Prior distribution of the correlation",
+         x = "correlation")
+})
+plot14_01$cor
+```
+
+
+
+```{r ch14_pred14_01}
+pred14_01 <- list()
+pred14_01 <- within(pred14_01, {
+  pred_df <- simCafes$data |>
+    group_by(cafe, afternoon) |>
+    summarise(mwait = mean(wait)) |>
+    add_predicted_draws(object = fit14_01) |>
+    mean_qi(.width = 0.89) |>
+    mutate(term = if_else(afternoon == 0, "Intercept", "afternoon"))
+  
+  real <- pred_df |>
+    select(cafe, term, mwait) |>
+    pivot_wider(id_cols = cafe, names_from = term, values_from = mwait)
+  
+  pred <- pred_df |>
+    select(cafe, term, .prediction) |>
+    pivot_wider(id_cols = cafe, names_from = term, values_from = .prediction)
+  
+  all <- bind_rows("real" = real, "pred" = pred, .id = "id")
+})
+# glimpse(pred14_01$all)
+# glimpse(simCafes$data)
+```
+
+
+
+```{r}
+plot14_01 <- within(plot14_01, {
+  coefs <- post14_01$all |>
+    ggplot(mapping = aes(x = Intercept, y = afternoon, group = cafe, color = id)) +
+    lapply(X = 1:5 / 5, FUN = function(x) {
+      stat_ellipse(data = post14_01$all, mapping = aes(x = Intercept, y = afternoon),
+                   inherit.aes = FALSE,
+                   geom = "polygon", type = "norm", level = x, linewidth = 1/5,
+                 color = "dodgerblue", fill = "transparent")}) +
+    geom_point() +
+    geom_line(color = "black") +
+    scale_color_paletteer_d("awtools::spalette", direction = 1) +
+    theme(legend.position = c(0.2, 0.2),
+          legend.title = element_blank()) +
+    labs(title = "Coefficients and shrinkage",
+         x = "Intercept", y = "Slope")
+    
+  
+  wait <- pred14_01$all |>
+    ggplot(mapping = aes(x = Intercept, y = afternoon, group = cafe, color = id)) +
+    lapply(X = 1:5 / 5, FUN = function(x) {
+      stat_ellipse(data = pred14_01$all, mapping = aes(x = Intercept, y = afternoon),
+                   inherit.aes = FALSE,
+                   geom = "polygon", type = "norm", level = x, linewidth = 1/5,
+                 color = "dodgerblue", fill = "transparent")}) +
+    geom_point() +
+    geom_line(color = "black") +
+    scale_color_paletteer_d("awtools::spalette", direction = -1) +
+    theme(legend.position = c(0.8, 0.2),
+          legend.title = element_blank()) +
+    labs(title = "Waiting time and shrinkage",
+         x = "morning wait", y = "afternoon wait")
+})
+# plot14_01$coefs
+wrap_plots(plot14_01[c("coefs", "wait")]) +
+  plot_annotation(title = "Shrinkage in two dimensions")
+
+```
+
+## Advanced varying slopes
 
 
 ## Summary
