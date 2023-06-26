@@ -427,7 +427,7 @@ Link function: logit </code></pre>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_01"</span>)</span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.11 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.12 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -855,7 +855,7 @@ log(\mu) &amp;= \beta_0 \\
 <span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_02a"</span>)</span>
 <span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.12 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.16 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -987,7 +987,7 @@ log(\mu) &amp;= \frac{\exp{(\beta_{0,cid[i]})} \cdot population_i^{\beta_{1,cid[
 <span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_02b"</span>)</span>
 <span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 30 secs., use the cache.: 0.15 sec elapsed</code></pre>
+<pre><code>run time of 30 secs., use the cache.: 0.19 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1213,7 +1213,7 @@ log(\lambda) &amp;= \alpha_\lambda \\
 <span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_03"</span>)</span>
 <span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 65 secs., use the cache.: 0.18 sec elapsed</code></pre>
+<pre><code>run time of 65 secs., use the cache.: 0.19 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we generate a summary with <code>posterior::summarize_draws</code></p>
@@ -1787,7 +1787,7 @@ logit(Pr(y_i \leq k)) &amp;= \frac{Pr(y_i \leq k)}{1 - Pr(y_i \leq k)}  = \alpha
 <span id="cb76-12"><a href="#cb76-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_05"</span>)</span>
 <span id="cb76-13"><a href="#cb76-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 6 mins., use the cache.: 0.24 sec elapsed</code></pre>
+<pre><code>run time of 6 mins., use the cache.: 0.22 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1962,7 +1962,7 @@ logit(p_k) &amp;= \alpha_k - \phi_i \\
 <span id="cb87-15"><a href="#cb87-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_06"</span>)</span>
 <span id="cb87-16"><a href="#cb87-16" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 35 mins., use the cache.: 0.25 sec elapsed</code></pre>
+<pre><code>run time of 35 mins., use the cache.: 0.28 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2010,16 +2010,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>delta_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Elem"</span>, <span class="st">"MidSch"</span>, <span class="st">"SHS"</span>, <span class="st">"HSG"</span>, <span class="st">"SCol"</span>, <span class="st">"Bach"</span>, <span class="st">"Mast"</span>, <span class="st">"Grad"</span>)</span>
 <span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a>dp <span class="ot">&lt;-</span> <span class="fu">posterior_samples</span>(fit12_06) <span class="sc">|&gt;</span></span>
-<span id="cb91-4"><a href="#cb91-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">contains</span>(<span class="st">"simo_moedu_new1"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb91-5"><a href="#cb91-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">setNames</span>(<span class="fu">paste0</span>(delta_labels[<span class="dv">2</span><span class="sc">:</span><span class="dv">8</span>], <span class="st">"~(delta["</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>, <span class="st">"])"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Method 'posterior_samples' is deprecated. Please see ?as_draws for
-recommended alternatives.</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>GGally<span class="sc">::</span><span class="fu">ggpairs</span>(dp, <span class="at">labeller =</span> label_parsed) <span class="sc">+</span></span>
-<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">theme_hc</span>() <span class="sc">+</span></span>
-<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a>dp <span class="ot">&lt;-</span> fit12_06 <span class="sc">|&gt;</span></span>
+<span id="cb91-4"><a href="#cb91-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy_draws</span>() <span class="sc">|&gt;</span></span>
+<span id="cb91-5"><a href="#cb91-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">contains</span>(<span class="st">"simo_moedu_new1"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb91-6"><a href="#cb91-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">setNames</span>(<span class="fu">paste0</span>(delta_labels[<span class="dv">2</span><span class="sc">:</span><span class="dv">8</span>], <span class="st">"~(delta["</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>, <span class="st">"])"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb91-7"><a href="#cb91-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">identity</span>()</span>
+<span id="cb91-8"><a href="#cb91-8" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(dp)</span></span>
+<span id="cb91-9"><a href="#cb91-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb91-10"><a href="#cb91-10" aria-hidden="true" tabindex="-1"></a>GGally<span class="sc">::</span><span class="fu">ggpairs</span>(dp, <span class="at">labeller =</span> label_parsed) <span class="sc">+</span></span>
+<span id="cb91-11"><a href="#cb91-11" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">theme_hc</span>() <span class="sc">+</span></span>
+<span id="cb91-12"><a href="#cb91-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="ch12_mixed_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid" width="672"></p>
 </div>

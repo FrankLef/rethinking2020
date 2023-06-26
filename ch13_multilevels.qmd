@@ -482,9 +482,9 @@ $$
 \begin{align*}
 pull\_left_i &\sim \mathcal{Binomial}(1, p_i) \\
 logit(p_i) &= \alpha + \alpha_{actor[i]} + \gamma_{block[i]} +\beta_{treatment[i]} \\
-\beta_j &\sim \mathcal{N}(0, 0.5), \text{for j = 1..4} \\
-\alpha_j &\sim \mathcal{N}(\bar{\alpha}, \sigma_{\alpha}), \text{for j = 1..7} \\
-\gamma_j &\sim \mathcal{N}(0, \sigma_{\gamma}), \text{for j = 1..6} \\
+\beta_j &\sim \mathcal{N}(0, 0.5), \, \text{for } j = 1 \ldots 4 \\
+\alpha_j &\sim \mathcal{N}(\bar{\alpha}, \sigma_{\alpha}), \, \text{for } j = 1 \ldots 7 \\
+\gamma_j &\sim \mathcal{N}(0, \sigma_{\gamma}), \, \text{for } j = 1 \ldots 6 \\
 \bar{\alpha} &\sim \mathcal{N}(0, 1.5) \\
 \sigma_{\alpha} &\sim \mathcal{Exponential}(1) \\
 \sigma_{\gamma} &\sim \mathcal{Exponential}(1)

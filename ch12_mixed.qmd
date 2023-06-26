@@ -1159,9 +1159,12 @@ fit12_06
 ```{r}
 delta_labels <- c("Elem", "MidSch", "SHS", "HSG", "SCol", "Bach", "Mast", "Grad")
 
-dp <- posterior_samples(fit12_06) |>
-  select(contains("simo_moedu_new1")) |> 
-  setNames(paste0(delta_labels[2:8], "~(delta[", 1:7, "])"))
+dp <- fit12_06 |>
+  tidy_draws() |>
+  select(contains("simo_moedu_new1")) |>
+  setNames(paste0(delta_labels[2:8], "~(delta[", 1:7, "])")) |>
+  identity()
+# glimpse(dp)
 
 GGally::ggpairs(dp, labeller = label_parsed) +
   ggthemes::theme_hc() +

@@ -57,7 +57,8 @@ Load the data
 ```{r ch11_dataChimp}
 data(chimpanzees)
 dataChimp <- chimpanzees |>
-  mutate(actor = factor(actor),
+  mutate(block = factor(block),
+         actor = factor(actor),
          treatment = factor(1 + prosoc_left + 2 * condition, levels = 1:4,
                             labels = c("AR", "AL", "PR", "PL")))
 rm(chimpanzees)
@@ -69,8 +70,8 @@ dataChimp |>
 We have added the variable `treatment` that is a code for `prosoc_left` and `condition` variables with the following meanings
 
 ```{r}
-dataChimp %>%
-  distinct(prosoc_left, condition, treatment) %>%
+dataChimp |>
+  distinct(prosoc_left, condition, treatment) |>
   mutate(description = c("Alone and two food items on the right",
                          "Alone and two food items on the left",
                          "Partner and two food items on the right",
@@ -121,7 +122,7 @@ fit11_01 <- xfun::cache_rds({
              cores = detectCores(), seed = 1103,
               sample_prior = TRUE)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_fit11_01")
+  file = "ch11_fit11_01", rerun = FALSE)
 tictoc::toc()
 ```
 
@@ -154,7 +155,7 @@ fit11_01b <- xfun::cache_rds({
                 prior = c(
                 prior(normal(0, 1.5), class = Intercept)))
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_fit11_01b")
+  file = "ch11_fit11_01b", rerun = FALSE)
 tictoc::toc()
 ```
 
@@ -271,7 +272,7 @@ fit11_02 <- xfun::cache_rds({
              iter = 2000, warmup = 1000, chains = 4,
              cores = detectCores(), seed = 1109)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))
-  }, file = "ch11_fit11_02")
+  }, file = "ch11_fit11_02", rerun = FALSE)
 tictoc::toc()
 ```
 
@@ -299,7 +300,7 @@ fit11_03 <- xfun::cache_rds({
                   prior(normal(0, 1.5), class = sd, coef = Intercept, group = treatment),
                   prior(normal(0, 0.5), class = sd, group = treatment)))
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_fit11_03")
+  file = "ch11_fit11_03", rerun = FALSE)
 tictoc::toc()
 ```
 
@@ -342,11 +343,11 @@ sim11_02 <- within(sim11_02, {
   set.seed(1109)
   lst <- lapply(X = grid, FUN = function(x) {
     v <- x^2
-    df <- genData(n = n, dtDefs = defs) %>%
-      as.data.frame() %>%
+    df <- genData(n = n, dtDefs = defs) |>
+      as.data.frame() |>
       mutate(model = sprintf("sd=%.1f", x))
   })
-  data <- do.call(rbind, lst) %>%
+  data <- do.call(rbind, lst) |>
     mutate(diff = abs(p1 - p2))
 })
 ```
@@ -400,7 +401,7 @@ fit11_04 <- xfun::cache_rds({
              iter = 2000, warmup = 1000, chains = 4,
              cores = detectCores(), seed = 1117)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_fit11_04")
+  file = "ch11_fit11_04", rerun = FALSE)
 tictoc::toc()
 ```
 
@@ -645,9 +646,9 @@ See the overthinking box in section 11.1.2, p. 337.
 ### Aggregated binomial: Chimpanzees again
 
 ```{r ch11_dataChimp_agg}
-dataChimp_agg <- dataChimp %>%
-  group_by(treatment, actor, prosoc_left, condition) %>%
-  summarise(left_pulls = sum(pulled_left)) %>%
+dataChimp_agg <- dataChimp |>
+  group_by(treatment, actor, prosoc_left, condition) |>
+  summarise(left_pulls = sum(pulled_left)) |>
   ungroup()
 # dataChimp_agg
 ```
@@ -665,7 +666,7 @@ fit11_06 <- xfun::cache_rds({
               prior(normal(0, 0.5), class = sd, group = treatment)),
     cores = detectCores(), seed = 1123)
   out <- brms::add_criterion(out, criterion = c("waic", "loo"))},
-  file = "ch11_fit11_06")
+  file = "ch11_fit11_06", rerun = FALSE)
 tictoc::toc()
 ```
 
@@ -680,7 +681,7 @@ In the chimpanzees example, the number of trials was fixed at 18. This is often 
 
 ```{r ch11_dataAdmit}
 data(UCBadmit)
-dataAdmit <- UCBadmit %>%
+dataAdmit <- UCBadmit |>
   rename(gender = applicant.gender) |>
   mutate(case = factor(seq_len(n())),
          admit_pct = admit / applications,
@@ -876,7 +877,7 @@ $$
 
 ```{r}
 data(Kline)
-dataKline <- Kline %>%
+dataKline <- Kline |>
   mutate(log_pop = log(population),
          log_pop_s = as.vector(scale(log_pop)),
          cid = factor(contact, levels = c("low", "high")))
@@ -926,7 +927,7 @@ simKline1 <- within(simKline1, {
     v <- s^2
     set.seed(1153)
     genData(n = nsamples, dtDefs = defs) |>
-      as.data.frame() %>%
+      as.data.frame() |>
       mutate(mean = m, sd = s, model = grid$model[i])
     })
   names(lst) <- grid$model
@@ -996,7 +997,7 @@ simKline2 <- within(simKline2, {
   
   # generate data using the grid f specs
   grid <- expand.grid(mean = 0, 
-                      sd = seq(from = 0.1, to = 0.6, by = 0.1)) %>%
+                      sd = seq(from = 0.1, to = 0.6, by = 0.1)) |>
     mutate(model = sprintf("m=%.1f, s=%.1f", mean, sd))
   
   # create sim with standardized log
@@ -1005,11 +1006,11 @@ simKline2 <- within(simKline2, {
     m <- grid$mean[i]
     s <- grid$sd[i]
     v <- s^2
-    genData(n = nsamples, dtDefs = defs) %>%
-      as.data.frame() %>%
-      mutate(mean = m, sd = s, model = grid$model[i]) %>%
+    genData(n = nsamples, dtDefs = defs) |>
+      as.data.frame() |>
+      mutate(mean = m, sd = s, model = grid$model[i]) |>
       tidyr::expand(nesting(id, a, b, mean, sd, model),
-           log_pop_s = seq(from = -2, to = 2, length.out = npreds)) %>%
+           log_pop_s = seq(from = -2, to = 2, length.out = npreds)) |>
       mutate(lambda = exp(a + b * log_pop_s))
     })
   names(lst_log_s) <- grid$model
@@ -1021,11 +1022,11 @@ simKline2 <- within(simKline2, {
     m <- grid$mean[i]
     s <- grid$sd[i]
     v <- s^2
-    genData(n = nsamples, dtDefs = defs) %>%
-      as.data.frame() %>%
-      mutate(mean = m, sd = s, model = grid$model[i]) %>%
+    genData(n = nsamples, dtDefs = defs) |>
+      as.data.frame() |>
+      mutate(mean = m, sd = s, model = grid$model[i]) |>
       tidyr::expand(nesting(id, a, b, mean, sd, model),
-           log_pop = seq(from = log(100), to = log(2e5), length.out = npreds)) %>%
+           log_pop = seq(from = log(100), to = log(2e5), length.out = npreds)) |>
       mutate(lambda = exp(a + b * log_pop))
     })
   names(lst_log) <- grid$model
@@ -1242,7 +1243,7 @@ and we add the *pareto k* to the data
 
 ```{r}
 # append k value to data
-dataKline <- dataKline %>%
+dataKline <- dataKline |>
   mutate(ParetoK = round(fit11_10$criteria$loo$diagnostics$pareto_k, 1))
 stopifnot(!any(is.na(dataKline)))
 
@@ -1441,7 +1442,7 @@ yweeks <- rpois(nweeks, 0.5*7)  # nb of manuscripts per week
 dataMonastery <- data.frame(
   nb = c(ydays, yweeks),
   days = c(rep(1, ndays), rep(7, nweeks)),
-  monastery = c(rep(0, ndays), rep(1, nweeks))) %>%
+  monastery = c(rep(0, ndays), rep(1, nweeks))) |>
   mutate(days_lg = log(days))
 ```
 

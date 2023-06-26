@@ -330,6 +330,104 @@ wrap_plots(plot14_01[c("coefs", "wait")]) +
 ## Advanced varying slopes
 
 
+```{r ch14_dataChimp}
+data(chimpanzees)
+dataChimp <- chimpanzees |>
+  mutate(block = factor(block),
+         actor = factor(actor),
+         treatment = factor(1 + prosoc_left + 2 * condition, levels = 1:4,
+                            labels = c("AR", "AL", "PR", "PL")))
+rm(chimpanzees)
+dataChimp |>
+  skim() |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
+```
+
+#### The model
+
+$$
+L_i \sim \mathcal{Binomial}(1, p_i) \\
+logit(p_i) \sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_{block[i], treatment[i]} \\
+\gamma_{treatment[i]} \sim \mathcal{N}(0, 1), \, \text{for } i = 1 \ldots 4 \\
+
+
+\begin{bmatrix}
+\alpha_{j, 1} \\
+\alpha_{j, 2} \\
+\alpha_{j, 3} \\
+\alpha_{j, 4}
+\end{bmatrix}
+\sim
+\mathcal{MVNormal}(
+\begin{bmatrix}
+0 \\
+0 \\
+0 \\
+0\\
+\end{bmatrix}
+,
+\bf{S_{actor}}
+) \\
+
+
+\begin{bmatrix}
+\beta_{j, 1} \\
+\beta_{j, 2} \\
+\beta_{j, 3} \\
+\beta_{j, 4}
+\end{bmatrix}
+\sim
+\mathcal{MVNormal}(
+\begin{bmatrix}
+0 \\
+0 \\
+0 \\
+0\\
+\end{bmatrix}
+,
+\bf{S_{block}}
+) \\
+
+
+
+\bf{\Sigma_{actor}} = \bf{S_\alpha}\bf{R_\alpha}\bf{S_\alpha} \\
+\bf{\Sigma_{block}} = \bf{S_\beta}\bf{R_\beta}\bf{S_\beta} \\
+
+\sigma_{\alpha, j} \sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
+\sigma_{\beta, j} \sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
+
+
+\bf{R} \sim \mathcal{LKJcorr}(K=2, \eta=2)
+$$
+
+We don't do model m14.2 since it is only done to illustrate centralized vs
+non-centralized parametrization and that `brms` uses only non-centralized
+parametrization.
+
+
+```{r ch14_fit14_03}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
+fit14_03 <- xfun::cache_rds({
+  out <- brm(
+    data = dataChimp,
+    family = bernoulli,
+    formula = bf(pulled_left ~ 0 + treatment + (0 + treatment | actor) + (0 + treatment | block)),
+    prior = c(
+      prior(normal(0, 1), class = b),
+      prior(exponential(1), class = sd, group = actor),
+      prior(exponential(1), class = sd, group = block),
+      prior(lkj(2), class = cor, group = actor),
+      prior(lkj(2), class = cor, group = block)),
+    iter = 1000, warmup = 500, chains = 2,
+    cores = detectCores(), seed = 1427)
+  add_criterion(out, c("loo", "waic"))},
+  file = "ch14_fit14_03", rerun = FALSE)
+tictoc::toc()
+```
+
+
+
+
 ## Summary
 
 ## Practice
