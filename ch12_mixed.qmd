@@ -188,6 +188,8 @@ on p. 371.
 and the posterior data which *represents the distribution rather than the data*
 
 ```{r}
+#| echo: false
+#| output: false
 get_variables(fit12_01)
 ```
 
@@ -1042,6 +1044,8 @@ fit12_05
 and plot the coefficients
 
 ```{r}
+#| echo: false
+#| output: false
 get_variables(fit12_05)
 ```
 

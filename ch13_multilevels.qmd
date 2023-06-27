@@ -231,6 +231,7 @@ epred13_02
 ```
 
 ```{r}
+#| fig-cap: "Figure 13.1"
 plotFrogs +
   geom_point(epred13_02, mapping = aes(x = as.integer(tank), y = propsurv.epred),
              inherit.aes = FALSE, shape = 1, size = 2, color = "darkorange")
@@ -243,6 +244,7 @@ Second, to simulate the **distribution** of the logodds values described by the 
 Third, we compute the normal density for each of the 10000 lines using the `b_Intercept` and `tank_Intercepts` of each line. The normal density is used because the model is $\alpha_{tank} \sim \mathcal{N}(0, 5)$ and $\alpha \sim \mathcal{N}(0, 1)$. This is done with
 
 ```{r}
+#| fig-cap: "Figure 13.2"
 samples <- list()
 samples <- within(samples, {
   data1 <- as_draws_df(fit13_02) |>
@@ -455,6 +457,7 @@ sim <- within(sim, {
 ```
 
 ```{r}
+#| fig-cap: "Figure 13.3"
 ggplot(sim$data, aes(x = pond, y = nopool_error)) +
   geom_point(color = "sienna") +
   geom_point(mapping = aes(y = partpool_error),

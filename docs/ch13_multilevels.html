@@ -520,7 +520,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_01"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.17 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.12 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -705,16 +705,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 # Groups:   density, pred, size, surv, propsurv, tank [48]
    density pred  size   surv propsurv tank   .row .epred .epre…¹ .epre…² props…³
      &lt;int&gt; &lt;fct&gt; &lt;fct&gt; &lt;int&gt;    &lt;dbl&gt; &lt;fct&gt; &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
- 1      10 no    big       7      0.7 3         3   7.29    5.11    9.01   0.729
- 2      10 no    big       9      0.9 1         1   8.83    7.01    9.73   0.883
- 3      10 no    big      10      1   2         2   9.54    8.01    9.94   0.954
- 4      10 no    big      10      1   4         4   9.52    8.02    9.94   0.952
- 5      10 no    small     9      0.9 5         5   8.92    7.16    9.75   0.892
- 6      10 no    small     9      0.9 6         6   8.91    6.86    9.76   0.891
- 7      10 no    small     9      0.9 8         8   9.03    7.03    9.71   0.903
- 8      10 no    small    10      1   7         7   9.54    8.25    9.95   0.954
- 9      10 pred  big       4      0.4 9         9   4.58    2.49    6.94   0.458
-10      10 pred  big       6      0.6 12       12   6.42    3.83    8.38   0.642
+ 1      10 no    big       7      0.7 3         3   7.22    4.98    9.03   0.722
+ 2      10 no    big       9      0.9 1         1   8.91    7.00    9.77   0.891
+ 3      10 no    big      10      1   2         2   9.51    7.99    9.94   0.951
+ 4      10 no    big      10      1   4         4   9.55    8.25    9.93   0.955
+ 5      10 no    small     9      0.9 5         5   8.91    7.08    9.76   0.891
+ 6      10 no    small     9      0.9 6         6   8.88    7.07    9.76   0.888
+ 7      10 no    small     9      0.9 8         8   8.94    7.11    9.73   0.894
+ 8      10 no    small    10      1   7         7   9.53    8.44    9.95   0.953
+ 9      10 pred  big       4      0.4 9         9   4.56    2.32    6.72   0.456
+10      10 pred  big       6      0.6 12       12   6.49    3.84    8.34   0.649
 # … with 38 more rows, 5 more variables: propsurv.epred.lower &lt;dbl&gt;,
 #   propsurv.epred.upper &lt;dbl&gt;, .width &lt;dbl&gt;, .point &lt;chr&gt;, .interval &lt;chr&gt;,
 #   and abbreviated variable names ¹​.epred.lower, ²​.epred.upper,
@@ -726,7 +726,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(epred13_02, <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.integer</span>(tank), <span class="at">y =</span> propsurv.epred),</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">shape =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"darkorange"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+<p></p><figcaption class="figure-caption">Figure 13.1</figcaption><p></p>
+</figure>
+</div>
 </div>
 </div>
 <p>First, we take a sampling of size 100 of the 4000 draws from the posterior sample with <code>slice_sample(n = 100)</code>.</p>
@@ -761,7 +766,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(samples<span class="sc">$</span>p1, samples<span class="sc">$</span>p2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+<p></p><figcaption class="figure-caption">Figure 13.2</figcaption><p></p>
+</figure>
+</div>
 </div>
 </div>
 <p>To improve the model you could use Half-Normal (or Half-Cauchy) instead of exponential, and now the multilevel model</p>
@@ -878,7 +888,7 @@ logit(p_i) &amp;= \alpha_{pond[i]} \\
 <span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_03"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we have our point summaries and interval as follows</p>
@@ -1015,7 +1025,12 @@ Note
 <span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Same results as Kurtz, difference with McElreath caused by the seed"</span>,</span>
 <span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+<p></p><figcaption class="figure-caption">Figure 13.3</figcaption><p></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -1296,7 +1311,7 @@ Note
 <span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_04"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.15 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.13 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1419,7 +1434,7 @@ Note
 <span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_05"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.18 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.13 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we obtain the same results as on p.&nbsp;418 of section 13.3.1.</p>
@@ -1455,7 +1470,7 @@ fit13_04   19.4 </code></pre>
 <span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_06"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.18 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">

@@ -416,6 +416,8 @@ posterior_summary(fit11_04) |>
 and to obtain the estimates on the logit scale
 
 ```{r}
+#| echo: false
+#| output: false
 get_variables(fit11_04)
 ```
 
@@ -622,6 +624,8 @@ we can see that $actor$ and $treatment$ considered alone give about the same qua
 It is more common to see logistic regression as relative effects. relative effect are proportional change in the odds of the outcome
 
 ```{r}
+#| echo: false
+#| output: false
 get_variables(fit11_04)
 ```
 
@@ -1656,6 +1660,8 @@ tictoc::toc()
 and we look at the summary
 
 ```{r}
+#| echo: false
+#| output: false
 get_variables(fit11_13)
 ```
 
@@ -2047,7 +2053,13 @@ tictoc::toc()
 and the posterior distribution for the Poisson fit
 
 ```{r}
+#| echo: false
+#| output: false
 get_variables(fit11_15pois)
+```
+
+
+```{r}
 gather_rvars(fit11_15pois, b_admit_Intercept, b_rejct_Intercept)
 ```
 
