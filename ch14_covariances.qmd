@@ -191,6 +191,37 @@ wait_i \sim \mathcal{N}(\mu_i, \sigma) \\
 \end{bmatrix} \sim \mathcal{LKJcorr}(K=2, \eta=2)
 $$
 
+#### LKJ prior
+
+We use the `ggdist` package to illustrate the LKJ distribution.
+
+```{r}
+#| fig-cap: "Figure 14.3"
+lkj_dist <- list()
+lkj_dist <- within(lkj_dist, {
+  df <- crossing(K = 2:4, eta = 1:3, x = seq(from = -1, to = 1, by = 0.05)) |>
+    mutate(
+      id = K^eta,
+      label_K = paste0("K==", K),
+      label_eta = paste0("eta==", eta),
+      dens = ggdist::dlkjcorr_marginal(x = x, K = K, eta = eta)
+    )
+  p <- df |>
+    ggplot(aes(x = x, y = dens, color = id)) +
+    geom_line(size = 1) +
+    scale_y_continuous(breaks = c(0, 0.5, 1)) +
+    scale_color_paletteer_c("palr::sst_pal") +
+    theme(legend.position = "none") +
+    facet_grid(facets = label_eta ~ label_K, scales= "fixed", labeller = label_parsed) +
+    labs(title = "Lewandowski-Kurowicka-Joe Distribution",
+         x = "correlation", y = "density")
+})
+# glimpse(lkj_dist$df)
+lkj_dist$p
+```
+
+
+
 ```{r ch14_fit14_01}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit14_01 <- xfun::cache_rds({
@@ -428,44 +459,60 @@ fit14_03 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
+The plot is slightly different than what McElreath uses but arguably as 
+informative, and easier to create.
 
-```{r}
+```{r ch14_plot14_03}
 #| fig-cap: "Figure 14.7"
 plot14_03 <- list()
 plot14_03 <- within(plot14_03, {
+
+  df <- dataPredicted <- dataChimp |>
+    group_by(actor, treatment, block) |>
+    summarize(prop = mean(pulled_left)) |>
+    ungroup() |>
+    add_epred_draws(fit14_03) |>
+    summarize(prop = mean(prop),
+              mean_qi(.epred, .width = 0.89) ) |>
+    rename(".epred" = y, ".lower" = ymin, ".upper" = ymax)
   
-  dataEPredicted <- expand_grid(actor = unique(dataChimp$actor),
-                               treatment = unique(dataChimp$treatment),
-                               block = unique(dataChimp$block)) |>
-    # dataPredicted <- dataChimp |>
-    add_epred_rvars(fit14_03) |>
-    mutate(actor_id = paste("actor", actor),
-           condition = if_else(substring(treatment, 1, 1) == "A", "alone", "partner"),
+  # every block is different but, for plotting, we use the average of the blocks
+  df <- df |>
+    group_by(actor, treatment) |>
+    summarize(
+      prop = mean(prop),
+      .epred = mean(.epred),
+      .lower = mean(.lower),
+      .upper = mean(.upper)) |>
+    mutate(label = paste("actor", actor)) |>
+    mutate(condition = if_else(substring(treatment, 1, 1) == "A", "alone", "partner"),
            condition = as.factor(condition),
            prosoc_left = if_else(substring(treatment, 2, 2) == "R", "right", "left"),
            prosoc_left = as.factor(prosoc_left)) |>
-    select(-treatment) |>
-    group_by(actor, condition, prosoc_left) |>
-    mean_qi(.epred, .width = 0.89) |>
-    identity()
-  
-  plotEPredicted <- ggplot(dataEPredicted,
-                         aes(x = condition, y = .epred,
+    mutate(label = paste("actor", actor))
+    
+    
+    
+  plotEPredicted <- df |>
+    ggplot(aes(x = treatment, y = .epred,
                              group = prosoc_left, color = prosoc_left,
                              fill = prosoc_left)) +
     geom_line(size = 1) +
-    geom_point() +
+    geom_point(shape = 16, size = 3) +
+    geom_point(aes(y = prop), shape = 1, size = 3) +
     geom_errorbar(aes(ymin = .lower, ymax = .upper), width = 1/3) +
     geom_hline(yintercept = 0.5, color = "brown", linetype = 2) +
-    # ggrepel::geom_text_repel(aes(label = round(.epred, 2)), size = 3) +
     scale_y_continuous(labels = scales::label_percent()) +
+    scale_color_paletteer_d("ggprism::prism_light") +
     coord_cartesian(ylim = c(0, 1)) +
     theme(legend.position = "bottom") +
     labs(title = "Posterior expected predictions with 89% CI",
+         subtitle = "Open circles are actual results, solid circles are mean predictions.",
          x = NULL, y = "proportion pulled left") +
-    facet_grid(. ~ actor_id)
+    facet_grid(. ~ label)
 })
-plot14_03$plotEPredicted
+# glimpse(plot14_03$df)
+plot14_03$p
 ```
 
 
