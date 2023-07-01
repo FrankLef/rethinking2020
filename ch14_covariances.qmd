@@ -418,7 +418,7 @@ logit(p_i) &\sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta
 0 \\
 0 \\
 0 \\
-0\\
+0 \\
 \end{bmatrix}
 ,
 \bf{\Sigma_{block}}
@@ -426,11 +426,44 @@ logit(p_i) &\sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta
 
 
 
-\bf{\Sigma_{actor}} &= \bf{S_\alpha}\bf{R_\alpha}\bf{S_\alpha} \\
-\bf{\Sigma_{block}} &= \bf{S_\beta}\bf{R_\beta}\bf{S_\beta} \\
+\bf{\Sigma_{actor}} &=
+\begin{bmatrix}
+\sigma_{factor} & 0 \\
+0 & \sigma_{factor}
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+1 & \rho_{factor} \\
+\rho_{factor} & 1
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+\sigma_{factor} & 0 \\
+0 & \sigma_{factor}\\
+\end{bmatrix} \\
 
-\sigma_{\alpha, j} &\sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
-\sigma_{\beta, j} &\sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
+
+
+\bf{\Sigma_{block}} &=
+\begin{bmatrix}
+\sigma_{block} & 0 \\
+0 & \sigma_{block}
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+1 & \rho_{block} \\
+\rho_{block} & 1
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+\sigma_{block} & 0 \\
+0 & \sigma_{block}\\
+\end{bmatrix} \\
+
+
+
+\sigma_{actor, j} &\sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
+\sigma_{block, j} &\sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
 
 
 \rho_{actor}, \rho_{block} &\sim \mathcal{LKJcorr}(2)
@@ -668,29 +701,27 @@ E_i \\
 \begin{bmatrix}
 \mu_{W, i} \\
 \mu_{E, i}
-\end{bmatrix}
-,
+\end{bmatrix}, 
 \bf{\Sigma}
 ) \\
+\mu_{W, i} &= \alpha_W + \beta_{EW}E_i \\
+\mu_{E, i} &= \alpha_E + \beta_{QE}Q_i \\
 \bf{\Sigma} &= 
 \begin{bmatrix}
 \sigma_W & 0 \\
 0 & \sigma_E
 \end{bmatrix}
-\bf{R}
+\cdot
+\begin{bmatrix}
+1 & \rho \\
+\rho & 1
+\end{bmatrix}
+\cdot
 \begin{bmatrix}
 \sigma_W & 0 \\
 0 & \sigma_E
 \end{bmatrix}
 \\
-\bf{R} &=
-\begin{bmatrix}
-1 & \rho \\
-\rho & 1
-\end{bmatrix}
-\\
-\mu_{W, i} &= \alpha_W + \beta_{EW}E_i \\
-\mu_{E, i} &= \alpha_E + \beta_{QE}Q_i \\
 \alpha_W, \alpha_E &\sim \mathcal{N}(0, 0.2) \\
 \beta_{EW}, \beta_{QE} &\sim \mathcal{N}(0, 0.5) \\
 \sigma_W, \sigma_E &\sim \mathcal{Exponential}(1) \\
@@ -748,6 +779,11 @@ summarize_draws(fit14_06, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
 
 ### Data
 
+The research can be find in this [paper](https://research-information.bris.ac.uk/ws/portalfiles/portal/41942591/koster2014sn.pdf).
+However I could not find what the variable $dlndist$ is. I suppose it it the log
+of some distance . . but why is it negative? It doesn't matter, it is only used
+to color the edges of the network and not in the analysis per se.
+
 ```{r ch14_dataKL}
 data(KosterLeckie, package = "rethinking")
 dataKL <- list(
@@ -756,7 +792,7 @@ dataKL <- list(
 rm(list = c("kl_dyads", "kl_households"))
 dataKL$dyads <- dataKL$dyads |>
   # we only use these variable
-  select(hidA, hidB, did, giftsAB, giftsBA, offset) |>
+  select(hidA, hidB, did, giftsAB, giftsBA, offset, dlndist) |>
   mutate(hidA = factor(hidA),
          hidB = factor(hidB),
          did = factor(did))
@@ -765,9 +801,9 @@ dataKL$dyads <- dataKL$dyads |>
 The data set can be summarized with the `skimr` package
 
 ```{r}
+names(dataKL$dyads)
 dataKL$dyads |> skim() |>
   select(-n_missing, -complete_rate) |>
-  filter(!grepl(pattern = "^drel|dlndist|dass|d0125", x = skim_variable)) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
@@ -795,13 +831,14 @@ netKL <- list()
 netKL <- within(netKL, {
   # the igraph object
   g <- dataKL$dyads |>
+    mutate(giftsSum = abs(giftsAB - giftsBA)) |>
     igraph::graph_from_data_frame(directed = TRUE,
                                   vertices = dataKL$houses)
   # create the network dataframe
   df <- ggnetwork(g, layout = igraph::layout_in_circle(g))
   # plot the network
   p <- ggplot(df, aes(x = x, y = y, xend = xend, yend = yend)) +
-    geom_edges(aes(color = offset)) +
+    geom_edges(aes(color = dlndist)) +
     geom_nodes(aes(size = hwealth), color = "brown") +
     scale_color_paletteer_c("oompaBase::jetColors", direction = -1) +
     scale_size_continuous(range = c(1, 6)) +
@@ -859,7 +896,10 @@ d_{ji} \\
 0 & \sigma_r &
 \end{bmatrix}
 \cdot
-\bf{R_{gr}}
+\begin{bmatrix}
+1 & \rho_{gr} \\
+\rho_{gr} & 1 \\
+\end{bmatrix}
 \cdot
 \begin{bmatrix}
 \sigma_g & 0 \\
@@ -872,28 +912,15 @@ d_{ji} \\
 0 & \sigma_d &
 \end{bmatrix}
 \cdot
-\bf{R_d}
+\begin{bmatrix}
+1 & \rho_d \\
+\rho_d & 1 \\
+\end{bmatrix}
 \cdot
 \begin{bmatrix}
 \sigma_d & 0 \\
 0 & \sigma_d \\
 \end{bmatrix} \\
-
-\bf{R_{gr}} &= 
-\begin{bmatrix}
-1 & \rho_{gr} \\
-\rho_{gr} & 1 \\
-\end{bmatrix} \\
-
-
-
-\bf{R_d} &= 
-\begin{bmatrix}
-1 & \rho_d \\
-\rho_d & 1 \\
-\end{bmatrix} \\
-
-
 
 \sigma_d, \sigma_g, \sigma_r &\sim \mathcal{Exponential}(1) \\
 
@@ -904,11 +931,12 @@ $$
 
 Kurtz says that there is no known way to use `brms`. The package `bisonR` 
 that specializes in social networks and uses `brms`.
-It can be found at [bison](https://github.com/JHart96/bisonR).
+It can be found at [bison](https://github.com/JHart96/bisonR) with a useful 
+vignette at [vignette](https://jordanhart.co.uk/bisonR/articles/getting_started.html).
 
 ::: {.callout-note}
 This section is skipped. But one day, it might be interesting to do it with the
-`rbison` package.
+`bisonR` package.
 :::
 
 ## Continuous categories and the Gaussian process
