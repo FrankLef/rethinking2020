@@ -16,6 +16,7 @@ library(scales)
 library(dagitty)
 library(ggplot2)
 library(ggdag)
+library(ggnetwork)
 library(bayesplot)
 library(patchwork)
 library(paletteer)
@@ -152,22 +153,23 @@ simCafes$data |>
 #### The model
 
 $$
-wait_i \sim \mathcal{N}(\mu_i, \sigma) \\
-\mu_i = \alpha_{cafe[i]} + \beta_{cafe[i]} \cdot afternoon_i \\
+\begin{align*}
+wait_i &\sim \mathcal{N}(\mu_i, \sigma) \\
+\mu_i &= \alpha_{cafe[i]} + \beta_{cafe[i]} \cdot afternoon_i \\
 \begin{bmatrix}
 \alpha_{cafe} \\
 \beta_{cafe}
 \end{bmatrix}
-\sim
+&\sim
 \mathcal{MVNormal}(
 \begin{bmatrix}
 \alpha \\
 \beta
 \end{bmatrix}
 ,
-\textbf{S}
+\bf{\Sigma}
 ) \\
-\Sigma =
+\bf{\Sigma} &=
 \begin{bmatrix}
 \sigma_{\alpha} & 0 \\
 0 & \sigma_{\beta}
@@ -180,15 +182,14 @@ wait_i \sim \mathcal{N}(\mu_i, \sigma) \\
 \sigma_{\alpha} & 0 \\
 0 & \sigma_{\beta}
 \end{bmatrix} \\
-\alpha \sim \mathcal{N}(0, 10) \\
-\beta \sim \mathcal{N}(0, 10) \\
-\sigma \sim \mathcal{HalfCauchy}(0, 1) \\
-\sigma_{\alpha} \sim \mathcal{HalfCauchy}(0, 1) \\
-\sigma_{\beta} \sim \mathcal{HalfCauchy}(0, 1) \\
-\begin{bmatrix}
-1 & \rho \\
-\rho & 1
-\end{bmatrix} \sim \mathcal{LKJcorr}(K=2, \eta=2)
+\alpha &\sim \mathcal{N}(0, 10) \\
+\beta &\sim \mathcal{N}(0, 10) \\
+\sigma &\sim \mathcal{HalfCauchy}(0, 1) \\
+\sigma_{\alpha} &\sim \mathcal{HalfCauchy}(0, 1) \\
+\sigma_{\beta} &\sim \mathcal{HalfCauchy}(0, 1) \\
+\rho
+&\sim \mathcal{LKJcorr}(K=2)
+\end{align*}
 $$
 
 #### LKJ prior
@@ -380,9 +381,10 @@ dataChimp |>
 #### The model
 
 $$
-L_i \sim \mathcal{Binomial}(1, p_i) \\
-logit(p_i) \sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_{block[i], treatment[i]} \\
-\gamma_{treatment[i]} \sim \mathcal{N}(0, 1), \, \text{for } i = 1 \ldots 4 \\
+\begin{align*}
+L_i &\sim \mathcal{Binomial}(1, p_i) \\
+logit(p_i) &\sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_{block[i], treatment[i]} \\
+\gamma_{treatment[i]} &\sim \mathcal{N}(0, 1), \, \text{for } i = 1 \ldots 4 \\
 
 
 \begin{bmatrix}
@@ -391,7 +393,7 @@ logit(p_i) \sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_
 \alpha_{j, 3} \\
 \alpha_{j, 4}
 \end{bmatrix}
-\sim
+&\sim
 \mathcal{MVNormal}(
 \begin{bmatrix}
 0 \\
@@ -400,7 +402,7 @@ logit(p_i) \sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_
 0\\
 \end{bmatrix}
 ,
-\bf{S_{actor}}
+\bf{\Sigma_{actor}}
 ) \\
 
 
@@ -410,7 +412,7 @@ logit(p_i) \sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_
 \beta_{j, 3} \\
 \beta_{j, 4}
 \end{bmatrix}
-\sim
+&\sim
 \mathcal{MVNormal}(
 \begin{bmatrix}
 0 \\
@@ -419,19 +421,21 @@ logit(p_i) \sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_
 0\\
 \end{bmatrix}
 ,
-\bf{S_{block}}
+\bf{\Sigma_{block}}
 ) \\
 
 
 
-\bf{\Sigma_{actor}} = \bf{S_\alpha}\bf{R_\alpha}\bf{S_\alpha} \\
-\bf{\Sigma_{block}} = \bf{S_\beta}\bf{R_\beta}\bf{S_\beta} \\
+\bf{\Sigma_{actor}} &= \bf{S_\alpha}\bf{R_\alpha}\bf{S_\alpha} \\
+\bf{\Sigma_{block}} &= \bf{S_\beta}\bf{R_\beta}\bf{S_\beta} \\
 
-\sigma_{\alpha, j} \sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
-\sigma_{\beta, j} \sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
+\sigma_{\alpha, j} &\sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
+\sigma_{\beta, j} &\sim \mathcal{Exponential}(1), \, \text{for } i = 1 \ldots 4 \\
 
 
-\bf{R} \sim \mathcal{LKJcorr}(K=2, \eta=2)
+\rho_{actor}, \rho_{block} &\sim \mathcal{LKJcorr}(2)
+
+\end{align*}
 $$
 
 We don't do model m14.2 since it is only done to illustrate centralized vs
@@ -569,6 +573,9 @@ simInstrument <- within(simInstrument, {
 })
 # glimpse(simInstrument$df)
 ```
+
+
+
 ```{r}
 #| echo: false
 #| output: false
@@ -651,11 +658,12 @@ covariance of $E$ and $Q$. That is, we express the model as a *multivariate
 statistical model as follows
 
 $$
+\begin{align*}
 \begin{bmatrix}
 W_i \\
 E_i \\
 \end{bmatrix}
-\sim
+&\sim
 \mathcal{MVNormal}(
 \begin{bmatrix}
 \mu_{W, i} \\
@@ -664,7 +672,7 @@ E_i \\
 ,
 \bf{\Sigma}
 ) \\
-\Sigma = 
+\bf{\Sigma} &= 
 \begin{bmatrix}
 \sigma_W & 0 \\
 0 & \sigma_E
@@ -675,30 +683,32 @@ E_i \\
 0 & \sigma_E
 \end{bmatrix}
 \\
-\bf{R} =
+\bf{R} &=
 \begin{bmatrix}
 1 & \rho \\
 \rho & 1
 \end{bmatrix}
 \\
-\mu_{W, i} = \alpha_W + \beta_{EW}E_i \\
-\mu_{E, i} = \alpha_E + \beta_{QE}Q_i \\
-\alpha_W, \alpha_E \sim \mathcal{N}(0, 0.2) \\
-\beta_{EW}, \beta_{QE} \sim \mathcal{N}(0, 0.5) \\
-\sigma_W, \sigma_E \sim \mathcal{Exponential}(1) \\
-\rho \sim \mathcal{LKJ}(2)
+\mu_{W, i} &= \alpha_W + \beta_{EW}E_i \\
+\mu_{E, i} &= \alpha_E + \beta_{QE}Q_i \\
+\alpha_W, \alpha_E &\sim \mathcal{N}(0, 0.2) \\
+\beta_{EW}, \beta_{QE} &\sim \mathcal{N}(0, 0.5) \\
+\sigma_W, \sigma_E &\sim \mathcal{Exponential}(1) \\
+\rho &\sim \mathcal{LKJ}(2)
+\end{align*}
 $$
 
-We use get `brms::get_prior` to help us figure out the code
 
 ```{r}
+#| echo: false
+#| output: false
 get_prior(
   data = simInstrument$df,
   formula = bf(W ~ 1 + E) + bf(E ~ 1 + Q) + set_rescor(TRUE),
   family = gaussian
 )
 ```
-
+and the final fit is
 
 ```{r ch14_fit14_06}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
@@ -732,6 +742,178 @@ summarize_draws(fit14_06, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
          across(.cols = starts_with("ess"), .fns = as.integer))
 ```
+
+
+## Social relations as correlated varying effects
+
+### Data
+
+```{r ch14_dataKL}
+data(KosterLeckie, package = "rethinking")
+dataKL <- list(
+  "dyads" = kl_dyads,
+  "houses" = kl_households)
+rm(list = c("kl_dyads", "kl_households"))
+dataKL$dyads <- dataKL$dyads |>
+  # we only use these variable
+  select(hidA, hidB, did, giftsAB, giftsBA, offset) |>
+  mutate(hidA = factor(hidA),
+         hidB = factor(hidB),
+         did = factor(did))
+```
+
+The data set can be summarized with the `skimr` package
+
+```{r}
+dataKL$dyads |> skim() |>
+  select(-n_missing, -complete_rate) |>
+  filter(!grepl(pattern = "^drel|dlndist|dass|d0125", x = skim_variable)) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
+```
+
+We can visualize the distribution of dyadic gifts using a scatter plot
+
+```{r}
+#| fig-cap: "Figure 14.8"
+dataKL$dyads |> ggplot(aes(x = giftsAB, y = giftsBA)) +
+  geom_point(color = "darkblue") +
+  geom_abline(slope = 1, intercept = 0, linetype = 2, color = "royalblue") +
+  coord_equal(ratio = 1, xlim = c(0, 120), ylim = c(0, 120)) +
+  labs(title = "Distribution of dyadic gifts")
+```
+
+and since this a social network then we can visualize the network with the
+`ggnetwork` package.For details see [ggnetwork](https://cran.r-project.org/web/packages/ggnetwork/vignettes/ggnetwork.html).
+
+First we need to create an igraph object. See [igraph](https://igraph.org/r/doc/graph_from_data_frame.html)
+for details.
+
+
+```{r}
+# first we need to create an igraph
+netKL <- list()
+netKL <- within(netKL, {
+  # the igraph object
+  g <- dataKL$dyads |>
+    igraph::graph_from_data_frame(directed = TRUE,
+                                  vertices = dataKL$houses)
+  # create the network dataframe
+  df <- ggnetwork(g, layout = igraph::layout_in_circle(g))
+  # plot the network
+  p <- ggplot(df, aes(x = x, y = y, xend = xend, yend = yend)) +
+    geom_edges(aes(color = offset)) +
+    geom_nodes(aes(size = hwealth), color = "brown") +
+    scale_color_paletteer_c("oompaBase::jetColors", direction = -1) +
+    scale_size_continuous(range = c(1, 6)) +
+    theme_blank() +
+    labs(title = "The KosterLeckie Network")
+})
+# glimpse(netKL$df)
+netKL$p
+```
+
+
+### Model
+
+$$
+\begin{align*}
+\begin{bmatrix}
+y_{a \rightarrow b} \\
+y_{b \rightarrow a} \\
+\end{bmatrix}
+&\sim
+\begin{bmatrix}
+\mathcal{Poisson}(\lambda_{AB}) \\
+\mathcal{Poisson}(\lambda_{BA}) \\
+\end{bmatrix} \\
+\log{\lambda_{AB}} &= \alpha + g_A + r_B + d_{AB} \\
+\log{\lambda_{BA}} &= \alpha + g_B + r_A + d_{BA} \\
+\begin{bmatrix}
+g_i \\
+r_i \\
+\end{bmatrix}
+&\sim
+\mathcal{MVNormal}(
+\begin{bmatrix}
+0 \\
+0
+\end{bmatrix},
+\Sigma_{gr}
+) \\
+\begin{bmatrix}
+d_{ij} \\
+d_{ji} \\
+\end{bmatrix}
+&\sim
+\mathcal{MVNormal}(
+\begin{bmatrix}
+0 \\
+0
+\end{bmatrix},
+\Sigma_d
+) \\
+
+\Sigma_{gr} &= 
+\begin{bmatrix}
+\sigma_g & 0 \\
+0 & \sigma_r &
+\end{bmatrix}
+\cdot
+\bf{R_{gr}}
+\cdot
+\begin{bmatrix}
+\sigma_g & 0 \\
+0 & \sigma_r \\
+\end{bmatrix} \\
+
+\Sigma_d &= 
+\begin{bmatrix}
+\sigma_d & 0 \\
+0 & \sigma_d &
+\end{bmatrix}
+\cdot
+\bf{R_d}
+\cdot
+\begin{bmatrix}
+\sigma_d & 0 \\
+0 & \sigma_d \\
+\end{bmatrix} \\
+
+\bf{R_{gr}} &= 
+\begin{bmatrix}
+1 & \rho_{gr} \\
+\rho_{gr} & 1 \\
+\end{bmatrix} \\
+
+
+
+\bf{R_d} &= 
+\begin{bmatrix}
+1 & \rho_d \\
+\rho_d & 1 \\
+\end{bmatrix} \\
+
+
+
+\sigma_d, \sigma_g, \sigma_r &\sim \mathcal{Exponential}(1) \\
+
+
+\rho_{gr}, \rho_d &\sim \mathcal{LKJ}(4)
+\end{align*}
+$$
+
+Kurtz says that there is no known way to use `brms`. The package `bisonR` 
+that specializes in social networks and uses `brms`.
+It can be found at [bison](https://github.com/JHart96/bisonR).
+
+::: {.callout-note}
+This section is skipped. But one day, it might be interesting to do it with the
+`rbison` package.
+:::
+
+## Continuous categories and the Gaussian process
+
+
 
 
 ## Summary
