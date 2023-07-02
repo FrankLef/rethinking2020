@@ -520,7 +520,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_01"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.17 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.12 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -613,7 +613,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_02"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.18 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.13 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -705,16 +705,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 # Groups:   density, pred, size, surv, propsurv, tank [48]
    density pred  size   surv propsurv tank   .row .epred .epre…¹ .epre…² props…³
      &lt;int&gt; &lt;fct&gt; &lt;fct&gt; &lt;int&gt;    &lt;dbl&gt; &lt;fct&gt; &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
- 1      10 no    big       7      0.7 3         3   7.20    4.79    8.94   0.720
- 2      10 no    big       9      0.9 1         1   8.91    7.03    9.77   0.891
- 3      10 no    big      10      1   2         2   9.53    8.17    9.95   0.953
- 4      10 no    big      10      1   4         4   9.55    8.18    9.95   0.955
- 5      10 no    small     9      0.9 5         5   8.88    7.08    9.77   0.888
- 6      10 no    small     9      0.9 6         6   8.90    6.92    9.77   0.890
- 7      10 no    small     9      0.9 8         8   8.95    6.88    9.72   0.895
- 8      10 no    small    10      1   7         7   9.53    8.34    9.95   0.953
- 9      10 pred  big       4      0.4 9         9   4.55    2.42    6.66   0.455
-10      10 pred  big       6      0.6 12       12   6.36    3.71    8.33   0.636
+ 1      10 no    big       7      0.7 3         3   7.29    4.96    8.94   0.729
+ 2      10 no    big       9      0.9 1         1   8.92    6.91    9.78   0.892
+ 3      10 no    big      10      1   2         2   9.51    8.20    9.96   0.951
+ 4      10 no    big      10      1   4         4   9.56    8.17    9.94   0.956
+ 5      10 no    small     9      0.9 5         5   8.91    7.01    9.75   0.891
+ 6      10 no    small     9      0.9 6         6   8.90    7.07    9.74   0.890
+ 7      10 no    small     9      0.9 8         8   8.98    7.04    9.77   0.898
+ 8      10 no    small    10      1   7         7   9.52    8.26    9.95   0.952
+ 9      10 pred  big       4      0.4 9         9   4.60    2.50    6.82   0.460
+10      10 pred  big       6      0.6 12       12   6.51    3.90    8.36   0.651
 # … with 38 more rows, 5 more variables: propsurv.epred.lower &lt;dbl&gt;,
 #   propsurv.epred.upper &lt;dbl&gt;, .width &lt;dbl&gt;, .point &lt;chr&gt;, .interval &lt;chr&gt;,
 #   and abbreviated variable names ¹​.epred.lower, ²​.epred.upper,
@@ -888,7 +888,7 @@ logit(p_i) &amp;= \alpha_{pond[i]} \\
 <span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_03"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.22 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.15 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we have our point summaries and interval as follows</p>
@@ -1311,7 +1311,7 @@ Note
 <span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_04"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.14 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1434,7 +1434,7 @@ Note
 <span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_05"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.21 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.18 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we obtain the same results as on p.&nbsp;418 of section 13.3.1.</p>
@@ -1470,7 +1470,7 @@ fit13_04   19.4 </code></pre>
 <span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_06"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.24 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.19 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">

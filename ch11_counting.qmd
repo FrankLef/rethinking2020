@@ -883,7 +883,7 @@ $$
 data(Kline)
 dataKline <- Kline |>
   mutate(log_pop = log(population),
-         log_pop_s = as.vector(scale(log_pop)),
+         log_pop_s = scale(log_pop),
          cid = factor(contact, levels = c("low", "high")))
 rm(Kline)
 dataKline |>
@@ -2057,7 +2057,6 @@ and the posterior distribution for the Poisson fit
 #| output: false
 get_variables(fit11_15pois)
 ```
-
 
 ```{r}
 gather_rvars(fit11_15pois, b_admit_Intercept, b_rejct_Intercept)

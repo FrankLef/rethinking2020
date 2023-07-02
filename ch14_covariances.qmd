@@ -941,8 +941,215 @@ This section is skipped. But one day, it might be interesting to do it with the
 
 ## Continuous categories and the Gaussian process
 
+### Spatial autocorrelation in Oceanic tools
+
+#### Data
+
+The observed data is as follows
+
+```{r}
+data(Kline)
+dataKline <- list()
+dataKline <- within(dataKline, {
+  df <- Kline |>
+    mutate(log_pop = log(population),
+           log_pop_s = scale(log_pop),
+           cid = factor(contact, levels = c("low", "high")))
+  })
+rm(Kline)
+dataKline$df |>
+  skim() |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
+```
+
+and the distance matrix is as follows, with a visualization as a heatmap with
+the 
+
+```{r}
+data(islandsDistMatrix)
+dataKline <- within(dataKline, {
+  dist <- islandsDistMatrix
+  })
+rm(islandsDistMatrix)
+# dataKline$dist |>
+#   round(digits = 1)
+
+heatmaply::heatmaply(
+  x = dataKline$dist,
+  cellnote = round(dataKline$dist, 1),
+  colors = unclass(paletteer::paletteer_c("pals::ocean.speed", n = 16)),
+  hide_colorbar = TRUE,
+  main = "Distances between Oceanic Societies in Thousands of km")
+```
+
+and we will also use a matrix of the longitudinal and lagitudinal relative
+positions of the societies. This is an approximation only as it used the
+km per degree at the equator which is 111.32 km per degree at the equator.
+This gives the following relative position matrix. The longitudes and latitudes
+can be found in the `Kline2` dataset.
+
+```{r}
+data(Kline2)
+dataKline <- within(dataKline, {
+  pos <- Kline2 |>
+    mutate(lat_pos = lat * 0.11132,
+           lon2_pos = lon2 * 0.11132)
+  })
+rm(Kline2)
+```
+
+```{r}
+#| fig-align: "center"
+dataKline$pos |>
+  ggplot(aes(x = lon2_pos, y = lat_pos, size = log(population), color = log(population))) +
+  geom_point() +
+  ggrepel::geom_text_repel(aes(label = culture), size = 4) +
+  scale_color_paletteer_c("pals::isol") +
+  theme(legend.position = "none") +
+  labs(title = "Relative positions of societies",
+       x = "longitude in km", y = "latitude in km")
+```
 
 
+#### Model
+
+We use the scientific model. See section 11.2.1, p. 356, in the Overthinking
+box.
+
+$$
+\begin{align*}
+T_i &\sim \mathcal{Poisson}(\lambda_i) \\
+\lambda_i &= \frac{\alpha P_i^\beta}{\gamma}
+\end{align*}
+$$
+
+and since we need a varying intercept we had one in a *multiplicative form*. We
+could simply add it but then it could become negative.
+
+
+$$
+\begin{align*}
+T_i &\sim \mathcal{Poisson}(\lambda_i) \\
+\lambda_i &= \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}
+\end{align*}
+$$
+Here $k_{society}$ is the varying intercept. These intercept are part of
+a multivariate distribution. The multivariate intercept prior is defined as
+
+$$
+\begin{align*}
+\begin{bmatrix}
+k_1 \\
+k_2 \\
+k_3 \\
+\vdots \\
+k_{10}
+\end{bmatrix}
+&\sim
+\mathcal{MVNormal}(
+\begin{bmatrix}
+0 \\
+0 \\
+0 \\
+\vdots \\
+0
+\end{bmatrix}
+,
+\bf{K}
+) \\
+\bf{K} &= \eta^2 \exp(-\rho^2D_{ij}^2) + \delta_{ij}\sigma^2
+\end{align*}
+$$
+
+::: {.callout-note}
+The rest of the section comes from @kurtz2020b who did such a fantastic work
+at adapting the wonderful *rethinking* to `brms`. I am so grateful for the 
+opportunity to enjoy all this.
+:::
+
+::: {.callout-important}
+There is a lot more details and info at @kurtz2020b. Please read it to get the
+full picture.
+:::
+
+We could have used $D_{ij}$ instead of $D_{ij}^2$ for $\bf{K}$. $D_{ij}^2$
+because of its half-Gaussian shape which is more sigmoidal in shape. As
+illustrated just below.
+
+```{r}
+#| fig-cap: "Figure 14.10"
+#| fig-align: "center"
+ggplot(data.frame(x = c(0, 4)), aes(x = x)) +
+  stat_function(aes(color = "-exp(D)"), fun = function(x) exp(-1 * x), size = 2) +
+  stat_function(aes(color = "-exp(D^2)"), fun = function(x) exp(-1 * x^2), size = 2) +
+  scale_color_paletteer_d("ggsci::alternating_igv") +
+  theme(legend.position = c(0.8, 0.8),
+        legend.title = element_blank()) +
+  labs(title = "Shape of function relating distance to covariance",
+       x = "distance", y = "correlation")
+```
+
+#### Fit
+
+Since our model is non-linear (scientific formula) then the fit with `brms`
+uses the non-linear form.
+
+```{r}
+#| echo: false
+#| output: false
+get_prior(data = dataKline$pos,
+          formula = bf(total_tools ~ exp(a) * population^b / g,
+                  a ~ 1 + gp(lat_pos, lon2_pos, scale = FALSE),
+                  b + g ~ 1,
+                  nl = TRUE),
+          family = poisson)
+```
+
+
+
+
+
+```{r ch14_fit14_08}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+fit14_08 <- xfun::cache_rds({
+  brm(
+    data = dataKline$pos,
+    family = poisson(link = "identity"),
+    formula =  bf(total_tools ~ exp(a) * population^b / g,
+                  a ~ 1 + gp(lat_pos, lon2_pos, scale = FALSE),
+                  b + g ~ 1,
+                  nl = TRUE),
+    prior = c(
+      prior(normal(0, 1), nlpar = a),
+      prior(exponential(1), nlpar = b, lb = 0),
+      prior(exponential(1), nlpar = g, lb = 0),
+      prior(inv_gamma(2.874624, 2.941204), class = lscale, coef = gplat_poslon2_pos, nlpar = a),
+      prior(exponential(1), class = sdgp, coef = gplat_poslon2_pos, nlpar = a)),
+    iter = 2000, warmup = 1000, chains = 2,
+    sample_prior = TRUE,
+    cores = detectCores(), seed = 1433)},
+  file = "ch14_fit14_08", rerun = FALSE)
+tictoc::toc()
+```
+which gives the results
+
+```{r}
+fit14_08
+```
+
+
+
+and to have a summary similar to McElreath on p. 472
+
+```{r}
+fit14_08 |>
+  summarize_draws("mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
+                  default_convergence_measures()) |>
+  filter(!grepl("^lp", x = variable)) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
+         across(.cols = starts_with("ess"), .fns = as.integer))
+```
 
 ## Summary
 
