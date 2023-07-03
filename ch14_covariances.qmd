@@ -1143,13 +1143,64 @@ fit14_08
 and to have a summary similar to McElreath on p. 472
 
 ```{r}
-fit14_08 |>
-  summarize_draws("mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
-                  default_convergence_measures()) |>
-  filter(!grepl("^lp", x = variable)) |>
-  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
-         across(.cols = starts_with("ess"), .fns = as.integer))
+posterior_summary(fit14_08) |>
+  round(digits = 2)
+# fit14_08 |>
+#   summarize_draws("mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
+#                   default_convergence_measures()) |>
+#   filter(!grepl("^lp", x = variable)) |>
+#   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
+#          across(.cols = starts_with("ess"), .fns = as.integer))
 ```
+The differences with `rethinking` are because `brms` uses non-centering. The
+coefficient that is really different is the $\alpha$ in $\lambda_i = \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}$.
+
+To evaluate the differences between `brms` and `rethinking` we can look at what
+the posterior would be like, without taking into account the covariances.
+
+For `brms` we have
+
+```{r}
+pop <- as.integer(c(min(dataKline$pos$population),
+             median(dataKline$pos$population),
+             max(dataKline$pos$population)))
+tools <- as.integer(c(min(dataKline$pos$total_tools),
+               mean(dataKline$pos$total_tools),
+               max(dataKline$pos$total_tools)))
+a <- fixef(fit14_08)["a_Intercept", "Estimate"]
+b <- fixef(fit14_08)["b_Intercept", "Estimate"]
+g <- fixef(fit14_08)["g_Intercept", "Estimate"]
+# brms uses a different equation for lambda
+l <- exp(a) * pop ^ b / g
+prob_brms <- round(dpois(x = tools, lambda = l), 4)
+prob_brms
+```
+as opposed to `rehinking`` which would give
+
+```{r}
+a <- 1.41
+b <- 0.28
+g <- 0.60
+# rethinking uses a different equation for lambda
+l <- a * pop ^ b / g
+prob_rethink <- round(dpois(x = tools, lambda = l), 4)
+prob_rethink
+```
+The results between the 2 are different and cannot really be compared because
+
+* correlations between $D$ in `rethinking` and $D^2$ in `brms` is not 
+* `brms` has a very different way of computing the likelihood
+
+
+
+
+
+
+### Phylogenic distance
+
+
+
+
 
 ## Summary
 
