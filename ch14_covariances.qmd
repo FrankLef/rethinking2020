@@ -1107,9 +1107,6 @@ get_prior(data = dataKline$pos,
 ```
 
 
-
-
-
 ```{r ch14_fit14_08}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
 fit14_08 <- xfun::cache_rds({
@@ -1139,19 +1136,25 @@ fit14_08
 ```
 
 
+and to have a summary similar to McElreath on p. 472 we can use
 
-and to have a summary similar to McElreath on p. 472
+```{r}
+fit14_08 |>
+  summarize_draws("mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
+                  default_convergence_measures()) |>
+  filter(!grepl("^lp", x = variable)) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
+         across(.cols = starts_with("ess"), .fns = as.integer))
+```
+
+or with `posterior_summary` which is simpler but lacks de ESS
 
 ```{r}
 posterior_summary(fit14_08) |>
   round(digits = 2)
-# fit14_08 |>
-#   summarize_draws("mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
-#                   default_convergence_measures()) |>
-#   filter(!grepl("^lp", x = variable)) |>
-#   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2),
-#          across(.cols = starts_with("ess"), .fns = as.integer))
 ```
+
+
 The differences with `rethinking` are because `brms` uses non-centering. The
 coefficient that is really different is the $\alpha$ in $\lambda_i = \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}$.
 
@@ -1188,12 +1191,73 @@ prob_rethink
 ```
 The results between the 2 are different and cannot really be compared because
 
-* correlations between $D$ in `rethinking` and $D^2$ in `brms` is not 
+* correlations between $D$ in `rethinking` and $D^2$ in `brms` is not the same and
 * `brms` has a very different way of computing the likelihood
 
+Basically, `rethinking` uses the following definition of $\bf{K_{ij}}$
+
+$$
+\bf{K_{ij}} = \eta^2 \exp \left(-\rho^2D_{ij}^2 \right) + \delta_{ij}\sigma^2
+$$
+where the term $\delta_{ij}\sigma^2$ is used when $i=j$, see p. 470 of @elreath2020.
+In the oceanic case it is not applicable since we have only one observation per society.
+Therefore the equation is this case is
+
+$$
+\bf{K_{ij}} = \eta^2 \exp \left(-\rho^2D_{ij}^2 \right)
+$$
+
+
+whereas `brms` uses
+
+
+$$
+\bf{K_{ij}} = sdgp^2 \exp \left(\frac{-D_{ij}^2}{2 \cdot lscale^2} \right)
+$$
+
+and so the 2 equations can be compared as follows
+
+$$
+\begin{align*}
+\eta^2 &= sdgp^2 \\
+-\rho^2 &= \frac{1}{2 \cdot lscale^2}
+\end{align*}
+$$
+
+and we note that the distance used can always be found as follows
+
+$$
+\begin{align*}
+\bf{K_{ij}} &= sdgp^2 \exp \left(\frac{-D_{ij}^2}{2 \cdot lscale^2} \right) \\
+\log \left( \bf{K_{ij}} \right) &= \log \left(sdgp^2 \right) + \frac{-D_{ij}^2}{2 \cdot lscale^2} \\
+D_{ij}^2 &= 2 \cdot lscale^2 \cdot \left[ \log \left(sdgp^2 \right) - \log \left( \bf{K_{ij}} \right) \right]
+\end{align*}
+$$
+
+and therefore we can figure out the covariance, as shown in figure 14.11 on 
+p. 473 as follows
+
+```{r ch14_post14_08}
+post14_08 <- list()
+post14_08 <- within(post14_08, {
+  # prior <- prior_draws(fit14_08) |>
+  #   mutate(draws = 1:n(),
+  #          rho2 = - 1 / (2 * lscale_a__1_gplat_poslon2_pos ^2))
+  post <- tidy_draws(fit14_08) |>
+    mutate(prior_rho2 = - 1 / (2 * prior_lscale_a__1_gplat_poslon2_pos ^2),
+           rho2 = - 1 / (2 * lscale_a_gplat_poslon2_pos ^2)) |>
+    identity()
+})
+# glimpse(post14_08$prior)
+glimpse(post14_08$post)
+```
 
 
 
+```{r}
+#| fig-cap: "Figure 14.11"
+#| fig-align: "center"
+```
 
 
 ### Phylogenic distance
