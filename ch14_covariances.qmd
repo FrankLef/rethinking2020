@@ -1240,24 +1240,150 @@ p. 473 as follows
 ```{r ch14_post14_08}
 post14_08 <- list()
 post14_08 <- within(post14_08, {
-  # prior <- prior_draws(fit14_08) |>
-  #   mutate(draws = 1:n(),
-  #          rho2 = - 1 / (2 * lscale_a__1_gplat_poslon2_pos ^2))
-  post <- tidy_draws(fit14_08) |>
-    mutate(prior_rho2 = - 1 / (2 * prior_lscale_a__1_gplat_poslon2_pos ^2),
-           rho2 = - 1 / (2 * lscale_a_gplat_poslon2_pos ^2)) |>
+  # function to compute eta squared as per rethinking
+  rethink_eta2 <- function(sdgp) {
+    sdgp^2
+  }
+  # function to compute rho squared as per rethinking
+  rethink_rho2 <- function(lscale) {
+    -1 / (2 * lscale^2)
+  }
+  # function to calculate the covariance as per brms
+  brms_cov <- function(x, sdgp, lscale) {
+    sdgp^2 * exp(-(x^2) / 2 * lscale^2)
+  }
+  
+  post <- tidy_draws(fit14_08)
+  
+  # the median of the parameters is used later
+  stats <- post |>
+    select(prior_sdgp_a_gplat_poslon2_pos,
+           sdgp_a_gplat_poslon2_pos,
+           prior_lscale_a__1_gplat_poslon2_pos,
+           lscale_a_gplat_poslon2_pos) |>
+    median_qi(.width = 0.89)
+  
+  set.seed(1433)
+  sampl <- post |>
+    select(.draw,
+           prior_sdgp_a_gplat_poslon2_pos,
+           sdgp_a_gplat_poslon2_pos,
+           prior_lscale_a__1_gplat_poslon2_pos,
+           lscale_a_gplat_poslon2_pos) |>
+    mutate(prior_eta2 = rethink_eta2(prior_sdgp_a_gplat_poslon2_pos),
+           eta2 = rethink_eta2(sdgp_a_gplat_poslon2_pos),
+           prior_rho2 = rethink_rho2(prior_lscale_a__1_gplat_poslon2_pos ),
+           rho2 = rethink_rho2(lscale_a_gplat_poslon2_pos)) |>
+    slice_sample(n = 50) |>
+    expand_grid(dist = seq(from = 0, to = 10, by = 0.05)) |>
+    mutate(prior_cov = brms_cov(x = dist,
+                                sdgp = prior_sdgp_a_gplat_poslon2_pos,
+                                lscale = prior_lscale_a__1_gplat_poslon2_pos),
+           cov = brms_cov(x = dist,
+                          sdgp = sdgp_a_gplat_poslon2_pos,
+                          lscale = lscale_a_gplat_poslon2_pos)) |>
     identity()
 })
-# glimpse(post14_08$prior)
-glimpse(post14_08$post)
+glimpse(post14_08$stats)
+# glimpse(post14_08$sampl)
 ```
 
+
+
+```{r ch14_plot14_08}
+#| fig-cap: "Figure 14.11"
+#| fig-align: "center"
+plot14_08 <- list()
+plot14_08 <- within(plot14_08, {
+  prior <- post14_08$sampl |> ggplot(aes(x = dist, y = prior_cov)) +
+    geom_line(aes(group = .draw, color = .draw)) +
+    stat_function(
+      fun = function(x) {
+        post14_08$brms_cov(x = median(post14_08$sampl$dist),
+                           sdgp = post14_08$stats$prior_sdgp_a_gplat_poslon2_pos,
+                          lscale = post14_08$stats$prior_lscale_a__1_gplat_poslon2_pos)},
+      color = "firebrick", linewidth = 1) +
+    scale_x_continuous(breaks = scales::breaks_width(width = 2),
+                       labels = scales::label_number_auto()) +
+    scale_color_paletteer_c("pals::ocean.speed") +
+    coord_cartesian(ylim = c(0, 2)) +
+    theme(legend.position = "none") +
+    labs(title = "Gaussian process prior",
+         subtitle = "Red line is the median of the covariances",
+         x = "distance in thousands of km",
+         y = "covariance")
+  post <- post14_08$sampl |> ggplot(aes(x = dist, y = cov)) +
+    geom_line(aes(group = .draw, color = .draw)) +
+    stat_function(
+      fun = function(x) {
+        post14_08$brms_cov(x = median(post14_08$sampl$dist),
+                           sdgp = mean(post14_08$stats$sdgp_a_gplat_poslon2_pos),
+                          lscale = mean(post14_08$stats$lscale_a_gplat_poslon2_pos))},
+      color = "firebrick", linewidth = 1) +
+    scale_x_continuous(breaks = scales::breaks_width(width = 2),
+                       labels = scales::label_number_auto()) +
+    scale_color_paletteer_c("pals::ocean.speed") +
+    coord_cartesian(ylim = c(0, 2)) +
+    theme(legend.position = "none") +
+    labs(title = "Gaussian process posterior",
+         subtitle = "Red line is the median of the covariances",
+         x = "distance in thousands of km",
+         y = "covariance")
+})
+wrap_plots(plot14_08[c("prior", "post")]) +
+  plot_annotation(title = "Oceanic Gaussian Process") &
+  theme(title = element_text(color = "darkblue"))
+```
+
+and to get the matrix of median covariance we simply map the calculation of
+covariance using the median values of the parameters
+
+```{r}
+post14_08 <- within(post14_08, {
+  # the covariance matrix using the median of the parameters
+  # i.e. the median covariance
+  cov <- dataKline$dist |>
+    post14_08$brms_cov(sdgp = post14_08$stats$sdgp_a_gplat_poslon2_pos,
+                     lscale = post14_08$stats$lscale_a_gplat_poslon2_pos)
+  # the correlation matrix
+  cor <- cov2cor(cov) |>
+    round(digits = 2)
+})
+post14_08$cor
+```
+which we can illustrate with a heatmap
+
+```{r}
+#| fig-align: "center"
+heatmaply::heatmaply_cor(
+  x = post14_08$cor,
+  cellnote = post14_08$cor,
+  colors = unclass(paletteer::paletteer_c("pals::ocean.tempo", n = 16)),
+  hide_colorbar = TRUE,
+  main = "Correlations between Oceanic Societies in Thousands of km")
+```
 
 
 ```{r}
-#| fig-cap: "Figure 14.11"
+# glimpse(dataKline$pos)
+# glimpse(dataKline$dist)
+dataKline <- within(dataKline, {
+  dist_df <- dist |>
+    as.data.frame() |>
+    tibble::rownames_to_column(var = "from") |>
+    pivot_longer(cols = -from, names_to = "to", values_to = "dist") |>
+    slice_head(prop = 0.5) |>
+    identity()
+})
+dataKline$dist_df
+```
+
+
+```{r}
+#| fig-cap: "Figure 14.12"
 #| fig-align: "center"
 ```
+
 
 
 ### Phylogenic distance
