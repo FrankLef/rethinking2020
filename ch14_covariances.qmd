@@ -1047,7 +1047,7 @@ k_3 \\
 k_{10}
 \end{bmatrix}
 &\sim
-\mathcal{MVNormal}(
+\mathcal{MVNormal} \left(
 \begin{bmatrix}
 0 \\
 0 \\
@@ -1057,7 +1057,7 @@ k_{10}
 \end{bmatrix}
 ,
 \bf{K}
-) \\
+\right) \\
 \bf{K} &= \eta^2 \exp(-\rho^2D_{ij}^2) + \delta_{ij}\sigma^2
 \end{align*}
 $$
@@ -1089,6 +1089,75 @@ ggplot(data.frame(x = c(0, 4)), aes(x = x)) +
   labs(title = "Shape of function relating distance to covariance",
        x = "distance", y = "correlation")
 ```
+
+Therefore we have the model used by `rethinking` and the one by `brms`
+
+##### `rethinking` model
+
+$$
+\begin{align*}
+T_i &\sim \mathcal{Poisson}(\lambda_i) \\
+\lambda_i &= \exp(k_{society}) \frac{\alpha Population_i^\beta}{\gamma} \\
+\begin{bmatrix}
+k_1 \\
+k_2 \\
+k_3 \\
+\vdots \\
+k_{10}
+\end{bmatrix}
+&\sim
+\mathcal{MVNormal}\left(
+\begin{bmatrix}
+0 \\
+0 \\
+0 \\
+\vdots \\
+0
+\end{bmatrix}
+,
+\bf{K}
+\right) \\
+\bf{K} &= \eta^2 \exp(-\rho^2Distance_{ij}^2) + \delta_{ij}\sigma^2 \\
+\delta_{ij} &= 0 \implies \delta_{ij}\sigma^2 = 0 \; \text{because only 1 observation per island} \\
+\alpha, \beta, \gamma &\sim \mathcal{Exponential}(1) \\
+\eta^2 &\sim \mathcal{Exponential}(2) \\
+\rho^2 &\sim \mathcal{Exponential}(0.5)
+\end{align*}
+$$
+##### `brms` model
+
+
+$$
+\begin{align*}
+T_i &\sim \mathcal{Poisson}(\lambda_i) \\
+\lambda_i &= \exp(k_{society}) \frac{\alpha Population_i^\beta}{\gamma} \\
+\begin{bmatrix}
+k_1 \\
+k_2 \\
+k_3 \\
+\vdots \\
+k_{10}
+\end{bmatrix}
+&\sim
+\mathcal{MVNormal} \left(
+\begin{bmatrix}
+0 \\
+0 \\
+0 \\
+\vdots \\
+0
+\end{bmatrix}
+,
+\bf{K}
+\right) \\
+\bf{K_{ij}} &= sdgp^2 \exp \left(\frac{-Distance_{ij}^2}{2 \cdot lscale^2} \right) \\
+\alpha &\sim \mathcal{N}(0, 1) \\
+\beta, \gamma &\sim \mathcal{Exponential}(1) \\
+sgdp^2 &\sim \mathcal{Exponential}(1) \\
+lscale^2 &\sim \mathcal{InvGammal}(2.874624, 2.941204)
+\end{align*}
+$$
+
 
 #### Fit
 
@@ -1129,6 +1198,7 @@ fit14_08 <- xfun::cache_rds({
   file = "ch14_fit14_08", rerun = FALSE)
 tictoc::toc()
 ```
+
 which gives the results
 
 ```{r}
@@ -1189,6 +1259,8 @@ l <- a * pop ^ b / g
 prob_rethink <- round(dpois(x = tools, lambda = l), 4)
 prob_rethink
 ```
+
+
 The results between the 2 are different and cannot really be compared because
 
 * correlations between $D$ in `rethinking` and $D^2$ in `brms` is not the same and
@@ -1199,6 +1271,7 @@ Basically, `rethinking` uses the following definition of $\bf{K_{ij}}$
 $$
 \bf{K_{ij}} = \eta^2 \exp \left(-\rho^2D_{ij}^2 \right) + \delta_{ij}\sigma^2
 $$
+
 where the term $\delta_{ij}\sigma^2$ is used when $i=j$, see p. 470 of @elreath2020.
 In the oceanic case it is not applicable since we have only one observation per society.
 Therefore the equation is this case is
@@ -1234,10 +1307,10 @@ D_{ij}^2 &= 2 \cdot lscale^2 \cdot \left[ \log \left(sdgp^2 \right) - \log \left
 \end{align*}
 $$
 
-and therefore we can figure out the covariance, as shown in figure 14.11 on 
-p. 473 as follows
+and therefore we can figure out the covariance and convert the coefficients 
+between `brms` and `rethinking``, 
 
-```{r ch14_post14_08}
+```{r}
 post14_08 <- list()
 post14_08 <- within(post14_08, {
   # function to compute eta squared as per rethinking
@@ -1252,7 +1325,16 @@ post14_08 <- within(post14_08, {
   brms_cov <- function(x, sdgp, lscale) {
     sdgp^2 * exp(-(x^2) / 2 * lscale^2)
   }
-  
+})
+```
+
+
+and we transform the posterior data to be able to plot as shown in figure 14.11 on 
+p. 473
+
+```{r ch14_post14_08}
+post14_08 <- within(post14_08, {
+
   post <- tidy_draws(fit14_08)
   
   # the median of the parameters is used later
@@ -1281,13 +1363,11 @@ post14_08 <- within(post14_08, {
                                 lscale = prior_lscale_a__1_gplat_poslon2_pos),
            cov = brms_cov(x = dist,
                           sdgp = sdgp_a_gplat_poslon2_pos,
-                          lscale = lscale_a_gplat_poslon2_pos)) |>
-    identity()
+                          lscale = lscale_a_gplat_poslon2_pos))
 })
 glimpse(post14_08$stats)
 # glimpse(post14_08$sampl)
 ```
-
 
 
 ```{r ch14_plot14_08}
@@ -1342,9 +1422,11 @@ covariance using the median values of the parameters
 post14_08 <- within(post14_08, {
   # the covariance matrix using the median of the parameters
   # i.e. the median covariance
-  cov <- dataKline$dist |>
-    post14_08$brms_cov(sdgp = post14_08$stats$sdgp_a_gplat_poslon2_pos,
-                     lscale = post14_08$stats$lscale_a_gplat_poslon2_pos)
+  # The covariance is calculated based on the distance
+  cov <- post14_08$brms_cov(
+    x = dataKline$dist,
+    sdgp = post14_08$stats$sdgp_a_gplat_poslon2_pos,
+    lscale = post14_08$stats$lscale_a_gplat_poslon2_pos)
   # the correlation matrix
   cor <- cov2cor(cov) |>
     round(digits = 2)
