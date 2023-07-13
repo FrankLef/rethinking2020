@@ -17,6 +17,8 @@ library(dagitty)
 library(ggplot2)
 library(ggdag)
 library(ggnetwork)
+library(ggraph)
+library(tidygraph)
 library(bayesplot)
 library(patchwork)
 library(paletteer)
@@ -945,36 +947,58 @@ This section is skipped. But one day, it might be interesting to do it with the
 
 #### Data
 
-The observed data is as follows
+The observed data is as follows. All the data is put in 2 dataframes to be able
+to analyse it as graph data.
+
+* nodes_df: The data related to the nodes
+* edges_df: The data related to the edges, e.g. the distance between the cultures
+
+First we define the nodes dataframes
 
 ```{r}
-data(Kline)
+data(Kline2)
 dataKline <- list()
 dataKline <- within(dataKline, {
-  df <- Kline |>
-    mutate(log_pop = log(population),
-           log_pop_s = scale(log_pop),
-           cid = factor(contact, levels = c("low", "high")))
+  nodes_df <- Kline2 |>
+    mutate(log_pop_s = as.vector(scale(logpop)),
+           cid = factor(contact, levels = c("low", "high"))) |>
+    # latitude and longitude coverted to thousands of km
+    # using the average distance at the equator
+    mutate(lat_pos = lat * 0.11132,
+           lon2_pos = lon2 * 0.11132)
   })
-rm(Kline)
-dataKline$df |>
+rm(Kline2)
+dataKline$nodes_df |>
   skim() |>
   select(-n_missing, -complete_rate) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
+# glimpse(dataKline$df)
 ```
 
-and the distance matrix is as follows, with a visualization as a heatmap with
-the 
+and we will also use a matrix of the longitudinal and latitudinal relative
+positions of the societies. This is an approximation only as it used the
+km per degree at the equator which is 111.32 km per degree at the equator.
+This gives the following relative position matrix.
 
 ```{r}
 data(islandsDistMatrix)
 dataKline <- within(dataKline, {
   dist <- islandsDistMatrix
+  # The distances in dataframe format
+  edges_df <- dist |>
+    as.data.frame() |>
+    tibble::rownames_to_column(var = "x") |>
+    pivot_longer(cols = -x, names_to = "y", values_to = "dist") |>
+    slice_head(prop = 0.5)
   })
 rm(islandsDistMatrix)
-# dataKline$dist |>
-#   round(digits = 1)
+```
 
+
+and we can visualize the distance in a heatmap
+
+
+```{r}
 heatmaply::heatmaply(
   x = dataKline$dist,
   cellnote = round(dataKline$dist, 1),
@@ -983,32 +1007,49 @@ heatmaply::heatmaply(
   main = "Distances between Oceanic Societies in Thousands of km")
 ```
 
-and we will also use a matrix of the longitudinal and lagitudinal relative
-positions of the societies. This is an approximation only as it used the
-km per degree at the equator which is 111.32 km per degree at the equator.
-This gives the following relative position matrix. The longitudes and latitudes
-can be found in the `Kline2` dataset.
 
-```{r}
-data(Kline2)
-dataKline <- within(dataKline, {
-  pos <- Kline2 |>
-    mutate(lat_pos = lat * 0.11132,
-           lon2_pos = lon2 * 0.11132)
-  })
-rm(Kline2)
+And the basic map, shown as a graph, with latitude and longitude of the culture
+can be visualize with the `ggraph` package.
+
+
+```{r ch14_graph14_08}
+#| fig-align: "center"
+graph14_08 <- list()
+graph14_08 <- within(graph14_08, {
+  # create the graph object
+  # the manual layout requires a special treatment when using ggraph
+  # source for manual layout:
+  # https://stackoverflow.com/questions/67756538/plot-ggraph-using-supplied-node-coordinates
+  # must add the x and y coords to the nodes for manual layout to work
+  the_nodes <- dataKline$nodes_df |>
+    select(culture, x = lon2_pos, y = lat_pos, logpop)
+  the_edges <- dataKline$edges_df
+  # the igraph object
+  grf <- the_edges |>
+    igraph::graph_from_data_frame(directed = FALSE,
+                                  vertices = the_nodes)
+  # the basic graph
+  # we use a special layout, when the x and y have different names to avoid
+  # conflict. See the source on manual layout mentioned above
+  p <- ggraph(grf, layout = data.frame(lx = NA, ly = NA)) +
+    geom_node_point(aes(color = logpop, size = logpop)) +
+    # geom_edge_link() +
+    ggrepel::geom_text_repel(aes(x = x, y = y, label = name), size = 4) +
+    scale_color_paletteer_c("pals::isol") +
+    theme(legend.position = "none") +
+  labs(title = "Relative positions of societies",
+       x = "longitude in thousands of km", y = "latitude in thousands of km")
+})
+# glimpse(dataKline$nodes_df)
+# glimpse(dataKline$edges_df)
+# glimpse(dataKline$nodes_df)
+igraph::vertex.attributes(graph14_08$grf)
+igraph::edge.attributes(graph14_08$grf)
+graph14_08$p
+
 ```
 
 ```{r}
-#| fig-align: "center"
-dataKline$pos |>
-  ggplot(aes(x = lon2_pos, y = lat_pos, size = log(population), color = log(population))) +
-  geom_point() +
-  ggrepel::geom_text_repel(aes(label = culture), size = 4) +
-  scale_color_paletteer_c("pals::isol") +
-  theme(legend.position = "none") +
-  labs(title = "Relative positions of societies",
-       x = "longitude in km", y = "latitude in km")
 ```
 
 
@@ -1167,7 +1208,7 @@ uses the non-linear form.
 ```{r}
 #| echo: false
 #| output: false
-get_prior(data = dataKline$pos,
+get_prior(data = dataKline$nodes_df,
           formula = bf(total_tools ~ exp(a) * population^b / g,
                   a ~ 1 + gp(lat_pos, lon2_pos, scale = FALSE),
                   b + g ~ 1,
@@ -1180,7 +1221,7 @@ get_prior(data = dataKline$pos,
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
 fit14_08 <- xfun::cache_rds({
   brm(
-    data = dataKline$pos,
+    data = dataKline$nodes_df,
     family = poisson(link = "identity"),
     formula =  bf(total_tools ~ exp(a) * population^b / g,
                   a ~ 1 + gp(lat_pos, lon2_pos, scale = FALSE),
@@ -1224,6 +1265,7 @@ posterior_summary(fit14_08) |>
   round(digits = 2)
 ```
 
+#### Analysis
 
 The differences with `rethinking` are because `brms` uses non-centering. The
 coefficient that is really different is the $\alpha$ in $\lambda_i = \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}$.
@@ -1234,12 +1276,12 @@ the posterior would be like, without taking into account the covariances.
 For `brms` we have
 
 ```{r}
-pop <- as.integer(c(min(dataKline$pos$population),
-             median(dataKline$pos$population),
-             max(dataKline$pos$population)))
-tools <- as.integer(c(min(dataKline$pos$total_tools),
-               mean(dataKline$pos$total_tools),
-               max(dataKline$pos$total_tools)))
+pop <- as.integer(c(min(dataKline$nodes_df$population),
+             median(dataKline$nodes_df$population),
+             max(dataKline$nodes_df$population)))
+tools <- as.integer(c(min(dataKline$nodes_df$total_tools),
+               mean(dataKline$nodes_df$total_tools),
+               max(dataKline$nodes_df$total_tools)))
 a <- fixef(fit14_08)["a_Intercept", "Estimate"]
 b <- fixef(fit14_08)["b_Intercept", "Estimate"]
 g <- fixef(fit14_08)["g_Intercept", "Estimate"]
@@ -1433,6 +1475,7 @@ post14_08 <- within(post14_08, {
 })
 post14_08$cor
 ```
+
 which we can illustrate with a heatmap
 
 ```{r}
@@ -1445,25 +1488,67 @@ heatmaply::heatmaply_cor(
   main = "Correlations between Oceanic Societies in Thousands of km")
 ```
 
+and we add the correlations to our edges to be able to plot them
 
 ```{r}
-# glimpse(dataKline$pos)
-# glimpse(dataKline$dist)
 dataKline <- within(dataKline, {
-  dist_df <- dist |>
+  # create the corelation dataframe
+  cor_df <- post14_08$cor |>
     as.data.frame() |>
-    tibble::rownames_to_column(var = "from") |>
-    pivot_longer(cols = -from, names_to = "to", values_to = "dist") |>
-    slice_head(prop = 0.5) |>
-    identity()
+    tibble::rownames_to_column(var = "x") |>
+    pivot_longer(cols = -x, names_to = "y", values_to = "cor") |>
+    slice_head(prop = 0.5)
+  
+  # add the correlation to the edges
+  edges_df <- edges_df |>
+    inner_join(y = cor_df, by = c("x" = "x", "y" = "y"))
+  
 })
-dataKline$dist_df
+# glimpse(dataKline$cor_df)
+# glimpse(dataKline$edges_df)
+```
+
+
+
+```{r}
+# glimpse(dataKline$nodes_df)
+# glimpse(dataKline$dist)
+# dataKline <- within(dataKline, {
+#   dist_df <- dist |>
+#     as.data.frame() |>
+#     tibble::rownames_to_column(var = "from") |>
+#     pivot_longer(cols = -from, names_to = "to", values_to = "dist") |>
+#     slice_head(prop = 0.5) |>
+#     identity()
+# })
+# dataKline$dist_df
+# dataKline$nodes_df
 ```
 
 
 ```{r}
 #| fig-cap: "Figure 14.12"
 #| fig-align: "center"
+graph14_08 <- within(graph14_08, {
+  # make sure you update the graph data
+  # grf_tbl <- tidygraph::tbl_graph(
+  #   nodes = dataKline$nodes_df,
+  #   edges = dataKline$edges_df,
+  #   directed = FALSE,
+  #   node_key = "culture")
+  # lyout <- ggraph::layout_tbl_graph_manual(graph = grf_tbl,
+  #                                          x = lon2_pos,
+  #                                          y = lat_pos)
+  # p1 <- ggraph(grf_tbl, layout = lyout) +
+  #   geom_node_point(aes(x = lon2_pos, y = lat_pos, color = logpop, size = logpop)) +
+  #   # geom_edge_link(aes(color = cor)) +
+  #   ggrepel::geom_text_repel(aes(x = lon2_pos, y = lat_pos, label = culture), size = 4) +
+  #   scale_color_paletteer_c("pals::isol") +
+  #   theme(legend.position = "none") +
+  # labs(title = "Relative positions of societies",
+  #      x = "longitude in thousands of km", y = "latitude in thousands of km")
+})
+# graph14_08$p1
 ```
 
 
