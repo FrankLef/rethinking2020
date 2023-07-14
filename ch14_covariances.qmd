@@ -828,28 +828,28 @@ for details.
 
 
 ```{r}
-# first we need to create an igraph
 netKL <- list()
 netKL <- within(netKL, {
-  # the igraph object
-  g <- dataKL$dyads |>
-    mutate(giftsSum = abs(giftsAB - giftsBA)) |>
-    igraph::graph_from_data_frame(directed = TRUE,
-                                  vertices = dataKL$houses)
-  # create the network dataframe
-  df <- ggnetwork(g, layout = igraph::layout_in_circle(g))
-  # plot the network
-  p <- ggplot(df, aes(x = x, y = y, xend = xend, yend = yend)) +
-    geom_edges(aes(color = dlndist)) +
-    geom_nodes(aes(size = hwealth), color = "brown") +
+  # the tbl_graph object
+  the_edges <- dataKL$dyads |>
+    mutate(giftsSum = abs(giftsAB - giftsBA))
+  the_nodes <- dataKL$houses
+  grf <- tbl_graph(nodes = the_nodes, edges = the_edges, directed = FALSE)
+
+  colrs <- paletteer::paletteer_c("oompaBase::jetColors", direction = -1, n = 16)
+  p <- ggraph(grf, layout = "circle") +
+    geom_edge_link(aes(color = dlndist)) +
+    geom_node_point(aes(size = hwealth), color = "brown") +
     scale_color_paletteer_c("oompaBase::jetColors", direction = -1) +
-    scale_size_continuous(range = c(1, 6)) +
+    scale_size_continuous(range = c(1, 4)) +
+    scale_edge_color_gradientn(colors = colrs) +
     theme_blank() +
+    theme(title = element_text(color = "midnightblue")) +
     labs(title = "The KosterLeckie Network")
 })
-# glimpse(netKL$df)
 netKL$p
 ```
+
 
 
 ### Model
@@ -1029,27 +1029,18 @@ graph14_08 <- within(graph14_08, {
   the_nodes <- dataKline$nodes_df |>
     select(culture, x = lon2_pos, y = lat_pos, logpop)
   the_edges <- dataKline$edges_df
-  # the igraph object
-  grf <- the_edges |>
-    igraph::graph_from_data_frame(directed = FALSE,
-                                  vertices = the_nodes)
-  # the basic graph
+  grf <- tbl_graph(nodes = the_nodes, edges = the_edges, directed = FALSE)
+
   # we use a special layout, when the x and y have different names to avoid
   # conflict. See the source on manual layout mentioned above
   p <- ggraph(grf, layout = data.frame(lx = NA, ly = NA)) +
     geom_node_point(aes(color = logpop, size = logpop)) +
-    # geom_edge_link() +
-    ggrepel::geom_text_repel(aes(x = x, y = y, label = name), size = 4) +
+    geom_node_text(aes(label = culture), color = "darkblue", size = 4, repel = TRUE) +
     scale_color_paletteer_c("pals::isol") +
     theme(legend.position = "none") +
-  labs(title = "Relative positions of societies",
-       x = "longitude in thousands of km", y = "latitude in thousands of km")
+    labs(title = "Relative positions of societies",
+         x = "longitude in thousands of km", y = "latitude in thousands of km")
 })
-# glimpse(dataKline$nodes_df)
-# glimpse(dataKline$edges_df)
-# glimpse(dataKline$nodes_df)
-# igraph::vertex.attributes(graph14_08$grf)
-# igraph::edge.attributes(graph14_08$grf)
 graph14_08$p
 ```
 
@@ -1529,6 +1520,10 @@ dataKline <- within(dataKline, {
 #| fig-cap: "Figure 14.12"
 #| fig-align: "center"
 graph14_08 <- within(graph14_08, {
+  
+  # the edges' colors
+  colrs <- paletteer::paletteer_c("oompaBase::bluescale", n = 16)
+  
   # create the graph object
   # the manual layout requires a special treatment when using ggraph
   # source for manual layout:
@@ -1538,13 +1533,7 @@ graph14_08 <- within(graph14_08, {
     select(culture, x = lon2_pos, y = lat_pos, logpop)
   the_edges <- dataKline$edges_df |>
     filter(between(cor, 0.01, 1))
-  # the igraph object
-  grf <- the_edges |>
-    igraph::graph_from_data_frame(directed = FALSE,
-                                  vertices = the_nodes)
-  
-  # the edges' colors
-  colrs <- paletteer::paletteer_c("oompaBase::bluescale", n = 16)
+  grf <- tbl_graph(nodes = the_nodes, edges = the_edges, directed = FALSE)
   
   # the basic graph
   # when we use the manual layout, when the x and y have different names to avoid
@@ -1552,7 +1541,8 @@ graph14_08 <- within(graph14_08, {
   p1 <- ggraph(grf, layout = data.frame(lx = NA, ly = NA)) +
     geom_node_point(aes(size = logpop), color = "purple") +
     geom_edge_link(aes(color = cor, width = cor)) +
-    ggrepel::geom_text_repel(aes(x = x, y = y, label = name), size = 3) +
+    # ggrepel::geom_text_repel(aes(x = x, y = y, label = culture), size = 3) +
+    geom_node_text(aes(label = culture), color = "darkblue", size = 3, repel = TRUE) +
     scale_size_continuous(range = c(1, 4)) +
     scale_edge_width(range = c(0.25, 2)) +
     scale_edge_color_gradientn(colors = colrs) +
@@ -1566,15 +1556,12 @@ graph14_08 <- within(graph14_08, {
     select(culture, x = logpop, y = total_tools)
   the_edges <- dataKline$edges_df |>
     filter(between(cor, 0.01, 1))
-  # the igraph object
-  grf <- the_edges |>
-    igraph::graph_from_data_frame(directed = FALSE,
-                                  vertices = the_nodes)
+  grf <- tbl_graph(nodes = the_nodes, edges = the_edges, directed = FALSE)
   
   p2 <- ggraph(grf, layout = data.frame(lx = NA, ly = NA)) +
     geom_node_point(aes(size = x), color = "purple") +
     geom_edge_link(aes(color = cor, width = cor)) +
-    ggrepel::geom_text_repel(aes(x = x, y = y, label = name), size = 3) +
+    geom_node_text(aes(label = culture), color = "darkblue", size = 3, repel = TRUE) +
     scale_size_continuous(range = c(1, 4)) +
     scale_edge_width(range = c(0.25, 2)) +
     scale_edge_color_gradientn(colors = colrs) +
@@ -1583,12 +1570,6 @@ graph14_08 <- within(graph14_08, {
        subtitle = "edges = correlation",
        x = "log of population", y = "total tools")
 })
-# glimpse(dataKline$edges_df)
-# glimpse(dataKline$nodes_df)
-# igraph::vertex.attributes(graph14_08$grf)
-# igraph::edge.attributes(graph14_08$grf)
-# graph14_08$p1
-# graph14_08$p2
 wrap_plots(graph14_08[c("p1", "p2")]) +
   plot_annotation(title = "Oceanic Gaussian Process") &
   theme(title = element_text(color = "darkblue"))
