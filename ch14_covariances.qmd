@@ -1523,6 +1523,8 @@ dataKline <- within(dataKline, {
 })
 ```
 
+
+
 ```{r}
 #| fig-cap: "Figure 14.12"
 #| fig-align: "center"
@@ -1596,6 +1598,56 @@ wrap_plots(graph14_08[c("p1", "p2")]) +
 ### Phylogenic distance
 
 
+```{r chap14_dagPhylo}
+#| fig-align: "center"
+dagPhylo <- list()
+dagPhylo <- within(dagPhylo, {
+  # ggdag has no built-in method to faciliate using subscripts.
+  # This is one way to do it!
+  
+  # IMPORTANT the nodes labels must be empty
+  the_nodes <- c("B1" = "", 
+                 "B2" = "", 
+                 "G1" = "", 
+                 "G2" = "",
+                 "U1" = "",
+                 "U2" = "")
+  
+  # IMPORTANT: The text labels must follow the order of the nodes
+  text_labels <- c(expression(B[1]), expression(B[2]),
+                   expression(G[1]), expression(G[2]),
+                   expression(U[1]), expression(U[2]))
+  
+  dag1 <- ggdag::dagify(G2 ~ G1 + U1, B2 ~ G1 + B1 + U1, U2 ~ U1,
+                       labels = the_nodes)
+  
+  p1 <-  dag1 |>
+    ggdag::ggdag(layout = "sugiyama", node = FALSE) +
+    geom_dag_text(size = 8, color = "royalblue", 
+                  parse = TRUE, label = text_labels) +
+    ggdag::theme_dag_blank(
+      panel.background = element_rect(fill = "snow", color = "snow"))
+})
+dagPhylo$p1
+```
+
+
+```{r}
+#| fig-align: "center"
+dagPhylo <- within(dagPhylo, {
+  dag2 <- ggdag::dagify(
+    B ~ G + M + U,
+    G ~ M + U,
+    M ~ U,
+    U ~ P
+  )
+  p2 <- dag2 |>
+    ggdag::ggdag_classic(layout = "sugiyama", text_col = "royalblue") +
+    ggdag::theme_dag_blank(
+      panel.background = element_rect(fill = "snow", color = "snow"))
+})
+dagPhylo$p2
+```
 
 
 
