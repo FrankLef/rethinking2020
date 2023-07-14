@@ -984,12 +984,17 @@ This gives the following relative position matrix.
 data(islandsDistMatrix)
 dataKline <- within(dataKline, {
   dist <- islandsDistMatrix
+  # create the edges dataframe
+  edges_df <- dist
+  # set lower triangle and diagonal to 0 to avoid double values.
+  # zeros can be removed later
+  edges_df[lower.tri(edges_df, diag = FALSE)] <- NA_real_
+  
   # The distances in dataframe format
   edges_df <- dist |>
     as.data.frame() |>
     tibble::rownames_to_column(var = "x") |>
-    pivot_longer(cols = -x, names_to = "y", values_to = "dist") |>
-    slice_head(prop = 0.5)
+    pivot_longer(cols = -x, names_to = "y", values_to = "dist")
   })
 rm(islandsDistMatrix)
 ```
@@ -1043,10 +1048,9 @@ graph14_08 <- within(graph14_08, {
 # glimpse(dataKline$nodes_df)
 # glimpse(dataKline$edges_df)
 # glimpse(dataKline$nodes_df)
-igraph::vertex.attributes(graph14_08$grf)
-igraph::edge.attributes(graph14_08$grf)
+# igraph::vertex.attributes(graph14_08$grf)
+# igraph::edge.attributes(graph14_08$grf)
 graph14_08$p
-
 ```
 
 ```{r}
@@ -1407,7 +1411,7 @@ post14_08 <- within(post14_08, {
                           sdgp = sdgp_a_gplat_poslon2_pos,
                           lscale = lscale_a_gplat_poslon2_pos))
 })
-glimpse(post14_08$stats)
+# glimpse(post14_08$stats)
 # glimpse(post14_08$sampl)
 ```
 
@@ -1473,7 +1477,7 @@ post14_08 <- within(post14_08, {
   cor <- cov2cor(cov) |>
     round(digits = 2)
 })
-post14_08$cor
+# post14_08$cor
 ```
 
 which we can illustrate with a heatmap
@@ -1492,65 +1496,101 @@ and we add the correlations to our edges to be able to plot them
 
 ```{r}
 dataKline <- within(dataKline, {
-  # create the corelation dataframe
-  cor_df <- post14_08$cor |>
+  # create the correlation dataframe
+  cor_df <- post14_08$cor
+  # set lower triangle and diagonal to 0 to avoid double values.
+  # zeros can be removed later
+  cor_df[lower.tri(cor_df, diag = FALSE)] <- NA_real_
+  cor_df <- cor_df |>
     as.data.frame() |>
     tibble::rownames_to_column(var = "x") |>
     pivot_longer(cols = -x, names_to = "y", values_to = "cor") |>
-    slice_head(prop = 0.5)
+    # unite(col = "id", x, y, remove = FALSE) |>
+    # relocate(id) |>
+    # remove zeros
+    # filter(!is.na(cor)) |>
+    identity()
+  
+  # make sure you don't miss a number
+  check <- sum(post14_08$cor[lower.tri(post14_08$cor, diag = TRUE)])
+  stopifnot(sum(cor_df$cor, na.rm = TRUE) - check == 0)
   
   # add the correlation to the edges
   edges_df <- edges_df |>
     inner_join(y = cor_df, by = c("x" = "x", "y" = "y"))
+  stopifnot(sum(edges_df$cor, na.rm = TRUE) - check == 0)
   
 })
-# glimpse(dataKline$cor_df)
-# glimpse(dataKline$edges_df)
 ```
-
-
-
-```{r}
-# glimpse(dataKline$nodes_df)
-# glimpse(dataKline$dist)
-# dataKline <- within(dataKline, {
-#   dist_df <- dist |>
-#     as.data.frame() |>
-#     tibble::rownames_to_column(var = "from") |>
-#     pivot_longer(cols = -from, names_to = "to", values_to = "dist") |>
-#     slice_head(prop = 0.5) |>
-#     identity()
-# })
-# dataKline$dist_df
-# dataKline$nodes_df
-```
-
 
 ```{r}
 #| fig-cap: "Figure 14.12"
 #| fig-align: "center"
 graph14_08 <- within(graph14_08, {
-  # make sure you update the graph data
-  # grf_tbl <- tidygraph::tbl_graph(
-  #   nodes = dataKline$nodes_df,
-  #   edges = dataKline$edges_df,
-  #   directed = FALSE,
-  #   node_key = "culture")
-  # lyout <- ggraph::layout_tbl_graph_manual(graph = grf_tbl,
-  #                                          x = lon2_pos,
-  #                                          y = lat_pos)
-  # p1 <- ggraph(grf_tbl, layout = lyout) +
-  #   geom_node_point(aes(x = lon2_pos, y = lat_pos, color = logpop, size = logpop)) +
-  #   # geom_edge_link(aes(color = cor)) +
-  #   ggrepel::geom_text_repel(aes(x = lon2_pos, y = lat_pos, label = culture), size = 4) +
-  #   scale_color_paletteer_c("pals::isol") +
-  #   theme(legend.position = "none") +
-  # labs(title = "Relative positions of societies",
-  #      x = "longitude in thousands of km", y = "latitude in thousands of km")
+  # create the graph object
+  # the manual layout requires a special treatment when using ggraph
+  # source for manual layout:
+  # https://stackoverflow.com/questions/67756538/plot-ggraph-using-supplied-node-coordinates
+  # must add the x and y coords to the nodes for manual layout to work
+  the_nodes <- dataKline$nodes_df |>
+    select(culture, x = lon2_pos, y = lat_pos, logpop)
+  the_edges <- dataKline$edges_df |>
+    filter(between(cor, 0.01, 1))
+  # the igraph object
+  grf <- the_edges |>
+    igraph::graph_from_data_frame(directed = FALSE,
+                                  vertices = the_nodes)
+  
+  # the edges' colors
+  colrs <- paletteer::paletteer_c("oompaBase::bluescale", n = 16)
+  
+  # the basic graph
+  # when we use the manual layout, when the x and y have different names to avoid
+  # conflicts. See the source on manual layout mentioned above
+  p1 <- ggraph(grf, layout = data.frame(lx = NA, ly = NA)) +
+    geom_node_point(aes(size = logpop), color = "purple") +
+    geom_edge_link(aes(color = cor, width = cor)) +
+    ggrepel::geom_text_repel(aes(x = x, y = y, label = name), size = 3) +
+    scale_size_continuous(range = c(1, 4)) +
+    scale_edge_width(range = c(0.25, 2)) +
+    scale_edge_color_gradientn(colors = colrs) +
+    theme(legend.position = "none") +
+  labs(title = "Relative positions of societies",
+       subtitle = "edges = correlation",
+       x = "longitude in thousands of km", y = "latitude in thousands of km")
+  
+  # and we only need to change the nodes for the graph with tools and population
+  the_nodes <- dataKline$nodes_df |>
+    select(culture, x = logpop, y = total_tools)
+  the_edges <- dataKline$edges_df |>
+    filter(between(cor, 0.01, 1))
+  # the igraph object
+  grf <- the_edges |>
+    igraph::graph_from_data_frame(directed = FALSE,
+                                  vertices = the_nodes)
+  
+  p2 <- ggraph(grf, layout = data.frame(lx = NA, ly = NA)) +
+    geom_node_point(aes(size = x), color = "purple") +
+    geom_edge_link(aes(color = cor, width = cor)) +
+    ggrepel::geom_text_repel(aes(x = x, y = y, label = name), size = 3) +
+    scale_size_continuous(range = c(1, 4)) +
+    scale_edge_width(range = c(0.25, 2)) +
+    scale_edge_color_gradientn(colors = colrs) +
+    theme(legend.position = "none") +
+  labs(title = "Relations between population and tools",
+       subtitle = "edges = correlation",
+       x = "log of population", y = "total tools")
 })
+# glimpse(dataKline$edges_df)
+# glimpse(dataKline$nodes_df)
+# igraph::vertex.attributes(graph14_08$grf)
+# igraph::edge.attributes(graph14_08$grf)
 # graph14_08$p1
+# graph14_08$p2
+wrap_plots(graph14_08[c("p1", "p2")]) +
+  plot_annotation(title = "Oceanic Gaussian Process") &
+  theme(title = element_text(color = "darkblue"))
 ```
-
 
 
 ### Phylogenic distance
