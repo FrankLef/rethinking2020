@@ -18,10 +18,12 @@ library(ggplot2)
 library(ggdag)
 library(ggnetwork)
 library(ggraph)
+library(ggtree)
 library(tidygraph)
 library(bayesplot)
 library(patchwork)
 library(paletteer)
+library(ape)
 ```
 
 Some options to facilitate the computations
@@ -124,7 +126,7 @@ simCafes <- within(simCafes, {
   
   set.seed(1409)
   data <- vary_effects |>
-    expand(nesting(cafe, a, b), visit = seq_len(n_visits)) |>
+    expand_grid(simCafes$cafe, "visit" = seq_len(n_visits)) |>
     mutate(afternoon = rep(0:1, times = n()/2)) |>
     mutate(mu = a + b * afternoon) |>
     mutate(wait = rnorm(n = n(), mean = mu, sd = sigma))
@@ -1495,12 +1497,7 @@ dataKline <- within(dataKline, {
   cor_df <- cor_df |>
     as.data.frame() |>
     tibble::rownames_to_column(var = "x") |>
-    pivot_longer(cols = -x, names_to = "y", values_to = "cor") |>
-    # unite(col = "id", x, y, remove = FALSE) |>
-    # relocate(id) |>
-    # remove zeros
-    # filter(!is.na(cor)) |>
-    identity()
+    pivot_longer(cols = -x, names_to = "y", values_to = "cor")
   
   # make sure you don't miss a number
   check <- sum(post14_08$cor[lower.tri(post14_08$cor, diag = TRUE)])
@@ -1513,6 +1510,7 @@ dataKline <- within(dataKline, {
   
 })
 ```
+
 
 
 
@@ -1541,7 +1539,6 @@ graph14_08 <- within(graph14_08, {
   p1 <- ggraph(grf, layout = data.frame(lx = NA, ly = NA)) +
     geom_node_point(aes(size = logpop), color = "purple") +
     geom_edge_link(aes(color = cor, width = cor)) +
-    # ggrepel::geom_text_repel(aes(x = x, y = y, label = culture), size = 3) +
     geom_node_text(aes(label = culture), color = "darkblue", size = 3, repel = TRUE) +
     scale_size_continuous(range = c(1, 4)) +
     scale_edge_width(range = c(0.25, 2)) +
@@ -1600,12 +1597,16 @@ dagPhylo <- within(dagPhylo, {
                    expression(U[1]), expression(U[2]))
   
   dag1 <- ggdag::dagify(G2 ~ G1 + U1, B2 ~ G1 + B1 + U1, U2 ~ U1,
+                        outcome = "B2",
+                        exposure = c("B1", "G1"),
+                        latent = c("U1", "U2"),
                        labels = the_nodes)
   
   p1 <-  dag1 |>
-    ggdag::ggdag(layout = "sugiyama", node = FALSE) +
-    geom_dag_text(size = 8, color = "royalblue", 
-                  parse = TRUE, label = text_labels) +
+    ggdag::ggdag_status(layout = "sugiyama", node = TRUE) +
+    geom_dag_point(aes(color = status)) +
+    geom_dag_text(color = "white") +
+    scale_color_paletteer_d("ggsci::nrc_npg", na.value = "grey") +
     ggdag::theme_dag_blank(
       panel.background = element_rect(fill = "snow", color = "snow"))
 })
@@ -1620,16 +1621,119 @@ dagPhylo <- within(dagPhylo, {
     B ~ G + M + U,
     G ~ M + U,
     M ~ U,
-    U ~ P
+    U ~ P,
+    outcome = "B",
+    latent = c("P", "U"),
+    exposure = c("G", "M")
   )
   p2 <- dag2 |>
-    ggdag::ggdag_classic(layout = "sugiyama", text_col = "royalblue") +
+    ggdag::ggdag_status(layout = "sugiyama") +
+        geom_dag_point(aes(color = status)) +
+    geom_dag_text(color = "white") +
+    scale_color_paletteer_d("ggsci::nrc_npg", na.value = "grey") +
     ggdag::theme_dag_blank(
       panel.background = element_rect(fill = "snow", color = "snow"))
 })
 dagPhylo$p2
 ```
 
+#### Data
+
+The data is as follows
+
+```{r}
+data(Primates301, package = "rethinking") 
+data(Primates301_nex)
+str(Primates301_nex)
+```
+
+We standardize the data
+
+```{r}
+dataPrimates <- Primates301 |>
+  mutate(name = as.character(name)) |> 
+  drop_na(group_size, body, brain) |> 
+  mutate(M = as.vector(scale(log(body))),
+         B = as.vector(scale(log(brain))),
+         G = as.vector(scale(log(group_size))))
+# glimpse(dataPrimates)
+```
+
+
+
+and to plot is we use the `ggtree` package. Details on `ggtree` can be found at
+[ggtree](https://yulab-smu.top/treedata-book/index.html). It is not available
+on CRAN at the time of writing this. You can find it in github and install it
+with `devtools::install_github("GuangchuangYu/ggtree")`.
+
+
+```{r}
+# devtools::install_github("GuangchuangYu/ggtree")
+ggtree::ggtree(tr = Primates301_nex, layout = "circular", color = "firebrick") +
+  geom_tiplab(size = 5/3, color = "darkgrey")
+```
+
+
+#### Model
+
+$$
+\begin{align*}
+\bf{B} &\sim \mathcal{MVNormal}(\mu, \bf{S})\\
+\mu_i &= \alpha + \beta_G G_i + \beta_M M_i \\
+\bf{S} &= \sigma^2 \bf{I}
+\end{align*}
+$$
+
+We begin by fitting a naive model that does not take into account the phylogenetic
+covariances.
+
+```{r}
+#| echo: false
+#| output: false
+get_prior(
+  formula = B ~ M + G,
+  data = dataPrimates,
+  family = gaussian
+)
+```
+
+
+
+```{r ch14_fit14_09}
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+fit14_09 <- xfun::cache_rds({
+  brm(
+    data = dataPrimates,
+    family = gaussian,
+    formula =  B ~ M + G,
+    prior = c(
+      prior(normal(0, 1), class = Intercept),
+      prior(normal(0, 0.5), class = b),
+      prior(exponential(1), class = sigma)),
+    iter = 1000, warmup = 500, chains = 2,
+    cores = detectCores(), seed = 1439)},
+  file = "ch14_fit14_09", rerun = FALSE)
+tictoc::toc()
+```
+
+
+```{r}
+fit14_09
+```
+We use the `ape` package to compute the implied covariance matrix and 
+distance matrix
+
+```{r}
+treePhylo <- list()
+treePhylo <- within(treePhylo, {
+  spp_obs <- dataPrimates$name
+  
+  tree_trimmed <- ape::keep.tip(Primates301_nex, spp_obs)
+  Rbm <- ape::corBrownian(phy = tree_trimmed)
+  V <- ape::vcv(Rbm)
+  Dmat <- stats::cophenetic(tree_trimmed)
+})
+```
 
 
 ## Summary
