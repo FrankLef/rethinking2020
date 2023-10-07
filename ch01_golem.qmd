@@ -1,3 +1,4 @@
 # The Golem of Prague
 
-This chapter is for reading and very interesting. It involves no actual coding, just a critical and open mind.
+This chapter is for reading and very interesting. It involves no actual coding, 
+just a critical and open mind.

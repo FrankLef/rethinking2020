@@ -2,7 +2,7 @@
 
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html) [![R 4.2.1](https://img.shields.io/badge/R-4.2.1-blueviolet.svg)](https://cran.r-project.org/bin/windows/base/)
 
-`rethinking2020` is a study project of *Statistical Rethinking*, second edition, by Richard McElreath.
+`rethinking2020` is a study project of *Statistical Rethinking*, second edition, by Richard McElreath. [@elreath2020]
 
 ## Aknowledgement
 
@@ -17,7 +17,7 @@ The packages used in this project are as follows.
 ### Modelizations and data processing
 
 | Package                                                                | Comment                                                                                                                                                                                        |
-|--------------------|----------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | [rethinking](https://github.com/rmcelreath/rethinking)                 | This R package accompanies a course and book on Bayesian data analysis: McElreath 2020. Statistical Rethinking, 2nd edition.                                                                   |
 | [brms](https://paul-buerkner.github.io/brms/)                          | Used to do pretty much all models and computations.                                                                                                                                            |
 | [loo](http://mc-stan.org/loo/index.html)                               | Used by both `rethinking` and `brms` to compute WAIC and LOO. See section 7.5 in chapter for more details.                                                                                     |
@@ -29,16 +29,16 @@ The packages used in this project are as follows.
 
 ### Visualizations
 
-| Package                                                 | Comment                                                                                                                                                                    |
-|-------------------|-----------------------------------------------------|
-| [ggdist](https://mjskay.github.io/ggdist/)              | `tidybayes` relies heavily on the `ggdist` and reexport very many of it's functions. In addition `ggdist` is useful for both a frequencist as well as a bayesian approach. |
-| [bayesplot](https://mc-stan.org/bayesplot/)             | Used as complement when `ggdist` and `tidybayes` do not provide a satisfactory solution.                                                                                   |
-| [ggplot2](https://ggplot2.tidyverse.org)                | Vizualisations using the grammar of graphics.                                                                                                                              |
-| [scales](https://scales.r-lib.org)                      | Provide the internal scaling infrastructure used by `ggplot2`                                                                                                              |
-| [paletteer](https://github.com/EmilHvitfeldt/paletteer) | A nice package to manage color and shape palettes.                                                                                                                         |
-|[ggdag](https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html)|To handle all directed acyclic graphs|
-|[tidygraph](https://tidygraph.data-imaginist.com/reference/index.html)|To manipulate graphs|
-|[ggraph](https://ggraph.data-imaginist.com/reference/index.html)|To visualize graphs|
+| Package                                                                              | Comment                                                                                                                                                                    |
+|--------------------|----------------------------------------------------|
+| [ggdist](https://mjskay.github.io/ggdist/)                                           | `tidybayes` relies heavily on the `ggdist` and reexport very many of it's functions. In addition `ggdist` is useful for both a frequencist as well as a bayesian approach. |
+| [bayesplot](https://mc-stan.org/bayesplot/)                                          | Used as complement when `ggdist` and `tidybayes` do not provide a satisfactory solution.                                                                                   |
+| [ggplot2](https://ggplot2.tidyverse.org)                                             | Vizualisations using the grammar of graphics.                                                                                                                              |
+| [scales](https://scales.r-lib.org)                                                   | Provide the internal scaling infrastructure used by `ggplot2`                                                                                                              |
+| [paletteer](https://github.com/EmilHvitfeldt/paletteer)                              | A nice package to manage color and shape palettes.                                                                                                                         |
+| [ggdag](https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html) | To handle all directed acyclic graphs                                                                                                                                      |
+| [tidygraph](https://tidygraph.data-imaginist.com/reference/index.html)               | To manipulate graphs                                                                                                                                                       |
+| [ggraph](https://ggraph.data-imaginist.com/reference/index.html)                     | To visualize graphs                                                                                                                                                        |
 
 ### Miscellaneous
 
