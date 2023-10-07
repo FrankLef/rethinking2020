@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.1.251">
+<meta name="generator" content="quarto-1.3.450">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -17,9 +17,10 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -46,48 +47,19 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
-    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+/* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
 }
-.hanging div.csl-entry {
+.hanging-indent div.csl-entry {
   margin-left:2em;
   text-indent:-2em;
 }
@@ -101,8 +73,7 @@ div.csl-right-inline {
 }
 div.csl-indent {
   margin-left: 2em;
-}
-</style>
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -139,10 +110,12 @@ div.csl-indent {
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
@@ -151,11 +124,16 @@ div.csl-indent {
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-    <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></h1>
-      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
-        <i class="bi bi-chevron-right"></i>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch12_mixed.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
       </button>
     </div>
   </nav>
@@ -163,131 +141,148 @@ div.csl-indent {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">rethinking2020</a> 
     </div>
       </div>
-      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
         </div>
-      </div>
+        </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch01_golem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Golem of Prague</span></a>
+  <a href="./ch01_golem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Golem of Prague</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch02_worlds.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Small Worlds and Large Worlds</span></a>
+  <a href="./ch02_worlds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Small Worlds and Large Worlds</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch03_sampling.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></a>
+  <a href="./ch03_sampling.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch04_linear.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></a>
+  <a href="./ch04_linear.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch05_multivariate.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Multivariate Linear Models</span></a>
+  <a href="./ch05_multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Multivariate Linear Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch06_scm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Structural Causal Models</span></a>
+  <a href="./ch06_scm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Structural Causal Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch07_information.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></a>
+  <a href="./ch07_information.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch08_interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Conditional Manatees</span></a>
+  <a href="./ch08_interactions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Conditional Manatees</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch09_mcmc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Markov Chain Monte Carlo</span></a>
+  <a href="./ch09_mcmc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Markov Chain Monte Carlo</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Big Entropy and the Generalized Linear Model</span></a>
+  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Big Entropy and the Generalized Linear Model</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch11_counting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Counting and Classification</span></a>
+  <a href="./ch11_counting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Counting and Classification</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch12_mixed.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></a>
+  <a href="./ch12_mixed.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch13_multilevels.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Multilevel Models</span></a>
+  <a href="./ch13_multilevels.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Multilevel Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch14_covariances.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Adventures in Covariance</span></a>
+  <a href="./ch14_covariances.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Adventures in Covariance</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./references.html" class="sidebar-item-text sidebar-link">References</a>
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
   </div>
 </li>
     </ul>
     </div>
 </nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#over-dispersed-outcomes" id="toc-over-dispersed-outcomes" class="nav-link active" data-scroll-target="#over-dispersed-outcomes"><span class="toc-section-number">12.1</span>  Over-dispersed outcomes</a>
+  <li><a href="#over-dispersed-outcomes" id="toc-over-dispersed-outcomes" class="nav-link active" data-scroll-target="#over-dispersed-outcomes"><span class="header-section-number">12.1</span> Over-dispersed outcomes</a>
   <ul class="collapse">
-  <li><a href="#beta-binomial" id="toc-beta-binomial" class="nav-link" data-scroll-target="#beta-binomial"><span class="toc-section-number">12.1.1</span>  Beta-binomial</a></li>
-  <li><a href="#negative-binomial-or-gamma-poisson" id="toc-negative-binomial-or-gamma-poisson" class="nav-link" data-scroll-target="#negative-binomial-or-gamma-poisson"><span class="toc-section-number">12.1.2</span>  Negative-binomial or gamma-Poisson</a></li>
+  <li><a href="#beta-binomial" id="toc-beta-binomial" class="nav-link" data-scroll-target="#beta-binomial"><span class="header-section-number">12.1.1</span> Beta-binomial</a></li>
+  <li><a href="#negative-binomial-or-gamma-poisson" id="toc-negative-binomial-or-gamma-poisson" class="nav-link" data-scroll-target="#negative-binomial-or-gamma-poisson"><span class="header-section-number">12.1.2</span> Negative-binomial or gamma-Poisson</a></li>
   <li><a href="#poisson-lognormal" id="toc-poisson-lognormal" class="nav-link" data-scroll-target="#poisson-lognormal">Poisson-lognormal</a></li>
   </ul></li>
-  <li><a href="#zero-inflated-outcomes" id="toc-zero-inflated-outcomes" class="nav-link" data-scroll-target="#zero-inflated-outcomes"><span class="toc-section-number">12.2</span>  Zero-inflated outcomes</a>
+  <li><a href="#zero-inflated-outcomes" id="toc-zero-inflated-outcomes" class="nav-link" data-scroll-target="#zero-inflated-outcomes"><span class="header-section-number">12.2</span> Zero-inflated outcomes</a>
   <ul class="collapse">
-  <li><a href="#zero-inflated-poisson" id="toc-zero-inflated-poisson" class="nav-link" data-scroll-target="#zero-inflated-poisson"><span class="toc-section-number">12.2.1</span>  Zero-inflated Poisson</a></li>
+  <li><a href="#zero-inflated-poisson" id="toc-zero-inflated-poisson" class="nav-link" data-scroll-target="#zero-inflated-poisson"><span class="header-section-number">12.2.1</span> Zero-inflated Poisson</a></li>
   </ul></li>
-  <li><a href="#ordered-categorical-outcomes" id="toc-ordered-categorical-outcomes" class="nav-link" data-scroll-target="#ordered-categorical-outcomes"><span class="toc-section-number">12.3</span>  Ordered categorical outcomes</a>
+  <li><a href="#ordered-categorical-outcomes" id="toc-ordered-categorical-outcomes" class="nav-link" data-scroll-target="#ordered-categorical-outcomes"><span class="header-section-number">12.3</span> Ordered categorical outcomes</a>
   <ul class="collapse">
-  <li><a href="#example-moral-intuition" id="toc-example-moral-intuition" class="nav-link" data-scroll-target="#example-moral-intuition"><span class="toc-section-number">12.3.1</span>  Example: Moral intuition</a></li>
-  <li><a href="#describing-and-ordered-distribution-with-intercepts" id="toc-describing-and-ordered-distribution-with-intercepts" class="nav-link" data-scroll-target="#describing-and-ordered-distribution-with-intercepts"><span class="toc-section-number">12.3.2</span>  Describing and ordered distribution with intercepts</a></li>
-  <li><a href="#adding-predictor-variables" id="toc-adding-predictor-variables" class="nav-link" data-scroll-target="#adding-predictor-variables"><span class="toc-section-number">12.3.3</span>  Adding predictor variables</a></li>
+  <li><a href="#example-moral-intuition" id="toc-example-moral-intuition" class="nav-link" data-scroll-target="#example-moral-intuition"><span class="header-section-number">12.3.1</span> Example: Moral intuition</a></li>
+  <li><a href="#describing-and-ordered-distribution-with-intercepts" id="toc-describing-and-ordered-distribution-with-intercepts" class="nav-link" data-scroll-target="#describing-and-ordered-distribution-with-intercepts"><span class="header-section-number">12.3.2</span> Describing and ordered distribution with intercepts</a></li>
+  <li><a href="#adding-predictor-variables" id="toc-adding-predictor-variables" class="nav-link" data-scroll-target="#adding-predictor-variables"><span class="header-section-number">12.3.3</span> Adding predictor variables</a></li>
   </ul></li>
-  <li><a href="#ordered-categorical-predictors" id="toc-ordered-categorical-predictors" class="nav-link" data-scroll-target="#ordered-categorical-predictors"><span class="toc-section-number">12.4</span>  Ordered categorical predictors</a>
+  <li><a href="#ordered-categorical-predictors" id="toc-ordered-categorical-predictors" class="nav-link" data-scroll-target="#ordered-categorical-predictors"><span class="header-section-number">12.4</span> Ordered categorical predictors</a>
   <ul class="collapse">
-  <li><a href="#dirichlet-distribution" id="toc-dirichlet-distribution" class="nav-link" data-scroll-target="#dirichlet-distribution"><span class="toc-section-number">12.4.1</span>  Dirichlet distribution</a></li>
-  <li><a href="#data-1" id="toc-data-1" class="nav-link" data-scroll-target="#data-1"><span class="toc-section-number">12.4.2</span>  Data</a></li>
-  <li><a href="#model-and-fit-1" id="toc-model-and-fit-1" class="nav-link" data-scroll-target="#model-and-fit-1"><span class="toc-section-number">12.4.3</span>  Model and fit</a></li>
+  <li><a href="#dirichlet-distribution" id="toc-dirichlet-distribution" class="nav-link" data-scroll-target="#dirichlet-distribution"><span class="header-section-number">12.4.1</span> Dirichlet distribution</a></li>
+  <li><a href="#data-1" id="toc-data-1" class="nav-link" data-scroll-target="#data-1"><span class="header-section-number">12.4.2</span> Data</a></li>
+  <li><a href="#model-and-fit-1" id="toc-model-and-fit-1" class="nav-link" data-scroll-target="#model-and-fit-1"><span class="header-section-number">12.4.3</span> Model and fit</a></li>
   </ul></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="toc-section-number">12.5</span>  Summary</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">12.5</span> Summary</a></li>
   </ul>
 </nav>
     </div>
@@ -296,7 +291,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span id="Mixed" class="quarto-section-identifier d-none d-lg-block"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></span></h1>
+<h1 class="title"><span id="Mixed" class="quarto-section-identifier"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></span></h1>
 </div>
 
 
@@ -304,6 +299,7 @@ div.csl-indent {
 <div class="quarto-title-meta">
 
     
+  
     
   </div>
   
@@ -454,12 +450,12 @@ and Tail_ESS are effective sample size measures, and Rhat is the potential
 scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
-<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Note
 </div>
 </div>
@@ -469,9 +465,6 @@ Note
 </div>
 <p>See also McElreath explanation of 2 in section 12.1.1 just before R code 12.1 on p.&nbsp;371.</p>
 <p>and the posterior data which <em>represents the distribution rather than the data</em></p>
-<div class="cell">
-
-</div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gather_rvars</span>(fit12_01, b_gid1, b_gid2, phi) <span class="sc">|&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">xdist =</span> .value, <span class="at">y =</span> .variable, <span class="at">fill =</span> .variable)) <span class="sc">+</span></span>
@@ -557,10 +550,6 @@ Note
 <span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="co"># plot12_01_epred$epred</span></span>
 <span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>plot12_01_epred<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using the `size` aesthietic with geom_segment was deprecated in ggplot2 3.4.0.
-ℹ Please use the `linewidth` aesthetic instead.</code></pre>
-</div>
 <div class="cell-output-display">
 <p><img src="ch12_mixed_files/figure-html/ch12_plot12_01_epred-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -569,12 +558,12 @@ Note
 </section>
 <section id="negative-binomial-or-gamma-poisson" class="level3" data-number="12.1.2">
 <h3 data-number="12.1.2" class="anchored" data-anchor-id="negative-binomial-or-gamma-poisson"><span class="header-section-number">12.1.2</span> Negative-binomial or gamma-Poisson</h3>
-<div class="callout-important callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Important
 </div>
 </div>
@@ -600,48 +589,48 @@ y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
 \]</span></p>
 <p>To convert from the <span class="math inline">\(\mu = mean\)</span> and <span class="math inline">\(\theta = dispersion= \frac{mean^2}{variance}\)</span> to the shape and rate parameters we use the function <code>simstudy::gammaGetShapeRate()</code>. To help us find the mean and dispersion to use with <code>simstudy::gammaGetShapeRate()</code>, the custom function <code>gammaGetMeanDispersion</code> is also defined. It is the inverse of <code>simstudy::gammaGetShapeRate()</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># custom function which is the inverse function of gammaGetShapeRate()</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>gammaGetMeanDispersion <span class="ot">&lt;-</span> <span class="cf">function</span>(shape, rate) {</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stopifnot</span>(shape <span class="sc">&gt;</span> <span class="dv">0</span>, rate <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  dispersion <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> shape</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  mean <span class="ot">&lt;-</span> shape <span class="sc">/</span> rate</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="st">"mean"</span> <span class="ot">=</span> mean, <span class="st">"dispersion"</span> <span class="ot">=</span> dispersion)</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># test it</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>prm <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>prm <span class="ot">&lt;-</span> <span class="fu">within</span>(prm, {</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  values <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mean =</span> <span class="dv">1</span>, <span class="at">dispersion =</span> <span class="dv">10</span>)</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get the shape and rate from the mean and dispersion</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  sr <span class="ot">&lt;-</span> <span class="fu">gammaGetShapeRate</span>(<span class="at">mean =</span> values<span class="sc">$</span>mean, <span class="at">dispersion =</span> values<span class="sc">$</span>dispersion)</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># using the inverse should take you back to the mean and dispersion</span></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  md <span class="ot">&lt;-</span> <span class="fu">gammaGetMeanDispersion</span>(<span class="at">shape =</span> sr<span class="sc">$</span>shape, <span class="at">rate =</span> sr<span class="sc">$</span>shape)</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="co"># using the inverse should take you back to the mean and dispersion</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">identical</span>(prm<span class="sc">$</span>md, prm<span class="sc">$</span>values))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># custom function which is the inverse function of gammaGetShapeRate()</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>gammaGetMeanDispersion <span class="ot">&lt;-</span> <span class="cf">function</span>(shape, rate) {</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stopifnot</span>(shape <span class="sc">&gt;</span> <span class="dv">0</span>, rate <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  dispersion <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> shape</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  mean <span class="ot">&lt;-</span> shape <span class="sc">/</span> rate</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="st">"mean"</span> <span class="ot">=</span> mean, <span class="st">"dispersion"</span> <span class="ot">=</span> dispersion)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co"># test it</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>prm <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>prm <span class="ot">&lt;-</span> <span class="fu">within</span>(prm, {</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  values <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mean =</span> <span class="dv">1</span>, <span class="at">dispersion =</span> <span class="dv">10</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get the shape and rate from the mean and dispersion</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  sr <span class="ot">&lt;-</span> <span class="fu">gammaGetShapeRate</span>(<span class="at">mean =</span> values<span class="sc">$</span>mean, <span class="at">dispersion =</span> values<span class="sc">$</span>dispersion)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># using the inverse should take you back to the mean and dispersion</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  md <span class="ot">&lt;-</span> <span class="fu">gammaGetMeanDispersion</span>(<span class="at">shape =</span> sr<span class="sc">$</span>shape, <span class="at">rate =</span> sr<span class="sc">$</span>shape)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="co"># using the inverse should take you back to the mean and dispersion</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">identical</span>(prm<span class="sc">$</span>md, prm<span class="sc">$</span>values))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>In the <code>dgamma</code> the shape parameter influence the rate which is equivalent to Poisson <span class="math inline">\(\lambda\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>plotGamma <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>plotGamma <span class="ot">&lt;-</span> <span class="fu">within</span>(plotGamma, {</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  df <span class="ot">&lt;-</span> <span class="fu">crossing</span>(<span class="at">shape =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>), </span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">rate =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="dv">1</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expand</span>(<span class="fu">nesting</span>(shape, rate), </span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">5</span>, <span class="at">length.out =</span> <span class="dv">50</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">density =</span> <span class="fu">dgamma</span>(x, shape, rate),</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">shape_lbl    =</span> <span class="fu">paste</span>(<span class="st">"shape"</span>, <span class="fu">format</span>(shape, <span class="at">nsmall =</span> <span class="dv">2</span>), <span class="at">sep =</span> <span class="st">"=="</span>),</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">rate_lbl =</span> <span class="fu">paste</span>(<span class="st">"rate"</span>, <span class="fu">format</span>(rate, <span class="at">nsmall =</span> <span class="dv">2</span>), <span class="at">sep =</span> <span class="st">"=="</span>))</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> density)) <span class="sc">+</span></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_area</span>(<span class="at">fill =</span> <span class="st">"orchid"</span>) <span class="sc">+</span></span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">labels =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_grid</span>(shape_lbl<span class="sc">~</span>rate_lbl, <span class="at">labeller =</span> label_parsed) <span class="sc">+</span></span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Gamma prior with different parameter values"</span>,</span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"domain space"</span>)</span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>plotGamma<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>plotGamma <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>plotGamma <span class="ot">&lt;-</span> <span class="fu">within</span>(plotGamma, {</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  df <span class="ot">&lt;-</span> <span class="fu">crossing</span>(<span class="at">shape =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>), </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">rate =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="dv">1</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expand</span>(<span class="fu">nesting</span>(shape, rate), </span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">5</span>, <span class="at">length.out =</span> <span class="dv">50</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">density =</span> <span class="fu">dgamma</span>(x, shape, rate),</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">shape_lbl    =</span> <span class="fu">paste</span>(<span class="st">"shape"</span>, <span class="fu">format</span>(shape, <span class="at">nsmall =</span> <span class="dv">2</span>), <span class="at">sep =</span> <span class="st">"=="</span>),</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">rate_lbl =</span> <span class="fu">paste</span>(<span class="st">"rate"</span>, <span class="fu">format</span>(rate, <span class="at">nsmall =</span> <span class="dv">2</span>), <span class="at">sep =</span> <span class="st">"=="</span>))</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> density)) <span class="sc">+</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_area</span>(<span class="at">fill =</span> <span class="st">"orchid"</span>) <span class="sc">+</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">labels =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_grid</span>(shape_lbl<span class="sc">~</span>rate_lbl, <span class="at">labeller =</span> label_parsed) <span class="sc">+</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Gamma prior with different parameter values"</span>,</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"domain space"</span>)</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>plotGamma<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 3 rows containing non-finite values (`stat_align()`).</code></pre>
 </div>
@@ -653,17 +642,30 @@ y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
 <section id="data" class="level4" data-number="12.1.2.2">
 <h4 data-number="12.1.2.2" class="anchored" data-anchor-id="data"><span class="header-section-number">12.1.2.2</span> Data</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(Kline)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>dataKline <span class="ot">&lt;-</span> Kline <span class="sc">|&gt;</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_pop_s =</span> <span class="fu">log</span>(population),</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">log_pop_s =</span> <span class="fu">as.vector</span>(<span class="fu">scale</span>(log_pop_s)),</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cid =</span> <span class="fu">factor</span>(contact, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"low"</span>, <span class="st">"high"</span>)))</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(Kline)</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>dataKline <span class="sc">|&gt;</span> <span class="fu">skim</span>() <span class="sc">|&gt;</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n_missing, <span class="sc">-</span> complete_rate) <span class="sc">|&gt;</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(Kline)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>dataKline <span class="ot">&lt;-</span> Kline <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_pop_s =</span> <span class="fu">log</span>(population),</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">log_pop_s =</span> <span class="fu">as.vector</span>(<span class="fu">scale</span>(log_pop_s)),</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cid =</span> <span class="fu">factor</span>(contact, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"low"</span>, <span class="st">"high"</span>)))</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(Kline)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>dataKline <span class="sc">|&gt;</span> <span class="fu">skim</span>() <span class="sc">|&gt;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n_missing, <span class="sc">-</span> complete_rate) <span class="sc">|&gt;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: There was 1 warning in `mutate()`.
+ℹ In argument: `across(.cols = where(is.numeric), .fns = round, digits = 1)`.
+Caused by warning:
+! The `...` argument of `across()` is deprecated as of dplyr 1.1.0.
+Supply arguments directly to `.fns` through an anonymous function instead.
+
+  # Previously
+  across(a:b, mean, na.rm = TRUE)
+
+  # Now
+  across(a:b, \(x) mean(x, na.rm = TRUE))</code></pre>
+</div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <caption>Data summary</caption>
 <tbody>
 <tr class="odd">
@@ -705,7 +707,7 @@ y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
 </tbody>
 </table>
 <p><strong>Variable type: factor</strong></p>
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: left;">skim_variable</th>
@@ -736,7 +738,7 @@ y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
 </tbody>
 </table>
 <p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <colgroup>
 <col style="width: 18%">
 <col style="width: 10%">
@@ -813,12 +815,12 @@ y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
 </section>
 <section id="null-model" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="null-model">Null model</h4>
-<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Note
 </div>
 </div>
@@ -850,7 +852,7 @@ log(\mu) &amp;= \beta_0 \\
 <span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_02a"</span>)</span>
 <span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.16 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.15 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -982,7 +984,7 @@ log(\mu) &amp;= \frac{\exp{(\beta_{0,cid[i]})} \cdot population_i^{\beta_{1,cid[
 <span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_02b"</span>)</span>
 <span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 30 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 30 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1109,12 +1111,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </section>
 <section id="poisson-lognormal" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="poisson-lognormal">Poisson-lognormal</h3>
-<div class="callout-tip callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Tip
 </div>
 </div>
@@ -1126,12 +1128,12 @@ Tip
 </section>
 <section id="zero-inflated-outcomes" class="level2" data-number="12.2">
 <h2 data-number="12.2" class="anchored" data-anchor-id="zero-inflated-outcomes"><span class="header-section-number">12.2</span> Zero-inflated outcomes</h2>
-<div class="callout-tip callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Tip
 </div>
 </div>
@@ -1208,7 +1210,7 @@ log(\lambda) &amp;= \alpha_\lambda \\
 <span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_03"</span>)</span>
 <span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 65 secs., use the cache.: 0.43 sec elapsed</code></pre>
+<pre><code>run time of 65 secs., use the cache.: 0.15 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we generate a summary with <code>posterior::summarize_draws</code></p>
@@ -1227,7 +1229,7 @@ log(\lambda) &amp;= \alpha_\lambda \\
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 10
   variable     mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail
-  &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+  &lt;chr&gt;       &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
 1 b_Intercept -0.16  -0.16  0.09  0.09 -0.31 -0.01  1.01     301.     345.
 2 zi           0.18   0.18  0.06  0.06  0.08  0.27  1.01     360.     486.
 3 lprior      -1.96  -1.9   0.43  0.38 -2.81 -1.34  1.01     313.     450.
@@ -1255,7 +1257,7 @@ log(\lambda) &amp;= \alpha_\lambda \\
 <span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n_missing, <span class="sc">-</span>complete_rate) <span class="sc">|&gt;</span></span>
 <span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <caption>Data summary</caption>
 <tbody>
 <tr class="odd">
@@ -1297,7 +1299,7 @@ log(\lambda) &amp;= \alpha_\lambda \\
 </tbody>
 </table>
 <p><strong>Variable type: factor</strong></p>
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <colgroup>
 <col style="width: 18%">
 <col style="width: 10%">
@@ -1346,7 +1348,7 @@ log(\lambda) &amp;= \alpha_\lambda \\
 </tbody>
 </table>
 <p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: left;">skim_variable</th>
@@ -1504,7 +1506,7 @@ log(\lambda) &amp;= \alpha_\lambda \\
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch12_mixed_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure 12.4</figcaption><p></p>
+<figcaption class="figure-caption">Figure 12.4</figcaption>
 </figure>
 </div>
 </div>
@@ -1593,12 +1595,12 @@ Intercept[5]    0.709     0.505 0.700 0.718
 Intercept[6]    0.854     0.507 0.847 0.861</code></pre>
 </div>
 </div>
-<div class="callout-warning callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Warning
 </div>
 </div>
@@ -1648,12 +1650,12 @@ Warning
 </section>
 <section id="adding-predictor-variables" class="level3" data-number="12.3.3">
 <h3 data-number="12.3.3" class="anchored" data-anchor-id="adding-predictor-variables"><span class="header-section-number">12.3.3</span> Adding predictor variables</h3>
-<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Note
 </div>
 </div>
@@ -1782,7 +1784,7 @@ logit(Pr(y_i \leq k)) &amp;= \frac{Pr(y_i \leq k)}{1 - Pr(y_i \leq k)}  = \alpha
 <span id="cb74-12"><a href="#cb74-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_05"</span>)</span>
 <span id="cb74-13"><a href="#cb74-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 6 mins., use the cache.: 0.23 sec elapsed</code></pre>
+<pre><code>run time of 6 mins., use the cache.: 0.19 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1820,9 +1822,6 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <p>and plot the coefficients</p>
 <div class="cell">
-
-</div>
-<div class="cell">
 <div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>post12_05 <span class="ot">&lt;-</span> <span class="fu">gather_draws</span>(<span class="at">model =</span> fit12_05, <span class="st">`</span><span class="at">b_action.*</span><span class="st">`</span>, <span class="st">`</span><span class="at">b_contact.*</span><span class="st">`</span>, <span class="st">`</span><span class="at">b_intention.*</span><span class="st">`</span>,</span>
 <span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>                           <span class="at">regex =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1838,12 +1837,18 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb78-13"><a href="#cb78-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"marginal posterior"</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
 <span id="cb78-14"><a href="#cb78-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Model b12.5 coefficients"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: fill_type = "gradient" is not supported by the current graphics device.
- - Falling back to fill_type = "segments".
- - If you believe your current graphics device *does* support
-   fill_type = "gradient" but auto-detection failed, set that option
-   explicitly and consider reporting a bug.
- - See help("geom_slabinterval") for more information.</code></pre>
+<pre><code>Warning: `fill_type = "gradient"` is not supported by the current graphics device, which
+is `"png"`.
+ℹ Falling back to `fill_type = "segments"`.
+ℹ If you believe your current graphics device does support `fill_type =
+  "gradient"` but auto-detection failed, try setting `fill_type = "gradient"`
+  explicitly. If this causes the gradient to display correctly, then this
+  warning is likely a false positive caused by the graphics device failing to
+  properly report its support for the `"LinearGradient"` pattern via
+  `grDevices::dev.capabilities()`. Consider reporting a bug to the author of
+  the graphics device.
+ℹ See the documentation for `fill_type` in `ggdist::geom_slabinterval()` for
+  more information.</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="ch12_mixed_files/figure-html/ch12_post12_05-1.png" class="img-fluid" width="672"></p>
@@ -1948,7 +1953,7 @@ logit(p_k) &amp;= \alpha_k - \phi_i \\
 <span id="cb83-15"><a href="#cb83-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch12_fit12_06"</span>)</span>
 <span id="cb83-16"><a href="#cb83-16" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 35 mins., use the cache.: 0.25 sec elapsed</code></pre>
+<pre><code>run time of 35 mins., use the cache.: 0.23 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2016,8 +2021,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2 data-number="12.5" class="anchored" data-anchor-id="summary"><span class="header-section-number">12.5</span> Summary</h2>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography" style="display: none">
-<div id="ref-kurtz2020b" class="csl-entry" role="doc-biblioentry">
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-kurtz2020b" class="csl-entry" role="listitem">
 Kurz, Solomon. 2020. <em>Statistical Rethinking with Brms</em>. 2nd ed. <a href="https://bookdown.org/content/4857/">https://bookdown.org/content/4857/</a>.
 </div>
 </div>
@@ -2051,9 +2056,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -2065,7 +2084,24 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     button.classList.add('code-copy-button-checked');
     var currentTitle = button.getAttribute("title");
     button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
     setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
       button.setAttribute("title", currentTitle);
       button.classList.remove('code-copy-button-checked');
     }, 1000);
@@ -2101,24 +2137,128 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
   var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
-    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-    tippyHover(ref, function() {
-      var popup = window.document.createElement('div');
-      cites.forEach(function(cite) {
-        var citeDiv = window.document.createElement('div');
-        citeDiv.classList.add('hanging-indent');
-        citeDiv.classList.add('csl-entry');
-        var biblioDiv = window.document.getElementById('ref-' + cite);
-        if (biblioDiv) {
-          citeDiv.innerHTML = biblioDiv.innerHTML;
-        }
-        popup.appendChild(citeDiv);
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
       });
-      return popup.innerHTML;
-    });
+    }
   }
 });
 </script>

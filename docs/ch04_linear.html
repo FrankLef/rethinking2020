@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.1.251">
+<meta name="generator" content="quarto-1.3.450">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -17,9 +17,10 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -46,48 +47,19 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
-    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+/* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
 }
-.hanging div.csl-entry {
+.hanging-indent div.csl-entry {
   margin-left:2em;
   text-indent:-2em;
 }
@@ -101,8 +73,7 @@ div.csl-right-inline {
 }
 div.csl-indent {
   margin-left: 2em;
-}
-</style>
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -139,10 +110,12 @@ div.csl-indent {
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
@@ -151,11 +124,16 @@ div.csl-indent {
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-    <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></h1>
-      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
-        <i class="bi bi-chevron-right"></i>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch04_linear.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
       </button>
     </div>
   </nav>
@@ -163,133 +141,150 @@ div.csl-indent {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">rethinking2020</a> 
     </div>
       </div>
-      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
         </div>
-      </div>
+        </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch01_golem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Golem of Prague</span></a>
+  <a href="./ch01_golem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Golem of Prague</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch02_worlds.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Small Worlds and Large Worlds</span></a>
+  <a href="./ch02_worlds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Small Worlds and Large Worlds</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch03_sampling.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></a>
+  <a href="./ch03_sampling.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch04_linear.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></a>
+  <a href="./ch04_linear.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch05_multivariate.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Multivariate Linear Models</span></a>
+  <a href="./ch05_multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Multivariate Linear Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch06_scm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Structural Causal Models</span></a>
+  <a href="./ch06_scm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Structural Causal Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch07_information.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></a>
+  <a href="./ch07_information.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch08_interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Conditional Manatees</span></a>
+  <a href="./ch08_interactions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Conditional Manatees</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch09_mcmc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Markov Chain Monte Carlo</span></a>
+  <a href="./ch09_mcmc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Markov Chain Monte Carlo</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Big Entropy and the Generalized Linear Model</span></a>
+  <a href="./ch10_glm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Big Entropy and the Generalized Linear Model</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch11_counting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Counting and Classification</span></a>
+  <a href="./ch11_counting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Counting and Classification</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch12_mixed.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></a>
+  <a href="./ch12_mixed.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch13_multilevels.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Multilevel Models</span></a>
+  <a href="./ch13_multilevels.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Multilevel Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch14_covariances.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Adventures in Covariance</span></a>
+  <a href="./ch14_covariances.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Adventures in Covariance</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./references.html" class="sidebar-item-text sidebar-link">References</a>
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
   </div>
 </li>
     </ul>
     </div>
 </nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#why-normal-distributions-are-normal" id="toc-why-normal-distributions-are-normal" class="nav-link active" data-scroll-target="#why-normal-distributions-are-normal"><span class="toc-section-number">4.1</span>  Why normal distributions are normal</a></li>
-  <li><a href="#a-language-for-describing-model" id="toc-a-language-for-describing-model" class="nav-link" data-scroll-target="#a-language-for-describing-model"><span class="toc-section-number">4.2</span>  A language for describing model</a></li>
-  <li><a href="#a-gaussian-model-of-height" id="toc-a-gaussian-model-of-height" class="nav-link" data-scroll-target="#a-gaussian-model-of-height"><span class="toc-section-number">4.3</span>  A Gaussian model of height</a>
+  <li><a href="#why-normal-distributions-are-normal" id="toc-why-normal-distributions-are-normal" class="nav-link active" data-scroll-target="#why-normal-distributions-are-normal"><span class="header-section-number">4.1</span> Why normal distributions are normal</a></li>
+  <li><a href="#a-language-for-describing-model" id="toc-a-language-for-describing-model" class="nav-link" data-scroll-target="#a-language-for-describing-model"><span class="header-section-number">4.2</span> A language for describing model</a></li>
+  <li><a href="#a-gaussian-model-of-height" id="toc-a-gaussian-model-of-height" class="nav-link" data-scroll-target="#a-gaussian-model-of-height"><span class="header-section-number">4.3</span> A Gaussian model of height</a>
   <ul class="collapse">
-  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data"><span class="toc-section-number">4.3.1</span>  The data</a></li>
-  <li><a href="#the-model" id="toc-the-model" class="nav-link" data-scroll-target="#the-model"><span class="toc-section-number">4.3.2</span>  The model</a></li>
-  <li><a href="#grid-approximation-of-posterior-distribution" id="toc-grid-approximation-of-posterior-distribution" class="nav-link" data-scroll-target="#grid-approximation-of-posterior-distribution"><span class="toc-section-number">4.3.3</span>  Grid approximation of posterior distribution</a></li>
-  <li><a href="#sampling-from-the-grids-posterior" id="toc-sampling-from-the-grids-posterior" class="nav-link" data-scroll-target="#sampling-from-the-grids-posterior"><span class="toc-section-number">4.3.4</span>  Sampling from the grid’s posterior</a></li>
-  <li><a href="#finding-the-posterior-distribution-with-quap-and-brm" id="toc-finding-the-posterior-distribution-with-quap-and-brm" class="nav-link" data-scroll-target="#finding-the-posterior-distribution-with-quap-and-brm"><span class="toc-section-number">4.3.5</span>  Finding the posterior distribution with <code>quap</code> and <code>brm()</code></a></li>
-  <li><a href="#sampling-from-a-fit" id="toc-sampling-from-a-fit" class="nav-link" data-scroll-target="#sampling-from-a-fit"><span class="toc-section-number">4.3.6</span>  Sampling from a fit</a></li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data"><span class="header-section-number">4.3.1</span> The data</a></li>
+  <li><a href="#the-model" id="toc-the-model" class="nav-link" data-scroll-target="#the-model"><span class="header-section-number">4.3.2</span> The model</a></li>
+  <li><a href="#grid-approximation-of-posterior-distribution" id="toc-grid-approximation-of-posterior-distribution" class="nav-link" data-scroll-target="#grid-approximation-of-posterior-distribution"><span class="header-section-number">4.3.3</span> Grid approximation of posterior distribution</a></li>
+  <li><a href="#sampling-from-the-grids-posterior" id="toc-sampling-from-the-grids-posterior" class="nav-link" data-scroll-target="#sampling-from-the-grids-posterior"><span class="header-section-number">4.3.4</span> Sampling from the grid’s posterior</a></li>
+  <li><a href="#finding-the-posterior-distribution-with-quap-and-brm" id="toc-finding-the-posterior-distribution-with-quap-and-brm" class="nav-link" data-scroll-target="#finding-the-posterior-distribution-with-quap-and-brm"><span class="header-section-number">4.3.5</span> Finding the posterior distribution with <code>quap</code> and <code>brm()</code></a></li>
+  <li><a href="#sampling-from-a-fit" id="toc-sampling-from-a-fit" class="nav-link" data-scroll-target="#sampling-from-a-fit"><span class="header-section-number">4.3.6</span> Sampling from a fit</a></li>
   </ul></li>
-  <li><a href="#linear-predictions" id="toc-linear-predictions" class="nav-link" data-scroll-target="#linear-predictions"><span class="toc-section-number">4.4</span>  Linear predictions</a>
+  <li><a href="#linear-predictions" id="toc-linear-predictions" class="nav-link" data-scroll-target="#linear-predictions"><span class="header-section-number">4.4</span> Linear predictions</a>
   <ul class="collapse">
-  <li><a href="#the-linear-model-strategy" id="toc-the-linear-model-strategy" class="nav-link" data-scroll-target="#the-linear-model-strategy"><span class="toc-section-number">4.4.1</span>  The linear model strategy</a></li>
-  <li><a href="#fitting-the-posterior-distribution" id="toc-fitting-the-posterior-distribution" class="nav-link" data-scroll-target="#fitting-the-posterior-distribution"><span class="toc-section-number">4.4.2</span>  Fitting the posterior distribution</a></li>
-  <li><a href="#using-the-log-tranformation" id="toc-using-the-log-tranformation" class="nav-link" data-scroll-target="#using-the-log-tranformation"><span class="toc-section-number">4.4.3</span>  Using the log tranformation</a></li>
-  <li><a href="#interpreting-the-posterior-distribution" id="toc-interpreting-the-posterior-distribution" class="nav-link" data-scroll-target="#interpreting-the-posterior-distribution"><span class="toc-section-number">4.4.4</span>  Interpreting the posterior distribution</a></li>
+  <li><a href="#the-linear-model-strategy" id="toc-the-linear-model-strategy" class="nav-link" data-scroll-target="#the-linear-model-strategy"><span class="header-section-number">4.4.1</span> The linear model strategy</a></li>
+  <li><a href="#fitting-the-posterior-distribution" id="toc-fitting-the-posterior-distribution" class="nav-link" data-scroll-target="#fitting-the-posterior-distribution"><span class="header-section-number">4.4.2</span> Fitting the posterior distribution</a></li>
+  <li><a href="#using-the-log-tranformation" id="toc-using-the-log-tranformation" class="nav-link" data-scroll-target="#using-the-log-tranformation"><span class="header-section-number">4.4.3</span> Using the log tranformation</a></li>
+  <li><a href="#interpreting-the-posterior-distribution" id="toc-interpreting-the-posterior-distribution" class="nav-link" data-scroll-target="#interpreting-the-posterior-distribution"><span class="header-section-number">4.4.4</span> Interpreting the posterior distribution</a></li>
   </ul></li>
-  <li><a href="#curves-from-lines" id="toc-curves-from-lines" class="nav-link" data-scroll-target="#curves-from-lines"><span class="toc-section-number">4.5</span>  Curves from lines</a>
+  <li><a href="#curves-from-lines" id="toc-curves-from-lines" class="nav-link" data-scroll-target="#curves-from-lines"><span class="header-section-number">4.5</span> Curves from lines</a>
   <ul class="collapse">
-  <li><a href="#polynomial-regression" id="toc-polynomial-regression" class="nav-link" data-scroll-target="#polynomial-regression"><span class="toc-section-number">4.5.1</span>  Polynomial regression</a></li>
-  <li><a href="#splines" id="toc-splines" class="nav-link" data-scroll-target="#splines"><span class="toc-section-number">4.5.2</span>  Splines</a></li>
-  <li><a href="#smooth-functions-for-a-smooth-world" id="toc-smooth-functions-for-a-smooth-world" class="nav-link" data-scroll-target="#smooth-functions-for-a-smooth-world"><span class="toc-section-number">4.5.3</span>  Smooth functions for a smooth world</a></li>
+  <li><a href="#polynomial-regression" id="toc-polynomial-regression" class="nav-link" data-scroll-target="#polynomial-regression"><span class="header-section-number">4.5.1</span> Polynomial regression</a></li>
+  <li><a href="#splines" id="toc-splines" class="nav-link" data-scroll-target="#splines"><span class="header-section-number">4.5.2</span> Splines</a></li>
+  <li><a href="#smooth-functions-for-a-smooth-world" id="toc-smooth-functions-for-a-smooth-world" class="nav-link" data-scroll-target="#smooth-functions-for-a-smooth-world"><span class="header-section-number">4.5.3</span> Smooth functions for a smooth world</a></li>
   </ul></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="toc-section-number">4.6</span>  Summary</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">4.6</span> Summary</a></li>
   </ul>
 </nav>
     </div>
@@ -298,7 +293,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span id="linear" class="quarto-section-identifier d-none d-lg-block"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></span></h1>
+<h1 class="title"><span id="linear" class="quarto-section-identifier"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></span></h1>
 </div>
 
 
@@ -306,6 +301,7 @@ div.csl-indent {
 <div class="quarto-title-meta">
 
     
+  
     
   </div>
   
@@ -370,8 +366,21 @@ outcome_i &amp;\sim \mathcal{Normal}(\mu_i, \sigma) \\
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(dataHowel) <span class="sc">|&gt;</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: There was 1 warning in `mutate()`.
+ℹ In argument: `across(.cols = where(is.numeric), .fns = round, digits = 2)`.
+Caused by warning:
+! The `...` argument of `across()` is deprecated as of dplyr 1.1.0.
+Supply arguments directly to `.fns` through an anonymous function instead.
+
+  # Previously
+  across(a:b, mean, na.rm = TRUE)
+
+  # Now
+  across(a:b, \(x) mean(x, na.rm = TRUE))</code></pre>
+</div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <caption>Data summary</caption>
 <tbody>
 <tr class="odd">
@@ -409,7 +418,7 @@ outcome_i &amp;\sim \mathcal{Normal}(\mu_i, \sigma) \\
 </tbody>
 </table>
 <p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <colgroup>
 <col style="width: 15%">
 <col style="width: 10%">
@@ -497,8 +506,8 @@ outcome_i &amp;\sim \mathcal{Normal}(\mu_i, \sigma) \\
 </div>
 <p>select only the adults</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dataHowel_gte18 <span class="ot">&lt;-</span> dataHowel <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(age <span class="sc">&gt;=</span> <span class="dv">18</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dataHowel_gte18 <span class="ot">&lt;-</span> dataHowel <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(age <span class="sc">&gt;=</span> <span class="dv">18</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="the-model" class="level3" data-number="4.3.2">
@@ -512,106 +521,106 @@ h_i &amp;\sim \mathcal{N}(\mu, \sigma)\\
 \]</span></p>
 <p>We do the prior predictive simulation with the prior <span class="math inline">\(\mu \sim \mathcal{N}(178, 20)\)</span></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>priorHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>priorHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(priorHowel_gte18, {</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fl">1e3</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  sim1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="fu">seq_len</span>(n)) <span class="sc">|&gt;</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">mean =</span> <span class="dv">178</span>, <span class="at">sd =</span> <span class="dv">20</span>),</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">sigma =</span> <span class="fu">runif</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">50</span>),</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">height =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma))</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>priorHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>priorHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(priorHowel_gte18, {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fl">1e3</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  sim1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="fu">seq_len</span>(n)) <span class="sc">|&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">mean =</span> <span class="dv">178</span>, <span class="at">sd =</span> <span class="dv">20</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">sigma =</span> <span class="fu">runif</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">50</span>),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">height =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma))</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and we do the prior predictive simulation with the prior <span class="math inline">\(\mu \sim \mathcal{N}(178, 100)\)</span></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>priorHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(priorHowel_gte18, {</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  sim2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id=</span><span class="fu">seq_len</span>(<span class="fl">1e4</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">mu =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">mean =</span> <span class="dv">178</span>, <span class="at">sd =</span> <span class="dv">100</span>),</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">sigma =</span> <span class="fu">runif</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">50</span>),</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">height =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma))</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>priorHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(priorHowel_gte18, {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  sim2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id=</span><span class="fu">seq_len</span>(<span class="fl">1e4</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">mu =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">mean =</span> <span class="dv">178</span>, <span class="at">sd =</span> <span class="dv">100</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">sigma =</span> <span class="fu">runif</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">50</span>),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">height =</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">mean =</span> mu, <span class="at">sd =</span> sigma))</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and we visualize using <code>ggplot</code>. We first create the 2 plots of analytical distribution plots</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>plotPrior <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>plotPrior<span class="sc">$</span>normal <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">mean =</span> <span class="dv">178</span>, <span class="at">sd =</span> <span class="dv">20</span>) <span class="sc">|&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  (\(.){</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="at">data=</span>.) <span class="sc">+</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_function</span>(<span class="at">fun=</span>dnorm, <span class="at">args=</span><span class="fu">list</span>(<span class="at">mean =</span> .<span class="sc">$</span>mean, <span class="at">sd =</span> .<span class="sc">$</span>sd),</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">color =</span> <span class="st">"olivedrab4"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(.<span class="sc">$</span>mean <span class="sc">-</span> <span class="dv">3</span> <span class="sc">*</span> .<span class="sc">$</span>sd, .<span class="sc">$</span>mean  <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> .<span class="sc">$</span>sd),</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">breaks =</span> scales<span class="sc">::</span><span class="fu">breaks_width</span>(<span class="at">width =</span> <span class="dv">25</span>)) <span class="sc">+</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">bquote</span>(mu <span class="sc">~</span> .(<span class="fu">sprintf</span>(<span class="st">"~ dnorm(%.0f, %.0f)"</span>, .<span class="sc">$</span>mean, .<span class="sc">$</span>sd))), </span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="st">"density"</span>) </span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  })()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plotPrior <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plotPrior<span class="sc">$</span>normal <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">mean =</span> <span class="dv">178</span>, <span class="at">sd =</span> <span class="dv">20</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  (\(.){</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="at">data=</span>.) <span class="sc">+</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_function</span>(<span class="at">fun=</span>dnorm, <span class="at">args=</span><span class="fu">list</span>(<span class="at">mean =</span> .<span class="sc">$</span>mean, <span class="at">sd =</span> .<span class="sc">$</span>sd),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">color =</span> <span class="st">"olivedrab4"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(.<span class="sc">$</span>mean <span class="sc">-</span> <span class="dv">3</span> <span class="sc">*</span> .<span class="sc">$</span>sd, .<span class="sc">$</span>mean  <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> .<span class="sc">$</span>sd),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">breaks =</span> scales<span class="sc">::</span><span class="fu">breaks_width</span>(<span class="at">width =</span> <span class="dv">25</span>)) <span class="sc">+</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">bquote</span>(mu <span class="sc">~</span> .(<span class="fu">sprintf</span>(<span class="st">"~ dnorm(%.0f, %.0f)"</span>, .<span class="sc">$</span>mean, .<span class="sc">$</span>sd))), </span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="st">"density"</span>) </span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  })()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 ℹ Please use `linewidth` instead.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotPrior$normal</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>plotPrior<span class="sc">$</span>uniform <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">50</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  (\(.){</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="at">data=</span>.) <span class="sc">+</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_function</span>(<span class="at">fun=</span>dunif, <span class="at">args=</span><span class="fu">list</span>(<span class="at">min=</span>.<span class="sc">$</span>min, <span class="at">max=</span>.<span class="sc">$</span>max),</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>                    <span class="at">color=</span><span class="st">"rosybrown2"</span>, <span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(.<span class="sc">$</span>min <span class="sc">-</span> <span class="dv">2</span>, .<span class="sc">$</span>max  <span class="sc">+</span> <span class="dv">2</span>),</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>                         <span class="at">breaks =</span> scales<span class="sc">::</span><span class="fu">breaks_width</span>(<span class="at">width=</span><span class="dv">10</span>)) <span class="sc">+</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">bquote</span>(mu <span class="sc">~</span> .(<span class="fu">sprintf</span>(<span class="st">"~ dunif(%.0f, %.0f)"</span>, .<span class="sc">$</span>min, .<span class="sc">$</span>max))), </span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">expression</span>(sigma), <span class="at">y =</span> <span class="st">"density"</span>)</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  })()</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co"># plotPrior$uniform</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotPrior$normal</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>plotPrior<span class="sc">$</span>uniform <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">50</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  (\(.){</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="at">data=</span>.) <span class="sc">+</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_function</span>(<span class="at">fun=</span>dunif, <span class="at">args=</span><span class="fu">list</span>(<span class="at">min=</span>.<span class="sc">$</span>min, <span class="at">max=</span>.<span class="sc">$</span>max),</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                    <span class="at">color=</span><span class="st">"rosybrown2"</span>, <span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(.<span class="sc">$</span>min <span class="sc">-</span> <span class="dv">2</span>, .<span class="sc">$</span>max  <span class="sc">+</span> <span class="dv">2</span>),</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                         <span class="at">breaks =</span> scales<span class="sc">::</span><span class="fu">breaks_width</span>(<span class="at">width=</span><span class="dv">10</span>)) <span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">bquote</span>(mu <span class="sc">~</span> .(<span class="fu">sprintf</span>(<span class="st">"~ dunif(%.0f, %.0f)"</span>, .<span class="sc">$</span>min, .<span class="sc">$</span>max))), </span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">expression</span>(sigma), <span class="at">y =</span> <span class="st">"density"</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  })()</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co"># plotPrior$uniform</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>we add the actual plot of height to the plots created by McElreath to facilitate the understanding of priors. McElreath suggests that priors should follows the scientific knowledge. See the interesting discussion at the end of section 4.3.2 on p.&nbsp;84.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>plotPrior <span class="ot">&lt;-</span> <span class="fu">within</span>(plotPrior, {</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the density of actual data used for comparisons</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  actual <span class="ot">&lt;-</span> </span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_density</span>(<span class="at">data =</span> dataHowel_gte18, <span class="fu">aes</span>(<span class="at">x =</span> height),</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">color =</span> <span class="st">"navy"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>plotPrior <span class="ot">&lt;-</span> <span class="fu">within</span>(plotPrior, {</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># </span><span class="al">NOTE</span><span class="co">: we use (\(.){})() with |&gt;</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># https://towardsdatascience.com/understanding-the-native-r-pipe-98dea6d8b61b</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  sim1 <span class="ot">&lt;-</span> priorHowel_gte18<span class="sc">$</span>sim1 <span class="sc">|&gt;</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  (\(.){</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="at">data =</span> ., <span class="fu">aes</span>(<span class="at">x =</span> height)) <span class="sc">+</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_density</span>(<span class="at">color =</span> <span class="st">"slateblue1"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.8</span>)) <span class="sc">+</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="fu">expression</span>(<span class="fu">paste</span>(<span class="st">"h ~ dnorm("</span>, mu, <span class="st">","</span>, sigma ,<span class="st">")"</span>)),</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">sprintf</span>(<span class="st">"sample size = %d"</span>, <span class="fu">nrow</span>(.)),</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">"quantile"</span>)})()</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  sim1 <span class="ot">&lt;-</span> sim1 <span class="sc">+</span> actual  <span class="co"># add the actual data (not in McElreath's curve)</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co"># plotPrior$sim1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the density of actual data used for comparisons</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  actual <span class="ot">&lt;-</span> </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_density</span>(<span class="at">data =</span> dataHowel_gte18, <span class="fu">aes</span>(<span class="at">x =</span> height),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">color =</span> <span class="st">"navy"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>plotPrior <span class="ot">&lt;-</span> <span class="fu">within</span>(plotPrior, {</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  sim2 <span class="ot">&lt;-</span> priorHowel_gte18<span class="sc">$</span>sim2 <span class="sc">|&gt;</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  (\(.){</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="at">data =</span> ., <span class="fu">aes</span>(<span class="at">x =</span> height)) <span class="sc">+</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_density</span>(<span class="at">color =</span> <span class="st">"peru"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>, <span class="at">color =</span> <span class="st">"navy"</span>) <span class="sc">+</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.8</span>)) <span class="sc">+</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="fu">expression</span>(<span class="fu">paste</span>(<span class="st">"h ~ dnorm("</span>, mu, <span class="st">","</span>, sigma ,<span class="st">")"</span>)),</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">sprintf</span>(<span class="st">"sample size = %d"</span>, <span class="fu">nrow</span>(.)),</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">"quantile"</span>)</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    })()</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  sim2 <span class="ot">&lt;-</span> sim2 <span class="sc">+</span> actual  <span class="co"># add the actual data (not in McElreath's curve)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># </span><span class="al">NOTE</span><span class="co">: we use (\(.){})() with |&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># https://towardsdatascience.com/understanding-the-native-r-pipe-98dea6d8b61b</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  sim1 <span class="ot">&lt;-</span> priorHowel_gte18<span class="sc">$</span>sim1 <span class="sc">|&gt;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  (\(.){</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="at">data =</span> ., <span class="fu">aes</span>(<span class="at">x =</span> height)) <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_density</span>(<span class="at">color =</span> <span class="st">"slateblue1"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.8</span>)) <span class="sc">+</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="fu">expression</span>(<span class="fu">paste</span>(<span class="st">"h ~ dnorm("</span>, mu, <span class="st">","</span>, sigma ,<span class="st">")"</span>)),</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">sprintf</span>(<span class="st">"sample size = %d"</span>, <span class="fu">nrow</span>(.)),</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">"quantile"</span>)})()</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  sim1 <span class="ot">&lt;-</span> sim1 <span class="sc">+</span> actual  <span class="co"># add the actual data (not in McElreath's curve)</span></span>
 <span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co"># plotPrior$sim2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co"># plotPrior$sim1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>plotPrior <span class="ot">&lt;-</span> <span class="fu">within</span>(plotPrior, {</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  sim2 <span class="ot">&lt;-</span> priorHowel_gte18<span class="sc">$</span>sim2 <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  (\(.){</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="at">data =</span> ., <span class="fu">aes</span>(<span class="at">x =</span> height)) <span class="sc">+</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_density</span>(<span class="at">color =</span> <span class="st">"peru"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>, <span class="at">color =</span> <span class="st">"navy"</span>) <span class="sc">+</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.8</span>)) <span class="sc">+</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="fu">expression</span>(<span class="fu">paste</span>(<span class="st">"h ~ dnorm("</span>, mu, <span class="st">","</span>, sigma ,<span class="st">")"</span>)),</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">sprintf</span>(<span class="st">"sample size = %d"</span>, <span class="fu">nrow</span>(.)),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">"quantile"</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    })()</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  sim2 <span class="ot">&lt;-</span> sim2 <span class="sc">+</span> actual  <span class="co"># add the actual data (not in McElreath's curve)</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co"># plotPrior$sim2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and putting the plots together with <code>patchwork</code> we obtain</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>patchwork<span class="sc">::</span><span class="fu">wrap_plots</span>(<span class="fu">list</span>(plotPrior<span class="sc">$</span>normal, plotPrior<span class="sc">$</span>uniform,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                           plotPrior<span class="sc">$</span>sim1, plotPrior<span class="sc">$</span>sim2)) <span class="sc">+</span> </span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Prior Predictive Simulation for the Height Model."</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>patchwork<span class="sc">::</span><span class="fu">wrap_plots</span>(<span class="fu">list</span>(plotPrior<span class="sc">$</span>normal, plotPrior<span class="sc">$</span>uniform,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                           plotPrior<span class="sc">$</span>sim1, plotPrior<span class="sc">$</span>sim2)) <span class="sc">+</span> </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Prior Predictive Simulation for the Height Model."</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="ch04_linear_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -621,15 +630,15 @@ h_i &amp;\sim \mathcal{N}(\mu, \sigma)\\
 <h3 data-number="4.3.3" class="anchored" data-anchor-id="grid-approximation-of-posterior-distribution"><span class="header-section-number">4.3.3</span> Grid approximation of posterior distribution</h3>
 <p>First create the grid.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create grid of mu and sigma</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(postHowel_gte18, {</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  ngrid <span class="ot">&lt;-</span> 200L</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  grid <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mu =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">140</span>, <span class="at">to =</span> <span class="dv">160</span>, <span class="at">length.out =</span> ngrid),</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">4</span>, <span class="at">to =</span> <span class="dv">9</span>, <span class="at">length.out =</span> ngrid)) <span class="sc">|&gt;</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expand</span>(mu, sigma)</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create grid of mu and sigma</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(postHowel_gte18, {</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  ngrid <span class="ot">&lt;-</span> 200L</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  grid <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mu =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">140</span>, <span class="at">to =</span> <span class="dv">160</span>, <span class="at">length.out =</span> ngrid),</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">4</span>, <span class="at">to =</span> <span class="dv">9</span>, <span class="at">length.out =</span> ngrid)) <span class="sc">|&gt;</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expand</span>(mu, sigma)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Then we calculate the likelihood. Since probabilities are percentage this causes a numerical issue as multiple multiplications of percentages will create very small numbers, so small in fact that they will be miscalculated.</p>
 <p>To resolve this problem, we use logarithms.</p>
@@ -656,20 +665,20 @@ P(\mu, \sigma \mid h) =
 \]</span></p>
 <p>as follows</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The likelihood on the log scale</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(postHowel_gte18, {</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  grid <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">LL =</span> <span class="fu">sapply</span>(</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">X =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(.)), </span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">FUN =</span> <span class="cf">function</span>(i) {</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sum</span>(<span class="fu">dnorm</span>(<span class="at">x =</span> dataHowel_gte18<span class="sc">$</span>height, </span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">mean =</span> grid<span class="sc">$</span>mu[i], </span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">sd =</span> grid<span class="sc">$</span>sigma[i], </span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">log =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        })</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(postHowel_gte18<span class="sc">$</span>grid)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The likelihood on the log scale</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(postHowel_gte18, {</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  grid <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">LL =</span> <span class="fu">sapply</span>(</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">X =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(.)), </span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">FUN =</span> <span class="cf">function</span>(i) {</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sum</span>(<span class="fu">dnorm</span>(<span class="at">x =</span> dataHowel_gte18<span class="sc">$</span>height, </span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">mean =</span> grid<span class="sc">$</span>mu[i], </span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">sd =</span> grid<span class="sc">$</span>sigma[i], </span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">log =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(postHowel_gte18<span class="sc">$</span>grid)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 40,000
 Columns: 3
@@ -687,13 +696,13 @@ $ LL    &lt;dbl&gt; -3812.776, -3777.627, -3743.158, -3709.350, -3676.189, -3643
 \]</span></p>
 <p>which we add to the likelihood to obtain the posterior distribution on the log scale</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add the priors to the likelihood  on the log scales to obtain the</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># log of the posterior</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>postHowel_gte18<span class="sc">$</span>grid <span class="ot">&lt;-</span> postHowel_gte18<span class="sc">$</span>grid <span class="sc">|&gt;</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">prob =</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>           LL <span class="sc">+</span> </span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>           <span class="fu">dnorm</span>(<span class="at">x =</span> mu, <span class="at">mean =</span> <span class="dv">178</span>, <span class="at">sd =</span> <span class="dv">20</span>, <span class="at">log =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>           <span class="fu">dunif</span>(<span class="at">x =</span> sigma, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">50</span>, <span class="at">log =</span> <span class="cn">TRUE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add the priors to the likelihood  on the log scales to obtain the</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co"># log of the posterior</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>postHowel_gte18<span class="sc">$</span>grid <span class="ot">&lt;-</span> postHowel_gte18<span class="sc">$</span>grid <span class="sc">|&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">prob =</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>           LL <span class="sc">+</span> </span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>           <span class="fu">dnorm</span>(<span class="at">x =</span> mu, <span class="at">mean =</span> <span class="dv">178</span>, <span class="at">sd =</span> <span class="dv">20</span>, <span class="at">log =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>           <span class="fu">dunif</span>(<span class="at">x =</span> sigma, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">50</span>, <span class="at">log =</span> <span class="cn">TRUE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and to convert the posterior back to the natural scale we exponentiate. The usage of <code>max(the_grid$post)</code> is explained in endnote 73. It is basically used as an approximation to what would be the denominator of the likelihood.</p>
 <p><span class="math display">\[
@@ -706,24 +715,24 @@ $ LL    &lt;dbl&gt; -3812.776, -3777.627, -3743.158, -3709.350, -3676.189, -3643
 \exp{\left[\log{P(\mu, \sigma \mid h)}\right]} = P(\mu, \sigma \mid h)
 \]</span></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># convert back to real scale</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co"># attention: see endnote 73 on using max(prob)</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(postHowel_gte18, {</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  grid<span class="sc">$</span>prob <span class="ot">&lt;-</span> <span class="fu">with</span>(grid, {<span class="fu">exp</span>(prob <span class="sc">-</span> <span class="fu">max</span>(prob))})</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># convert back to real scale</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co"># attention: see endnote 73 on using max(prob)</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(postHowel_gte18, {</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  grid<span class="sc">$</span>prob <span class="ot">&lt;-</span> <span class="fu">with</span>(grid, {<span class="fu">exp</span>(prob <span class="sc">-</span> <span class="fu">max</span>(prob))})</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>plot the results on a heatmap</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plotPost <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>heat <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> postHowel_gte18<span class="sc">$</span>grid, <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma, <span class="at">fill =</span> prob)) <span class="sc">+</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">153</span>, <span class="dv">156</span>)) <span class="sc">+</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="fl">6.5</span>, <span class="dv">9</span>)) <span class="sc">+</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_paletteer_c</span>(<span class="st">"grDevices::Viridis"</span>) <span class="sc">+</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The grid's posterior prob."</span>,</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="fu">expression</span>(sigma))</span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>heat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>plotPost <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>heat <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> postHowel_gte18<span class="sc">$</span>grid, <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma, <span class="at">fill =</span> prob)) <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">153</span>, <span class="dv">156</span>)) <span class="sc">+</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="fl">6.5</span>, <span class="dv">9</span>)) <span class="sc">+</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_paletteer_c</span>(<span class="st">"grDevices::Viridis"</span>) <span class="sc">+</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The grid's posterior prob."</span>,</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="fu">expression</span>(sigma))</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>heat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 37129 rows containing missing values (`geom_raster()`).</code></pre>
 </div>
@@ -735,23 +744,23 @@ $ LL    &lt;dbl&gt; -3812.776, -3777.627, -3743.158, -3709.350, -3676.189, -3643
 <section id="sampling-from-the-grids-posterior" class="level3" data-number="4.3.4">
 <h3 data-number="4.3.4" class="anchored" data-anchor-id="sampling-from-the-grids-posterior"><span class="header-section-number">4.3.4</span> Sampling from the grid’s posterior</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>postHowel_gte18<span class="sc">$</span>draws <span class="ot">&lt;-</span> postHowel_gte18<span class="sc">$</span>grid <span class="sc">|&gt;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="fl">1e4</span>, <span class="at">weight_by =</span> prob, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>postHowel_gte18<span class="sc">$</span>draws <span class="ot">&lt;-</span> postHowel_gte18<span class="sc">$</span>grid <span class="sc">|&gt;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="fl">1e4</span>, <span class="at">weight_by =</span> prob, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>and visualizing the density of <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> together using <code>ggExtra</code></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>marg <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> postHowel_gte18<span class="sc">$</span>draws, </span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma)) <span class="sc">+</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"mediumorchid"</span>, <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">color =</span> <span class="st">"mediumorchid"</span>, <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">expression</span>(<span class="st">"Distribution of"</span> <span class="sc">~</span> mu <span class="sc">~</span><span class="st">"and"</span> <span class="sc">~</span> sigma <span class="sc">~</span> <span class="st">" using a grid."</span>),</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="fu">expression</span>(sigma))</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>marg <span class="ot">&lt;-</span> ggExtra<span class="sc">::</span><span class="fu">ggMarginal</span>(plotPost<span class="sc">$</span>marg, </span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">xparams =</span> <span class="fu">list</span>(<span class="at">colour =</span> <span class="st">"blue"</span>, <span class="at">fill =</span> <span class="st">"lightblue"</span>, </span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">linewidth =</span> <span class="dv">1</span>),</span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">yparams =</span> <span class="fu">list</span>(<span class="at">colour=</span><span class="st">"darkgreen"</span>, <span class="at">fill =</span> <span class="st">"lightgreen"</span>, </span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">linewidth =</span> <span class="dv">1</span>))</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>marg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>marg <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> postHowel_gte18<span class="sc">$</span>draws, </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma)) <span class="sc">+</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"mediumorchid"</span>, <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">color =</span> <span class="st">"mediumorchid"</span>, <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">expression</span>(<span class="st">"Distribution of"</span> <span class="sc">~</span> mu <span class="sc">~</span><span class="st">"and"</span> <span class="sc">~</span> sigma <span class="sc">~</span> <span class="st">" using a grid."</span>),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="fu">expression</span>(sigma))</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>marg <span class="ot">&lt;-</span> ggExtra<span class="sc">::</span><span class="fu">ggMarginal</span>(plotPost<span class="sc">$</span>marg, </span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">xparams =</span> <span class="fu">list</span>(<span class="at">colour =</span> <span class="st">"blue"</span>, <span class="at">fill =</span> <span class="st">"lightblue"</span>, </span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">linewidth =</span> <span class="dv">1</span>),</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">yparams =</span> <span class="fu">list</span>(<span class="at">colour=</span><span class="st">"darkgreen"</span>, <span class="at">fill =</span> <span class="st">"lightgreen"</span>, </span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">linewidth =</span> <span class="dv">1</span>))</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>marg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="ch04_linear_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -775,22 +784,22 @@ h_i &amp;\sim \mathcal{N}(\mu, \sigma)\\
 \]</span></p>
 <p>and the fit is</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>fit04_01quap <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>(</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    {rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> dataHowel_gte18,</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">flist =</span> <span class="fu">alist</span>(</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>        height <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>        mu <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">178</span>, <span class="dv">28</span>),</span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dunif</span>(<span class="dv">0</span>, <span class="dv">50</span>)),</span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">start =</span> <span class="fu">list</span>(</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">mu  =</span> <span class="fu">mean</span>(dataHowel_gte18<span class="sc">$</span>height),</span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">sigma =</span> <span class="fu">sd</span>(dataHowel_gte18<span class="sc">$</span>height))</span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>      )},</span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_01quap"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>fit04_01quap <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>(</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    {rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> dataHowel_gte18,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>        height <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>        mu <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">178</span>, <span class="dv">28</span>),</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dunif</span>(<span class="dv">0</span>, <span class="dv">50</span>)),</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">start =</span> <span class="fu">list</span>(</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">mu  =</span> <span class="fu">mean</span>(dataHowel_gte18<span class="sc">$</span>height),</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">sigma =</span> <span class="fu">sd</span>(dataHowel_gte18<span class="sc">$</span>height))</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>      )},</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_01quap"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>which gives us the summary</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">precis</span>(fit04_01quap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">precis</span>(fit04_01quap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>            mean        sd       5.5%      94.5%
 mu    154.602156 0.4120367 153.943642 155.260671
@@ -799,8 +808,8 @@ sigma   7.731328 0.2913854   7.265637   8.197018</code></pre>
 </div>
 <p>and the variance covariance matrix is</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vcov</span>(fit04_01quap) <span class="sc">|&gt;</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="at">digits =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vcov</span>(fit04_01quap) <span class="sc">|&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="at">digits =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        mu sigma
 mu    0.17 0.000
@@ -809,7 +818,7 @@ sigma 0.00 0.085</code></pre>
 </div>
 <p>and the correlation matrix</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cov2cor</span>(<span class="fu">vcov</span>(fit04_01quap))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cov2cor</span>(<span class="fu">vcov</span>(fit04_01quap))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>              mu      sigma
 mu    1.00000000 0.00092618
@@ -834,30 +843,30 @@ h_i &amp;\sim \mathcal{N}(\mu, \sigma)\\
 </blockquote>
 <p>This process takes less than a second. It has been save to the rsd file <code>b04_01.rds</code></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"60 secs."</span>))</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>fit04_01brm <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  brms<span class="sc">::</span><span class="fu">brm</span>(<span class="at">data =</span> dataHowel_gte18,</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">formula =</span> height <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">family =</span> gaussian,</span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">178</span>, <span class="dv">20</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="fu">detectCores</span>(),</span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">seed =</span> <span class="dv">4</span>)},</span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_01brm"</span>)</span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"60 secs."</span>))</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>fit04_01brm <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  brms<span class="sc">::</span><span class="fu">brm</span>(<span class="at">data =</span> dataHowel_gte18,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">formula =</span> height <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">family =</span> gaussian,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">178</span>, <span class="dv">20</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="fu">detectCores</span>(),</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">seed =</span> <span class="dv">4</span>)},</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_01brm"</span>)</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.13 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.12 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit04_01brm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit04_01brm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="ch04_linear_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>with the summary</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit04_01brm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit04_01brm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
   Links: mu = identity; sigma = identity 
@@ -881,15 +890,15 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <p>which can also be done with <code>tidybayes::summarize_draws</code> which comes from the <code>posterior</code> package.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># normally we only use summarise_draws() but here we change it to match </span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the width of 0.89</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>tidybayes<span class="sc">::</span><span class="fu">summarise_draws</span>(fit04_01brm, mean, median, sd, mad, </span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>                           <span class="sc">~</span><span class="fu">quantile2</span>(.x, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># normally we only use summarise_draws() but here we change it to match </span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the width of 0.89</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>tidybayes<span class="sc">::</span><span class="fu">summarise_draws</span>(fit04_01brm, mean, median, sd, mad, </span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>                           <span class="sc">~</span><span class="fu">quantile2</span>(.x, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 7
   variable        mean   median    sd   mad     q5.5    q94.5
-  &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+  &lt;chr&gt;          &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
 1 b_Intercept   155.     155.    0.42  0.42   154.     155.  
 2 sigma           7.74     7.73  0.28  0.28     7.31     8.22
 3 lprior         -9.16    -9.16  0.08  0.08    -9.29    -9.04
@@ -898,7 +907,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <p>and to plot the posteriors we need to know the names of the variables</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>tidybayes<span class="sc">::</span><span class="fu">get_variables</span>(fit04_01brm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>tidybayes<span class="sc">::</span><span class="fu">get_variables</span>(fit04_01brm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "b_Intercept"   "sigma"         "lprior"        "lp__"         
  [5] "accept_stat__" "stepsize__"    "treedepth__"   "n_leapfrog__" 
@@ -909,30 +918,26 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>In particular, we can use <code>tidybayes::spread_draws()</code> to put variables in separate columns or <code>tidybayes::gather_draws()</code> to have them in long format.</p>
 <p>We can visualize with <code>ggdist</code>. it could be done with <code>tidybayes</code> but since <code>tidybayes</code> reexport <code>ggdist</code> we use it directly.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>post04_01brm <span class="ot">&lt;-</span> fit04_01brm <span class="sc">|&gt;</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gather_draws</span>(b_Intercept, sigma, <span class="at">ndraws =</span> <span class="dv">500</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>post04_01brm <span class="ot">&lt;-</span> fit04_01brm <span class="sc">|&gt;</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gather_draws</span>(b_Intercept, sigma, <span class="at">ndraws =</span> <span class="dv">500</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># source: https://cran.r-project.org/web/packages/ggdist/vignettes/slabinterval.html</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>plot04_01 <span class="ot">&lt;-</span> post04_01brm <span class="sc">|&gt;</span></span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> .value)) <span class="sc">+</span></span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stat_halfeye</span>(<span class="fu">aes</span>(<span class="at">fill =</span> <span class="fu">stat</span>(level)), <span class="at">.width =</span> <span class="fu">c</span>(<span class="fl">0.89</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> scales<span class="sc">::</span><span class="fu">breaks_extended</span>(<span class="at">n =</span> <span class="dv">7</span>),</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">accuracy =</span> <span class="fl">0.1</span>)) <span class="sc">+</span></span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_percent</span>()) <span class="sc">+</span></span>
-<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_paletteer_d</span>(<span class="at">palette =</span> <span class="st">"ggsci::teal_material"</span>,</span>
-<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>                           <span class="at">na.translate =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Model 4.1: Posterior Distribution of Parameters"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(. <span class="sc">~</span> .variable, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free"</span>)</span>
-<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>plot04_01</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># source: https://cran.r-project.org/web/packages/ggdist/vignettes/slabinterval.html</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>plot04_01 <span class="ot">&lt;-</span> post04_01brm <span class="sc">|&gt;</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> .value)) <span class="sc">+</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stat_halfeye</span>(<span class="fu">aes</span>(<span class="at">fill =</span> <span class="fu">stat</span>(level)), <span class="at">.width =</span> <span class="fu">c</span>(<span class="fl">0.89</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> scales<span class="sc">::</span><span class="fu">breaks_extended</span>(<span class="at">n =</span> <span class="dv">7</span>),</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">accuracy =</span> <span class="fl">0.1</span>)) <span class="sc">+</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_percent</span>()) <span class="sc">+</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_paletteer_d</span>(<span class="at">palette =</span> <span class="st">"ggsci::teal_material"</span>,</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>                           <span class="at">na.translate =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Model 4.1: Posterior Distribution of Parameters"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(. <span class="sc">~</span> .variable, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free"</span>)</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>plot04_01</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: `stat(level)` was deprecated in ggplot2 3.4.0.
 ℹ Please use `after_stat(level)` instead.</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using the `size` aesthietic with geom_segment was deprecated in ggplot2 3.4.0.
-ℹ Please use the `linewidth` aesthetic instead.</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="ch04_linear_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid" width="672"></p>
@@ -973,8 +978,8 @@ sigma 0.001 1.000</code></pre>
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">precis</span>(post04_01m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>            mean        sd       5.5%      94.5%     histogram
-mu    154.598279 0.4118925 153.947571 155.254286       ▁▁▅▇▂▁▁
-sigma   7.727522 0.2912982   7.265727   8.195067 ▁▁▁▁▂▅▇▇▃▁▁▁▁</code></pre>
+mu    154.605949 0.4143156 153.943613 155.267586      ▁▁▁▅▇▂▁▁
+sigma   7.729738 0.2934334   7.260654   8.199132 ▁▁▁▁▂▅▇▇▃▁▁▁▁</code></pre>
 </div>
 </div>
 </section>
@@ -1146,7 +1151,7 @@ h_i &amp;\sim \mathcal{N}(\mu_i, \sigma)\\
 <span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_03quap"</span>)</span>
 <span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0 sec elapsed</code></pre>
+<pre><code>0.01 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1191,7 +1196,7 @@ h_i &amp;\sim \mathcal{N}(\mu_i, \sigma)\\
 <span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_03brm"</span>)</span>
 <span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.14 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.18 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1199,14 +1204,13 @@ h_i &amp;\sim \mathcal{N}(\mu_i, \sigma)\\
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols=</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 10
-  variable       mean  median    sd   mad      q5     q95  rhat ess_bulk ess_t…¹
-  &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;
-1 b_Intercept   155.    155.    0.3   0.3   154.    155       1    7975.   6010 
-2 b_weight_c      0.9     0.9   0     0       0.8     1       1    8445.   6252.
-3 sigma           5.1     5.1   0.2   0.2     4.8     5.4     1    8724.   6149.
-4 lprior        -10.3   -10.3   0.2   0.2   -10.7   -10       1    8914.   5907.
-5 lp__        -1082.  -1081.    1.2   1   -1084.  -1080.      1    4250    5606.
-# … with abbreviated variable name ¹​ess_tail</code></pre>
+  variable      mean  median    sd   mad      q5     q95  rhat ess_bulk ess_tail
+  &lt;chr&gt;        &lt;num&gt;   &lt;num&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;   &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+1 b_Interce…   155.    155.    0.3   0.3   154.    155       1    7975.    6010 
+2 b_weight_c     0.9     0.9   0     0       0.8     1       1    8445.    6252.
+3 sigma          5.1     5.1   0.2   0.2     4.8     5.4     1    8724.    6149.
+4 lprior       -10.3   -10.3   0.2   0.2   -10.7   -10       1    8914.    5907.
+5 lp__       -1082.  -1081.    1.2   1   -1084.  -1080.      1    4250     5606.</code></pre>
 </div>
 </div>
 </section>
@@ -1250,7 +1254,7 @@ $ weight_c &lt;dbl&gt; 2.835121, -8.504679, -13.125648, 8.051429, -3.713614, 18.
 <span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_03brm_b"</span>)</span>
 <span id="cb69-14"><a href="#cb69-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.16 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.19 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1258,14 +1262,14 @@ $ weight_c &lt;dbl&gt; 2.835121, -8.504679, -13.125648, 8.051429, -3.713614, 18.
 <span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 10
-  variable     mean   median    sd   mad       q5      q95  rhat ess_b…¹ ess_t…²
-  &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-1 b_a_Int…   155.     155.    0.27  0.27   154.     155.       1   4611.   2999.
-2 b_lb_In…    -0.1     -0.1   0.05  0.05    -0.18    -0.03     1   4525.   2684.
-3 sigma        5.07     5.07  0.19  0.19     4.77     5.39     1   5388.   3104.
-4 lprior     -10.6    -10.6   0.19  0.19   -10.9    -10.3      1   5224.   2984.
-5 lp__     -1081.   -1081.    1.24  0.95 -1084.   -1080.       1   2134.   2769.
-# … with abbreviated variable names ¹​ess_bulk, ²​ess_tail</code></pre>
+  variable           mean   median    sd   mad       q5      q95  rhat ess_bulk
+  &lt;chr&gt;             &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt; &lt;num&gt;    &lt;num&gt;
+1 b_a_Intercept    155.     155.    0.27  0.27   154.     155.       1    4611.
+2 b_lb_Intercept    -0.1     -0.1   0.05  0.05    -0.18    -0.03     1    4525.
+3 sigma              5.07     5.07  0.19  0.19     4.77     5.39     1    5388.
+4 lprior           -10.6    -10.6   0.19  0.19   -10.9    -10.3      1    5224.
+5 lp__           -1081.   -1081.    1.24  0.95 -1084.   -1080.       1    2134.
+# ℹ 1 more variable: ess_tail &lt;num&gt;</code></pre>
 </div>
 </div>
 </section>
@@ -1304,16 +1308,15 @@ b     0.000 0.000 0.002</code></pre>
 <span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">where</span>(is.numeric), <span class="at">.fns =</span> round, <span class="at">digits =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 15
-  variable     mean   median    sd   mad     q5.5    q94.5  rhat ess_b…¹ ess_t…²
-  &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-1 b_Inter…   155.     155.    0.27  0.27   154.     155.       1   7975.   6010.
-2 b_weigh…     0.9      0.9   0.04  0.04     0.84     0.97     1   8445.   6252.
-3 sigma        5.07     5.06  0.19  0.19     4.77     5.38     1   8724.   6149.
-4 lprior     -10.3    -10.3   0.19  0.19   -10.7    -10.0      1   8915.   5907.
-5 lp__     -1082.   -1081.    1.22  0.98 -1084.   -1080.       1   4250.   5606.
-# … with 5 more variables: mcse_mean &lt;dbl&gt;, mcse_median &lt;dbl&gt;, mcse_sd &lt;dbl&gt;,
-#   mcse_q5 &lt;dbl&gt;, mcse_q95 &lt;dbl&gt;, and abbreviated variable names ¹​ess_bulk,
-#   ²​ess_tail</code></pre>
+  variable        mean   median    sd   mad     q5.5    q94.5  rhat ess_bulk
+  &lt;chr&gt;          &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt; &lt;num&gt;    &lt;num&gt;
+1 b_Intercept   155.     155.    0.27  0.27   154.     155.       1    7975.
+2 b_weight_c      0.9      0.9   0.04  0.04     0.84     0.97     1    8445.
+3 sigma           5.07     5.06  0.19  0.19     4.77     5.38     1    8724.
+4 lprior        -10.3    -10.3   0.19  0.19   -10.7    -10.0      1    8915.
+5 lp__        -1082.   -1081.    1.22  0.98 -1084.   -1080.       1    4250.
+# ℹ 6 more variables: ess_tail &lt;num&gt;, mcse_mean &lt;num&gt;, mcse_median &lt;num&gt;,
+#   mcse_sd &lt;num&gt;, mcse_q5 &lt;num&gt;, mcse_q95 &lt;num&gt;</code></pre>
 </div>
 </div>
 <p>we get the varcov matrix as follows</p>
@@ -1513,12 +1516,12 @@ h_i &amp;\sim \mathcal{N}(\mu_i, \sigma)\\
 \end{align*}
 \]</span></p>
 <p>https://discourse.mc-stan.org/t/error-with-gamma-prior/16420</p>
-<div class="callout-warning callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Warning
 </div>
 </div>
@@ -1541,7 +1544,7 @@ Warning
 <span id="cb99-12"><a href="#cb99-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_05brm"</span>)</span>
 <span id="cb99-13"><a href="#cb99-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.2 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1551,7 +1554,7 @@ Warning
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 10
   variable      mean median    sd   mad     q5    q95  rhat ess_bulk ess_tail
-  &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+  &lt;chr&gt;        &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt;  &lt;num&gt;  &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
 1 b_Intercept 146.   146.    0.37  0.37 145.   147.       1    6914.    5892.
 2 b_weight_s   21.7   21.7   0.29  0.29  21.2   22.2      1    6999.    5915.
 3 b_weight_s2  -7.8   -7.8   0.27  0.28  -8.25  -7.35     1    6755.    6110.
@@ -1658,7 +1661,7 @@ weight_s2    -7.80      0.27  -8.33  -7.26</code></pre>
 <span id="cb113-3"><a href="#cb113-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(cherry_blossoms)</span>
 <span id="cb113-4"><a href="#cb113-4" aria-hidden="true" tabindex="-1"></a>dataCherry <span class="sc">|&gt;</span> skimr<span class="sc">::</span><span class="fu">skim</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <caption>Data summary</caption>
 <tbody>
 <tr class="odd">
@@ -1696,7 +1699,7 @@ weight_s2    -7.80      0.27  -8.33  -7.26</code></pre>
 </tbody>
 </table>
 <p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped small">
 <colgroup>
 <col style="width: 14%">
 <col style="width: 10%">
@@ -1898,7 +1901,7 @@ w_j &amp;\sim \mathcal{N}(0, 10) \\
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 20 × 10
    variable     mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail
-   &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+   &lt;chr&gt;       &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
  1 b_Intercept 104.   104.    2.4   2.4  99.3 108.      1     657.    1083.
  2 b_B1         -3.1   -3.1   3.9   3.9  -9.5   3.2     1    1472     2103.
  3 b_B2         -1     -1.1   3.9   4    -7.6   5.4     1    1512.    2289.
@@ -1988,17 +1991,6 @@ w_j &amp;\sim \mathcal{N}(0, 10) \\
 <span id="cb129-12"><a href="#cb129-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Figure 4.12"</span>,<span class="at">x =</span> <span class="st">"year"</span>, <span class="at">y =</span> <span class="st">"doy"</span>)</span>
 <span id="cb129-13"><a href="#cb129-13" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb129-14"><a href="#cb129-14" aria-hidden="true" tabindex="-1"></a>plot04_08brm<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using the `size` aesthietic with geom_ribbon was deprecated in ggplot2 3.4.0.
-ℹ Please use the `linewidth` aesthetic instead.</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Unknown or uninitialised column: `linewidth`.</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using the `size` aesthietic with geom_line was deprecated in ggplot2 3.4.0.
-ℹ Please use the `linewidth` aesthetic instead.</code></pre>
-</div>
 <div class="cell-output-display">
 <p><img src="ch04_linear_files/figure-html/unnamed-chunk-75-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -2015,8 +2007,8 @@ w_j &amp;\sim \mathcal{N}(0, 10) \\
 <p>This was an important chapter. Most of the plots and basic coding tools are exemplified here. It is an important reference chapter. The <code>brms</code> package will be exclusively used from now on.</p>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography" style="display: none">
-<div id="ref-kurtz2020b" class="csl-entry" role="doc-biblioentry">
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-kurtz2020b" class="csl-entry" role="listitem">
 Kurz, Solomon. 2020. <em>Statistical Rethinking with Brms</em>. 2nd ed. <a href="https://bookdown.org/content/4857/">https://bookdown.org/content/4857/</a>.
 </div>
 </div>
@@ -2050,9 +2042,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -2064,7 +2070,24 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     button.classList.add('code-copy-button-checked');
     var currentTitle = button.getAttribute("title");
     button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
     setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
       button.setAttribute("title", currentTitle);
       button.classList.remove('code-copy-button-checked');
     }, 1000);
@@ -2100,24 +2123,128 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
   var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
-    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-    tippyHover(ref, function() {
-      var popup = window.document.createElement('div');
-      cites.forEach(function(cite) {
-        var citeDiv = window.document.createElement('div');
-        citeDiv.classList.add('hanging-indent');
-        citeDiv.classList.add('csl-entry');
-        var biblioDiv = window.document.getElementById('ref-' + cite);
-        if (biblioDiv) {
-          citeDiv.innerHTML = biblioDiv.innerHTML;
-        }
-        popup.appendChild(citeDiv);
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
       });
-      return popup.innerHTML;
-    });
+    }
   }
 });
 </script>
