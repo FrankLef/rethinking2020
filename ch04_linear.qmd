@@ -1,6 +1,6 @@
 # Linear Models {#linear}
 
-```{r }
+```{r}
 #| include: false
 library(assertthat)
 library(rethinking)
@@ -35,8 +35,6 @@ The default theme used by `ggplot2`
 ggplot2::theme_set(ggdist::theme_ggdist())
 ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
-
-
 
 ## Why normal distributions are normal
 
@@ -132,8 +130,7 @@ priorHowel_gte18 <- within(priorHowel_gte18, {
   })
 ```
 
-and we visualize using `ggplot`. We first create the 2 plots of 
-analytical distribution plots
+and we visualize using `ggplot`. We first create the 2 plots of analytical distribution plots
 
 ```{r}
 plotPrior <- list()
@@ -162,10 +159,7 @@ plotPrior$uniform <- data.frame(min = 0, max = 50) |>
 # plotPrior$uniform
 ```
 
-we add the actual plot of height to the plots created by McElreath to facilitate
-the understanding of priors. McElreath suggests that priors should follows the
-scientific knowledge. See the interesting discussion at the end of section 4.3.2
-on p. 84.
+we add the actual plot of height to the plots created by McElreath to facilitate the understanding of priors. McElreath suggests that priors should follows the scientific knowledge. See the interesting discussion at the end of section 4.3.2 on p. 84.
 
 ```{r}
 plotPrior <- within(plotPrior, {
@@ -175,8 +169,6 @@ plotPrior <- within(plotPrior, {
                    color = "navy", linewidth = 1, linetype = "dashed")
 })
 ```
-
-
 
 ```{r}
 plotPrior <- within(plotPrior, {
@@ -240,9 +232,7 @@ postHowel_gte18 <- within(postHowel_gte18, {
   })
 ```
 
-Then we calculate the likelihood. Since probabilities are percentage this 
-causes a numerical issue as multiple multiplications of percentages 
-will create very small numbers, so small in fact that they will be miscalculated.
+Then we calculate the likelihood. Since probabilities are percentage this causes a numerical issue as multiple multiplications of percentages will create very small numbers, so small in fact that they will be miscalculated.
 
 To resolve this problem, we use logarithms.
 
@@ -264,14 +254,13 @@ $$
 \sum_{i=1}^n \left[ \log{\mathcal{N}(y_i \mid \mu, \sigma)} +
  \log{\mathcal{N}(\mu \mid mean = 0, sd = 10)} +
  \log{\mathcal{U}(\sigma | min = 0, max = 10)} \right]
-$$ 
+$$
 
-and to compute the posterior distribution we compute the likelihood which is 
-the first element of the addition
+and to compute the posterior distribution we compute the likelihood which is the first element of the addition
 
 $$
 \sum_{i=1}^n \log{\mathcal{N}(y_i \mid \mu, \sigma)}
-$$ 
+$$
 
 as follows
 
@@ -299,7 +288,7 @@ $$
  \log{\mathcal{N}(\mu \mid mean = 0, sd = 10)} +
  \log{\mathcal{U}(\sigma | min = 0, max = 10)} 
  \right]
-$$ 
+$$
 
 which we add to the likelihood to obtain the posterior distribution on the log scale
 
@@ -313,10 +302,7 @@ postHowel_gte18$grid <- postHowel_gte18$grid |>
            dunif(x = sigma, min = 0, max = 50, log = TRUE))
 ```
 
-and to convert the posterior back to the natural scale we exponentiate.
-The usage of `max(the_grid$post)` is explained in endnote 73. 
-It is basically used as an approximation to what would be the denominator 
-of the likelihood.
+and to convert the posterior back to the natural scale we exponentiate. The usage of `max(the_grid$post)` is explained in endnote 73. It is basically used as an approximation to what would be the denominator of the likelihood.
 
 $$
 \sum_{i=1}^n \left[
@@ -376,7 +362,6 @@ plotPost$marg <- ggExtra::ggMarginal(plotPost$marg,
 plotPost$marg
 ```
 
-
 ### Finding the posterior distribution with `quap` and `brm()`
 
 #### using `rethinking::map`
@@ -411,7 +396,6 @@ fit04_01quap <- xfun::cache_rds(
       )},
   file = "ch04_fit04_01quap")
 ```
-
 
 which gives us the summary
 
@@ -466,7 +450,6 @@ fit04_01brm <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r}
 plot(fit04_01brm)
 ```
@@ -477,8 +460,7 @@ with the summary
 summary(fit04_01brm)
 ```
 
-which can also be done with `tidybayes::summarize_draws` which comes from the
-`posterior` package.
+which can also be done with `tidybayes::summarize_draws` which comes from the `posterior` package.
 
 ```{r}
 # normally we only use summarise_draws() but here we change it to match 
@@ -488,30 +470,22 @@ tidybayes::summarise_draws(fit04_01brm, mean, median, sd, mad,
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
-
-
 and to plot the posteriors we need to know the names of the variables
 
 ```{r}
 tidybayes::get_variables(fit04_01brm)
 ```
 
-and we spread the data with one column per variable to be able to plot it. 
-The `tidybayes` package is particularly useful for this. 
-We will use it extensively from now on.
+and we spread the data with one column per variable to be able to plot it. The `tidybayes` package is particularly useful for this. We will use it extensively from now on.
 
-In particular, we can use `tidybayes::spread_draws()` to put variables in 
-separate columns or `tidybayes::gather_draws()` to have them in long format.
+In particular, we can use `tidybayes::spread_draws()` to put variables in separate columns or `tidybayes::gather_draws()` to have them in long format.
 
-We can visualize with `ggdist`. it could be done with `tidybayes` but since 
-`tidybayes` reexport `ggdist` we use it directly.
+We can visualize with `ggdist`. it could be done with `tidybayes` but since `tidybayes` reexport `ggdist` we use it directly.
 
 ```{r ch04_post04_01brm}
 post04_01brm <- fit04_01brm |>
     gather_draws(b_Intercept, sigma, ndraws = 500)
 ```
-
-
 
 ```{r}
 # source: https://cran.r-project.org/web/packages/ggdist/vignettes/slabinterval.html
@@ -535,8 +509,7 @@ plot04_01
 
 Since `quap` is a quadratic approximation, how do we simulate 2 variables, $\mu$ and $\sigma$?
 
-Simply `quap` gives us the variance covariance. Therefore `quap` can be used 
-to simulation the bivariate normal distribution of $\mu$ and $\sigma$
+Simply `quap` gives us the variance covariance. Therefore `quap` can be used to simulation the bivariate normal distribution of $\mu$ and $\sigma$
 
 ```{r}
 vcov(fit04_01quap)
@@ -563,8 +536,7 @@ precis(post04_01m)
 
 #### Using `brm`
 
-Using `brm` however we are not given the variance covariance, it is only 
-available for the intercept (first-level parameter)
+Using `brm` however we are not given the variance covariance, it is only available for the intercept (first-level parameter)
 
 ```{r}
 vcov(fit04_01brm)
@@ -579,9 +551,7 @@ cor(post04_01b[, c("b_Intercept", "sigma")]) |>
   round(digits = 3)
 ```
 
-> See comment from @kurtz2020b at end of section 4.3.6 to explain that 
-McElreath uses `mvnorm()` from `MASS` to simulate using the varcov whereas with 
-`brms::tidy_draws()` we do it directly.
+> See comment from @kurtz2020b at end of section 4.3.6 to explain that McElreath uses `mvnorm()` from `MASS` to simulate using the varcov whereas with `brms::tidy_draws()` we do it directly.
 
 Also @kurtz2020b has a nice discussion on how to create summary with histogram.
 
@@ -603,7 +573,7 @@ $$
 
 $$
 h_i \sim \mathcal{N}(\mu_i, \sigma)
-$$ 
+$$
 
 #### Linear model
 
@@ -650,13 +620,9 @@ ggplot(priorHeights$sim, aes(x = weight, y = height, group = id)) +
 
 ##### Adjusting the priors
 
-Since we know that the effect ($\beta$) of the weight on height, 
-i.e. the relation between the 2 should be positive and very large value 
-unlikely we can use the *log-normal* as a prior on $beta$.
+Since we know that the effect ($\beta$) of the weight on height, i.e. the relation between the 2 should be positive and very large value unlikely we can use the *log-normal* as a prior on $beta$.
 
-In addition, sigma can also very often be better modeled with the exponential
-or HalfCauchy distribution. See section 9.5.3 in the text. 
-We will use the exponential distribution for $\sigma$ in this work.
+In addition, sigma can also very often be better modeled with the exponential or HalfCauchy distribution. See section 9.5.3 in the text. We will use the exponential distribution for $\sigma$ in this work.
 
 ```{r}
 priorHeights <- within(priorHeights, {
@@ -713,9 +679,7 @@ dataHowel_gte18 <- dataHowel_gte18 |>
 
 then get the fit using `rethinking::quap`
 
-> Giving start values to `quap` seem to help it significantly and avoiding error, 
-at least when using b \~ dlnorm(0, 1).
-
+> Giving start values to `quap` seem to help it significantly and avoiding error, at least when using b \~ dlnorm(0, 1).
 
 ```{r ch04_fit04_03quap}
 tictoc::tic()
@@ -796,7 +760,6 @@ $$
 glimpse(dataHowel_gte18)
 ```
 
-
 ```{r ch04_fit04_03brm_b}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit04_03brm_b <- xfun::cache_rds({
@@ -823,9 +786,7 @@ summarize_draws(fit04_03brm_b) |>
 
 #### Tables of marginal distributions
 
-Using `rethinking` **Important**, the parameters are correlated here, 
-to avoid this one must do **centering** of variables. 
-The following uses **centered** variables.
+Using `rethinking` **Important**, the parameters are correlated here, to avoid this one must do **centering** of variables. The following uses **centered** variables.
 
 ```{r}
 precis(fit04_03quap, corr = TRUE)
@@ -938,8 +899,6 @@ plot04_03brm <- within(plot04_03brm, {
 })
 plot04_03brm$pairs
 ```
-
-
 
 and the correlation matrix
 
@@ -1062,9 +1021,6 @@ post04_05brm <- xfun::cache_rds({
   file = "ch04_post04_05brm")
 ```
 
-
-
-
 ```{r}
 plot04_05brm <- list()
 plot04_05brm$dens <- 
@@ -1168,8 +1124,7 @@ ggplot(dataCherry_nona, aes(x = year, y = doy, color = temp)) +
        subtitle = sprintf("%d observations with %d knots", nrow(dataCherry_nona), length(knots)))
 ```
 
-the code `knots[-c(1, nknots)]` is required because `bs` places knots at 
-the boundaries by default, so we have to remove them.
+the code `knots[-c(1, nknots)]` is required because `bs` places knots at the boundaries by default, so we have to remove them.
 
 ```{r}
 B <- splines::bs(x = dataCherry_nona$year, 
@@ -1272,6 +1227,7 @@ plot04_08brm <- within(plot04_08brm, {
 })
 plot04_08brm$bias
 ```
+
 the fitted values
 
 ```{r}
@@ -1284,7 +1240,6 @@ lpred04_08brm <- dataCherry_nonaB |>
 ```
 
 and the plot
-
 
 ```{r}
 plot04_08brm <- within(plot04_08brm, {
@@ -1303,14 +1258,10 @@ plot04_08brm <- within(plot04_08brm, {
 plot04_08brm$p
 ```
 
-
-
 ### Smooth functions for a smooth world
 
 See @kurtz2020b for much more details on this topic.
 
 ## Summary
 
-This was an important chapter. Most of the plots and basic coding tools are 
-exemplified here. It is an important reference chapter. 
-The `brms` package will be exclusively used from now on.
+This was an important chapter. Most of the plots and basic coding tools are exemplified here. It is an important reference chapter. The `brms` package will be exclusively used from now on.

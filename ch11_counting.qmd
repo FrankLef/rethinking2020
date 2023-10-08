@@ -7,11 +7,11 @@ library(tidyr)
 library(tidybayes)
 library(rethinking)
 library(brms)
-# library(qs)
 library(loo)
 library(modelr)
+library(gtools)
 library(skimr)
-library(simstudy)
+library(simpr)
 library(posterior)
 library(scales)
 library(dagitty)
@@ -192,40 +192,44 @@ ggplot(prior11_01$all, aes(x = p, color = model)) +
        x = "prior prob. of pulled_left", y = NULL)
 ```
 
-We could also use the package `simstudy` to simulate the prior. This will be the favored approach in this project. The advantage of doing this are that
+We could also use the package `simpr` to simulate the prior. This will be the 
+favored approach in this project. The advantage of doing this are that it
 
-1.  it is much faster and easier to modify than running `brm` repeatedly
-2.  it avoids possible problems of convergence when using a fit
-3.  it allows us to use a single variable such as $treatment$ instead of creating separate prior for each when using `brms`. See what @kurtz2020b has to do in its version of chapter 8. The way Kurtz did it renders the `tidybayes` package less useful.
+1.  is much faster and easier to modify than running `brm` repeatedly
+2.  avoids possible problems of convergence when using a fit
+3.  allows us to use a single variable such as $treatment$ instead of creating separate prior for each when using `brms`. See what @kurtz2020b has to do in its version of chapter 8. 
+The way Kurtz did it renders the `tidybayes` package less useful.
 
-##### Prior for $\alpha$ with `simstudy`
+##### Prior for $\alpha$ with `simpr`
 
-Using `simstudy` is actually pretty simple avoid having to run the fit which could have convergence issues and is certainly more time-consuming.
+Using `simpr` is actually pretty simple avoid having to run the fit which 
+could have convergence issues and is certainly more time-consuming.
 
 ```{r ch11_sim11_01}
-sim11_01 <- list()
-sim11_01 <- within(sim11_01, {
-  n <- 4000L
-  defs <- defData(varname = "prosoc_left", dist = "binary", formula = 0.5)
-  defs <- defData(defs, varname = "condition", dist = "binary", formula = 0.5)
-  defs <- defData(defs, varname = "treat", dist = "nonrandom", 
-                  formula = "1 + prosoc_left + 2 * condition")
-  defs <- defData(defs, varname = "a", dist = "normal", formula = 0, variance = 10^2)
-  defs <- defData(defs, varname = "pulled_left", dist = "binary", formula = "a", 
-                  link = "logit")
-  data1 <- genData(n = n, dtDefs = defs)
-  defs <- updateDef(defs, changevar = "a", newvariance = 1.5^2)
-  data2 <- genData(n = n, dtDefs = defs)
-  
-  # put it all together
-  df <- bind_rows("sd=10" = data1, "sd=1.5" = data2, .id = "model") |>
-    mutate(p = gtools::inv.logit(a))
-})
+set.seed(1103)
+sim11_01 <- simpr::specify(
+  prosoc_left = ~ rbinom(n = 4000, size = 1, prob = 0.5),
+  condition = ~ rbinom(n = 4000, size = 1, prob = 0.5),
+  treat = ~ 1 + prosoc_left + 2 * condition,
+  a = ~ rnorm(n = 4000, mean = 0, sd = the_sd),
+  p = ~ gtools::inv.logit(a),
+  pulled_left = ~ rbinom(n = 4000, size = 1, prob = p),
+  model = ~ paste("sd", the_sd, sep = "=")) |>
+  simpr::define(the_sd = c(10, 1.5)) |>
+  simpr::generate(1)
+
+sim11_01 <- sim11_01$sim |>
+  bind_rows(.id = "id")
+
+# sim11_01 |>
+#   glimpse()
 ```
+
+
 
 ```{r}
 #| fig-cap: "Figure 11.3"
-ggplot(sim11_01$df, aes(x = p, color = model)) +
+ggplot(sim11_01, aes(x = p, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
   scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = c(0.5, 0.8)) +
@@ -279,13 +283,13 @@ tictoc::toc()
 and the coefficients, converted back to natural scale are
 
 ```{r}
-brms::inv_logit_scaled(fixef(fit11_02)) |>
+gtools::inv.logit(fixef(fit11_02)) |>
   round(digits = 3)
 ```
 
 ```{r}
 posterior_summary(fit11_02) |>
-  inv_logit_scaled() |>
+  gtools::inv.logit() |>
   round(digits = 3)
 ```
 
@@ -308,53 +312,43 @@ the coefficients, converted back to natural scale are
 
 ```{r}
 posterior_summary(fit11_03) |>
-  inv_logit_scaled() |>
+  gtools::inv.logit() |>
   round(digits = 3)
 ```
 
 ##### Prior for $\beta$ with `simstudy`
 
-We also simulate $\beta$ with `sinmstudy` which is more versatile and easier to code (personal opinion), e.g. no need to convert with `inv_logit_scaled` and no need to run the model with `prior_draws()`. To get the prior by factor, that is AR, AL, etc, we need to specify every coefficient in the priors of `brmsfit`.
-
-Using a simulation is very important and will be the favored approach from now on to simulate priors.
+We also simulate $\beta$ with `simpr` which is more versatile and easier to code (personal opinion), e.g. no need to run the model with `prior_draws()`. To get the prior by factor, that is AR, AL, etc, we need to specify every coefficient in the priors of `brmsfit`.
 
 ```{r ch11_sim11_02}
-sim11_02 <- list()
-sim11_02 <- within(sim11_02, {
-  n = 1000L
-  
-    # define the model
-  defs <- defData(varname = "a", dist = "normal", formula = 0, variance = 1.5^2)
-  defs <- defData(defs, varname = "b1", dist = "normal", formula = 0, variance = "..v")
-  defs <- defData(defs, varname = "b2", dist = "normal", formula = 0, variance = "..v")
-  defs <- defData(defs, varname = "b3", dist = "normal", formula = 0, variance = "..v")
-  defs <- defData(defs, varname = "b4", dist = "normal", formula = 0, variance = "..v")
-  defs <- defData(defs, varname = "p1", dist = "nonrandom", formula = "a + b1",
-                  link = "logit")
-  defs <- defData(defs, varname = "p2", dist = "nonrandom", formula = "a + b2",
-                  link = "logit")
-  defs <- defData(defs, varname = "p3", dist = "nonrandom", formula = "a + b3",
-                  link = "logit")
-  defs <- defData(defs, varname = "p4", dist = "nonrandom", formula = "a + b4",
-                  link = "logit")
-  
-  # generate the data
-  grid <- list(10, 0.5)
-  set.seed(1109)
-  lst <- lapply(X = grid, FUN = function(x) {
-    v <- x^2
-    df <- genData(n = n, dtDefs = defs) |>
-      as.data.frame() |>
-      mutate(model = sprintf("sd=%.1f", x))
-  })
-  data <- do.call(rbind, lst) |>
-    mutate(diff = abs(p1 - p2))
-})
+set.seed(1109)
+sim11_02 <- simpr::specify(
+  a = ~ rnorm(n = 1000, mean = 0, sd = 1.5),
+  b1 = ~ rnorm(n = 1000, mean = 0, sd = the_sd),
+  b2 = ~ rnorm(n = 1000, mean = 0, sd = the_sd),
+  b3 = ~ rnorm(n = 1000, mean = 0, sd = the_sd),
+  b4 = ~ rnorm(n = 1000, mean = 0, sd = the_sd),
+  p1 = ~ gtools::inv.logit(b1),
+  p2 = ~ gtools::inv.logit(b2),
+  p3 = ~ gtools::inv.logit(b3),
+  p4 = ~ gtools::inv.logit(b4),
+  diff = ~ abs(p1 - p2),
+  model = ~ paste("sd", the_sd, sep = "=")) |>
+  define(the_sd = c(10, 0.5)) |>
+  generate(1)
+
+sim11_02 <- sim11_02$sim |>
+  bind_rows(.id = "id")
+
+# sim11_02 |>
+#   glimpse()
 ```
+
+
 
 ```{r}
 #| fig-cap: "Figure 11.3"
-ggplot(sim11_02$data, aes(x = diff, color = model)) +
+ggplot(sim11_02, aes(x = diff, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
   scale_color_paletteer_d("khroma::vibrant") +
   theme(legend.position = "none",
@@ -409,7 +403,7 @@ and the coefficients on natural scale
 
 ```{r}
 posterior_summary(fit11_04) |>
-  inv_logit_scaled() |>
+  gtools::inv.logit() |>
   round(digits = 4)
 ```
 
@@ -907,40 +901,24 @@ $$
 
 For the intercept $\alpha_j$. If $\alpha_j$ is normal then we know that $\lambda_j$ is lognormal distributed.
 
-##### With `simstudy`
+##### With `simpr`
 
 ```{r ch11_simKline}
-simKline1 <- list()
-simKline1 <- within(simKline1, {
-  nsamples = 100
-  
-  # define the model
-  defs <- defData(varname = "a", dist = "normal", formula = "..m",
-                  variance = "..v")
-  defs <- defData(defs, varname = "lambda", dist = "nonrandom", 
-                  formula = "a", link = "log")
-  
-    # generate data using the grid f specs
-  grid <- expand.grid(mean = c(0, 1, 3), 
-                      sd = c(0.5, 1, 2)) |>
-    mutate(model = sprintf("m=%.1f, s=%.1f", mean, sd))
-  
-  lst <- lapply(seq_len(nrow(grid)), FUN = function(i) {
-    m <- grid$mean[i]
-    s <- grid$sd[i]
-    v <- s^2
-    set.seed(1153)
-    genData(n = nsamples, dtDefs = defs) |>
-      as.data.frame() |>
-      mutate(mean = m, sd = s, model = grid$model[i])
-    })
-  names(lst) <- grid$model
-  
-  data <- do.call(rbind, lst)
-  data <- bind_rows(lst, .id = "model")
-})
+set.seed(1153)
+simKline1 <- simpr::specify(
+  a = ~ rnorm(n = 100, mean = the_mean, the_sd),
+  lambda = ~ exp(a),
+  m = ~ the_mean,
+  s = ~ the_sd) |>
+  define(the_mean = c(0, 2, 3), the_sd = c(0.5, 1, 2)) |>
+  generate(1)
+simKline1 <- simKline1$sim |>
+  bind_rows(.id = "id")
+```
 
-ggplot(simKline1$data, aes(x = lambda, fill = as.factor(mean), color = as.factor(mean))) +
+
+```{r}
+ggplot(simKline1, aes(x = lambda, fill = as.factor(m), color = as.factor(m))) +
   geom_density(aes(y = after_stat(scaled))) +
   scale_fill_paletteer_d("khroma::vibrant") +
   scale_color_paletteer_d("khroma::vibrant") +
@@ -950,8 +928,10 @@ ggplot(simKline1$data, aes(x = lambda, fill = as.factor(mean), color = as.factor
         axis.ticks.y = element_blank()) +
   labs(title = "Prior predictive distribution of the mean (lambda)",
        x = NULL, y = NULL) +
-  facet_grid(sprintf("sd of a=%.1f", sd) ~ sprintf("mean of a=%.1f", mean))
+  facet_grid(sprintf("sd of a=%.1f", s) ~ sprintf("mean of a=%.1f", m))
 ```
+
+
 
 ##### as per textbook
 
@@ -979,197 +959,164 @@ plotKline1 <- within(plotKline1, {
 plotKline1$p
 ```
 
-Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as our prior for $\alpha_{cid[i]}$.
+Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as our 
+prior for $\alpha_{cid[i]}$.
 
-Using our prior for $\alpha_{cid[i]}$ wwe simulate $\beta_{cid[i]}$. We show the simulation on the natural scale as it is much easier to understand
+Using our prior for $\alpha_{cid[i]}$ we simulate $\beta_{cid[i]}$. We show the 
+simulation on the natural scale as it is much easier to understand
 
-##### slope with `simstudy`
+##### slope with `simpr`
 
-```{r}
+
+```{r ch11_simKline2}
 simKline2 <- list()
-# simKline2 <- list(nsamples = 100,  # same as mcElreath 
-#             npreds = 100)  # same as McElreath
-
 simKline2 <- within(simKline2, {
-  nsamples = 100  # same as mcElreath 
-  npreds = 100  # same as mcElreath 
-  # define the model
-  defs <- defData(varname = "a", dist = "normal", formula = 3,
-                  variance = 0.5^2)
-  defs <- defData(defs, varname = "b", dist = "normal", 
-                  formula = "..m", variance = "..v")
+  set.seed(1153)
+  sim1 <- simpr::specify(
+    a = ~ rnorm(n = 1, mean = 3, 0.5),
+    b = ~ rnorm(n = 1, mean = 0, sd = 0.2),
+    pop_log = ~ seq(from = -2, to = 2, by = 0.1),
+    tools = ~ exp(a + b * pop_log)) |>
+    generate(50) |>
+    identity()
   
-  # generate data using the grid f specs
-  grid <- expand.grid(mean = 0, 
-                      sd = seq(from = 0.1, to = 0.6, by = 0.1)) |>
-    mutate(model = sprintf("m=%.1f, s=%.1f", mean, sd))
+  pdf1 <- sim1 |>
+    unnest(sim) |>
+    identity()
   
-  # create sim with standardized log
-  lst_log_s <- lapply(seq_len(nrow(grid)), FUN = function(i) {
-    set.seed(1153)  # same seed as McElreath
-    m <- grid$mean[i]
-    s <- grid$sd[i]
-    v <- s^2
-    genData(n = nsamples, dtDefs = defs) |>
-      as.data.frame() |>
-      mutate(mean = m, sd = s, model = grid$model[i]) |>
-      tidyr::expand(nesting(id, a, b, mean, sd, model),
-           log_pop_s = seq(from = -2, to = 2, length.out = npreds)) |>
-      mutate(lambda = exp(a + b * log_pop_s))
-    })
-  names(lst_log_s) <- grid$model
-  data_log_s <- do.call(rbind, lst_log_s)
-  
-  # create sim with log
-  lst_log <- lapply(seq_len(nrow(grid)), FUN = function(i) {
-    set.seed(1153)  # same seed as McElreath
-    m <- grid$mean[i]
-    s <- grid$sd[i]
-    v <- s^2
-    genData(n = nsamples, dtDefs = defs) |>
-      as.data.frame() |>
-      mutate(mean = m, sd = s, model = grid$model[i]) |>
-      tidyr::expand(nesting(id, a, b, mean, sd, model),
-           log_pop = seq(from = log(100), to = log(2e5), length.out = npreds)) |>
-      mutate(lambda = exp(a + b * log_pop))
-    })
-  names(lst_log) <- grid$model
-  data_log <- bind_rows(lst_log, .id = "model")
 })
 ```
+
+
 
 ```{r}
 plotKline2 <- list()
 plotKline2 <- within(plotKline2, {
-  p_log_s <- ggplot(simKline2$data_log_s, 
-                    aes(x = log_pop_s, y = lambda, group = id, color = model)) +
+  p1 <- ggplot(simKline2$pdf1, 
+                    aes(x = pop_log, y = tools, group = rep, color = b)) +
     geom_line() +
-    scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
+    scale_color_paletteer_c("pals::ocean.speed") +
+    coord_cartesian(ylim = c(0, 100)) +
     theme(legend.position = "none") +
-    labs(title = "Prior predictive distribution of the mean (lambda)",
-       x = "Standard log population", y = "mean total tools(lambda)") +
-    facet_wrap(. ~ model, scales = "free_y")
-  
-  p_log <- ggplot(simKline2$data_log, 
-                  aes(x = log_pop, y = lambda, group = id, color = model)) +
-    geom_line() +
-    scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
-    coord_cartesian(ylim = c(0, 500)) +
-    theme(legend.position = "none") +
-    labs(title = "Prior predictive distribution of the mean (lambda)",
-       x = "Log population", y = "mean total tools(lambda)") +
-    facet_wrap(. ~ model, scales = "free_y")
-  
-  hline <- 100
-  p_nat <- ggplot(simKline2$data_log, 
-                  aes(x = exp(log_pop), y = lambda, group = id, color = model)) +
-    geom_line() +
-    geom_hline(yintercept = hline, color = "darkblue", linetype = "dashed", size = 1) +
-    scale_fill_paletteer_d("LaCroixColoR::PassionFruit") +
-    scale_x_continuous(labels = scales::label_number(scale = 0.001)) +
-    coord_cartesian(ylim = c(0, 500)) +
-    theme(legend.position = "none") +
-    labs(title = "Prior predictive distribution of the mean (lambda)",
-       x = "Population in thousands", y = "mean total tools(lambda)") +
-    facet_wrap(. ~ model, scales = "free_y")
+    labs(title = "Prior predictive distribution of the mean tools (lambda)",
+         subtitle = expression(paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 0.2))),
+       x = "Standard log population", y = "mean total tools(lambda)")
 })
-wrap_plots(plotKline2[c("p_log_s", "p_log", "p_nat")], nrow = 1) +
-  plot_annotation(title = "Prior predictive distribution of the mean (lambda)",
-       subtitle = names(simKline2$lst_log)[2])
+plotKline2$p1
 ```
 
-and the same plots as McElreaths with the chosen priors
 
 ```{r}
-plotKline3 <- list()
-plotKline3 <- within(plotKline3, {
-  p_log_s <- ggplot(simKline2$lst_log_s[[2]], aes(x = log_pop_s, y = lambda, group = id)) +
-    geom_line(color = "lightcoral") +
-    theme(legend.position = "none") +
-    labs(x = "Standard log population", y = "mean total tools(lambda)")
-# p$log_s
-
-  p_log <- ggplot(simKline2$lst_log[[2]], aes(x = log_pop, y = lambda, group = id, color = model)) +
-    geom_line(color = "darkgoldenrod") +
-    coord_cartesian(ylim = c(0, 500)) +
-    theme(legend.position = "none") +
-    labs(x = "Log population", y = "mean total tools(lambda)")
-# p$log
-
-  hline <- 100
-  p_nat <- ggplot(simKline2$lst_log[[2]], aes(x = exp(log_pop), y = lambda, group = id, color = model)) +
-    geom_line(color = "lightseagreen") +
-    geom_hline(yintercept = hline, color = "darkblue", linetype = "dashed", size = 1) +
-    scale_x_continuous(labels = scales::label_number(scale = 0.001)) +
-    coord_cartesian(ylim = c(0, 500)) +
-    theme(legend.position = "none") +
-    labs(x = "Population in thousands", y = "mean total tools(lambda)")
-})
-wrap_plots(plotKline3[c("p_log_s", "p_log", "p_nat")], nrow = 1) +
-  plot_annotation(title = "Prior predictive distribution of the mean (lambda)",
-       subtitle = names(simKline2$lst_log)[2])
-```
-
-##### slope as per textbook
-
-```{r}
-plotSlopes <- list()
-plotSlopes <- within(plotSlopes, {
-  nlines <- 50
-  pop_log <- c(2, floor(max(log(dataKline$population))))
-  df <- data.frame(
-    id = seq_len(nlines),
-    a = rnorm(nlines, mean = 3, sd = 0.5)) |>
-    mutate(
-      `beta%~%Normal(0*', '*0.10)`  = rnorm(nlines, mean = 0 , sd = 0.10),
-      `beta%~%Normal(0*', '*0.20)` = rnorm(nlines, mean = 0 , sd = 0.20),
-      `beta%~%Normal(0*', '*0.30)` = rnorm(nlines, mean = 0 , sd = 0.30),
-      `beta%~%Normal(0*', '*0.40)` = rnorm(nlines, mean = 0 , sd = 0.40),
-      `beta%~%Normal(0*', '*0.50)` = rnorm(nlines, mean = 0 , sd = 0.50),
-      `beta%~%Normal(0*', '*0.60)` = rnorm(nlines, mean = 0 , sd = 0.60)) |>
-    pivot_longer(contains("beta"), values_to = "b", names_to = "prior") |> 
-    expand(nesting(id, a, b, prior),
-           x = seq(from = pop_log[1], to = pop_log[2], length.out = 10))
+simKline2 <- within(simKline2, {
+  sim2 <- simpr::specify(
+    a = ~ rnorm(n = 1, mean = 3, 0.5),
+    b = ~ rnorm(n = 1, mean = 0, sd = 10),
+    pop_log = ~ seq(from = -2, to = 2, by = 0.1),
+    tools = ~ exp(a + b * pop_log)) |>
+    generate(50) |>
+    identity()
   
-   p_log <- ggplot(df, aes(x = x, y = exp(a + b * x), group = id, color = prior)) +
-    geom_line() +
-    scale_x_continuous(breaks = scales::breaks_extended(n = 5),
-                      labels = scales::label_number(accuracy = 1)) +
-    scale_y_continuous(breaks = scales::breaks_extended(n = 5),
-                      labels = scales::label_number_auto()) +
-    scale_color_paletteer_d("LaCroixColoR::PassionFruit") +
-    coord_cartesian(ylim = c(0, 500)) +
-    theme(legend.position = "none",
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank()) +
-    labs(title = "Prior predictive distribution of the mean (lambda)", 
-        x = "population (log)", y = "Tools") +
-    facet_wrap(. ~ prior, labeller = label_parsed)
-   
-   hline <- 100
-   p_nat <- ggplot(df, aes(x = exp(x), y = exp(a + b * x), group = id, color = prior)) +
-      geom_line() +
-      geom_hline(yintercept = hline, color = "darkblue", linetype = "dashed", size = 1) +
-      scale_x_continuous(breaks = scales::breaks_extended(n = 5),
-                     labels = scales::label_number(accuracy = 1, scale = 0.001)) +
-      scale_y_continuous(breaks = hline,
-                     labels = scales::label_number_auto()) +
-      scale_color_paletteer_d("LaCroixColoR::PassionFruit") +
-    coord_cartesian(ylim = c(0, 500)) +
-    theme(legend.position = "none",
-        strip.background = element_rect(fill = "wheat", color = NA)) +
-    labs(title = "Prior predictive distribution of the mean (lambda)", 
-       x = "population in thousands", y = "Tools") +
-    facet_wrap(. ~ prior, labeller = label_parsed)
+  pdf2 <- sim2 |>
+    unnest(sim) |>
+    identity()
 })
-plotSlopes$p_log
 ```
 
-and visualizing on the natural scale which is the best way to understand it
+
 
 ```{r}
-plotSlopes$p_nat
+plotKline2 <- within(plotKline2, {
+  p2 <- ggplot(simKline2$pdf2, 
+                    aes(x = pop_log, y = tools, group = rep, color = b)) +
+    geom_line() +
+    scale_color_paletteer_c("pals::ocean.haline") +
+    coord_cartesian(ylim = c(0, 100)) +
+    theme(legend.position = "none") +
+    labs(title = "Prior predictive distribution of the mean tools (lambda)",
+         subtitle = expression(paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 10))),
+       x = "Standard log population", y = "mean total tools(lambda)")
+})
+plotKline2$p2
 ```
+
+
+```{r}
+simKline2 <- within(simKline2, {
+  sim3 <- simpr::specify(
+    a = ~ rnorm(n = 1, mean = 3, 0.5),
+    b = ~ rnorm(n = 1, mean = 0, sd = 0.2),
+    pop_log = ~ seq(from = log(100), to = log(2e5), length.out = 40),
+    tools = ~ exp(a + b * pop_log)) |>
+    generate(50) |>
+    identity()
+  
+  pdf3 <- sim3 |>
+    unnest(sim) |>
+    identity()
+})
+```
+
+
+
+```{r}
+plotKline2 <- within(plotKline2, {
+  p3 <- ggplot(simKline2$pdf3, 
+                    aes(x = pop_log, y = tools, group = rep, color = b)) +
+    geom_line() +
+    scale_color_paletteer_c("pals::ocean.delta") +
+    coord_cartesian(ylim = c(0, 500)) +
+    theme(legend.position = "none") +
+    labs(title = "Prior predictive distribution of the mean tools (lambda)",
+         subtitle = expression(paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 0.2))),
+       x = "log population", y = "mean total tools (lambda)")
+})
+plotKline2$p3
+```
+
+
+
+```{r}
+simKline2 <- within(simKline2, {
+  sim4 <- simpr::specify(
+    a = ~ rnorm(n = 1, mean = 3, 0.5),
+    b = ~ rnorm(n = 1, mean = 0, sd = 0.2),
+    pop_log = ~ seq(from = log(100), to = log(2e5), length.out = 40),
+    pop = ~ exp(pop_log),
+    tools = ~ exp(a + b * pop_log)) |>
+    generate(50) |>
+    identity()
+  
+  pdf4 <- sim4 |>
+    unnest(sim) |>
+    identity()
+})
+```
+
+
+
+```{r}
+plotKline2 <- within(plotKline2, {
+  p4 <- ggplot(simKline2$pdf4, 
+                    aes(x = pop, y = tools, group = rep, color = b)) +
+    geom_line() +
+    scale_color_paletteer_c("pals::ocean.thermal") +
+    coord_cartesian(ylim = c(0, 500)) +
+    theme(legend.position = "none") +
+    labs(title = "Prior predictive distribution of the mean tools (lambda)",
+         subtitle = expression(paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 0.2))),
+       x = "population", y = "mean total tools (lambda)")
+})
+plotKline2$p4
+```
+
+
+```{r}
+names(plotKline2)
+plotKline2[c("p3")]
+patchwork::wrap_plots(plotKline2[c("p1", "p2", "p3", "p4")])
+```
+
+
 
 #### Model and fit
 
@@ -1525,7 +1472,9 @@ $$
 
 ### Predictors matched to outcomes
 
-The career are the outcomes. We now predict the career using a trait of the career (outcome itself) which is the income in this case.
+The career are the outcomes. We now predict the career using a trait of the 
+career (outcome itself) which is the income in this case.
+
 
 ```{r ch11_simCareer}
 simCareer <- list()
@@ -1534,11 +1483,12 @@ simCareer <- within(simCareer, {
   score <- 0.5 * income
   probs <- round(rethinking::softmax(score), 3)
   stopifnot(sum(probs) == 1)  # verify rounding is ok
-  defs <- defData(varname = "career", dist = "categorical", 
-                  formula = genCatFormula(probs))
-  data <- genData(n = 500, dtDefs = defs) |>
-    as.data.frame()
+  
+  data <- data.frame(
+    career = sample(1:3, size = 500, prob = probs, replace = TRUE)
+  )
 })
+
 # and we validate the results
 tabulate(simCareer$data$career) / nrow(simCareer$data)
 simCareer$probs
@@ -1900,6 +1850,7 @@ model_weights(fit11_13null, fit11_13a, fit11_13b, fit11_13c, fit11_13d,
 
 ### Predictors matched to observations
 
+
 ```{r}
 # generate probabilities from family income
 genProbs <- function(x, coef = c(-2, 0, 2), career = 1:3, income_coef = 0.5) {
@@ -1911,18 +1862,22 @@ genProbs <- function(x, coef = c(-2, 0, 2), career = 1:3, income_coef = 0.5) {
     sample(career, size = 1, prob = probs)
     })
 }
+```
 
+```{r}
 sim <- list()
 sim <- within(sim, {
-  defs <- defData(varname = "family_income", dist = "uniform", formula = "0;1")
-  defs <- defData(defs, varname = "career", dist = "nonrandom", formula = "genProbs(x=family_income)")
-  set.seed(11)
-  data <- genData(n = 500, dtDefs = defs)
-  data <- genFactor(data, varname = "career", labels = paste("career", 1:3))
+  set.seed(1193)
+  data <- specify(
+    family_income = ~ runif(n = 1, min = 0, max = 1),
+    career = ~ genProbs(family_income)) |>
+    generate(100) |>
+    unnest(sim) |>
+    mutate(fcareer = paste("career", career))
 })
-# glimpse(sim$data)
-dataCareer <- as.data.frame(sim$data)
+dataCareer <- sim$data
 ```
+
 
 and we plot the distribution of the family income which is used as a predictor for each category
 
@@ -1936,7 +1891,7 @@ p$dens <- ggplot(dataCareer, aes(x = family_income, color = fcareer)) +
         axis.ticks.y = element_blank(),
         axis.text.y = element_blank()) +
   labs(title = "observed densities of familiy income by career",
-       subtitle = sprintf("sample size = %d", nrow(dataCareer)),
+       subtitle = sprintf("sample size = %d", nrow(sim$data)),
        x = "family income", y = NULL)
   
 p$dens
@@ -1983,9 +1938,6 @@ post11_14 <- data.frame(
 # post11_14
 ```
 
-```{r}
-
-```
 
 ```{r ch11_plot11_14}
 plot11_14 <- list()

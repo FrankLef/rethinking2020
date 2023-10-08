@@ -11,7 +11,7 @@ library(qs)
 library(loo)
 library(modelr)
 library(skimr)
-library(simstudy)
+library(simpr)
 library(posterior)
 library(scales)
 library(dagitty)
@@ -22,7 +22,6 @@ library(bayesplot)
 library(patchwork)
 library(paletteer)
 ```
-
 
 Some options to facilitate the computations
 
@@ -43,7 +42,6 @@ theme_set(
         strip.background = element_rect(fill = "darkgrey")))
 ```
 
-
 ## Over-dispersed outcomes
 
 ### Beta-binomial
@@ -58,9 +56,7 @@ $$
 \frac{1}{B(\alpha, \beta)} x^{\alpha -1} (1-x)^{\beta -1}, 0 \leq x \leq 1
 $$
 
-which is not the format used by McElreath. He uses the following shape 
-parameters which are easier (personal opinion) to understand as $\mu$ is the 
-**average** of the distribution and $\kappa$ is the **spread**.
+which is not the format used by McElreath. He uses the following shape parameters which are easier (personal opinion) to understand as $\mu$ is the **average** of the distribution and $\kappa$ is the **spread**.
 
 $$
 \begin{align*}
@@ -69,13 +65,9 @@ $$
 \end{align*}
 $$
 
-The beta-binomial distribution in `brms` is defined with `brms::dbeta_binomial`.
-This distribution uses the parameters $\mu$ and $\phi$. Now this is confusing
-because $\mu$ and $\phi$ are actually respectively the beta distribution's 
-$\alpha$ and $\beta$ mentioned above.
+The beta-binomial distribution in `brms` is defined with `brms::dbeta_binomial`. This distribution uses the parameters $\mu$ and $\phi$. Now this is confusing because $\mu$ and $\phi$ are actually respectively the beta distribution's $\alpha$ and $\beta$ mentioned above.
 
-So from now on we use the following parameters with the beta-binomial distribution
-from `brms`
+So from now on we use the following parameters with the beta-binomial distribution from `brms`
 
 $$
 \begin{align*}
@@ -84,11 +76,9 @@ $$
 \end{align*}
 $$
 
-
-
 the `simstudy` package provide the function to perform that conversion from 
-$mean = \mu$ and $precision = \kappa$ to the shape(mathematical) parameters 
-$\alpha$ and $\beta$
+$mean = \mu$ and $precision = \kappa$ to the shape (mathematical) 
+parameters $\alpha$ and $\beta$
 
 ```{r}
 paramsMeanKappa <- list(mean = 0.5, kappa = 5)
@@ -97,12 +87,7 @@ stopifnot(paramsShape$shape1 == paramsMeanKappa$mean * paramsMeanKappa$kappa,
           paramsShape$shape2 == (1 - paramsMeanKappa$mean) * paramsMeanKappa$kappa)
 ```
 
-
-
-
-Variations of the beta distribution using different parameter values 
-can be illustrated as follows
-
+Variations of the beta distribution using different parameter values can be illustrated as follows
 
 ```{r ch12_plotBeta}
 plotBeta <- list()
@@ -110,8 +95,8 @@ plotBeta <- within(plotBeta, {
   df <- crossing(pbar = c(0.25, 0.5, 0.75), theta = c(5, 15, 30)) %>% 
   expand(nesting(pbar, theta), 
          x = seq(from = 0, to = 1, length.out = 100)) %>%
-  mutate(shape1 = betaGetShapes(pbar, theta)$shape1,
-         shape2 = betaGetShapes(pbar, theta)$shape2) %>%
+  mutate(shape1 = simstudy::betaGetShapes(pbar, theta)$shape1,
+         shape2 = simstudy::betaGetShapes(pbar, theta)$shape2) %>%
   mutate(density = dbeta(x, shape1, shape2),
          mu = paste("mu", pbar, sep = "=="),
          kappa = paste("kappa", theta, sep = "=="))
@@ -138,8 +123,7 @@ rm(UCBadmit)
 # glimpse(dataAdmit)
 ```
 
-There is an error in the model defined by McElrath, to concur with his code at 
-11.26, the model is
+There is an error in the model defined by McElrath, to concur with his code at 11.26, the model is
 
 $$
 \begin{align*}
@@ -150,11 +134,7 @@ logit(\bar{p}_i) &= \alpha_{gid[i]} \\
 \end{align*}
 $$
 
-We can fit the model in 2 ways with `brms`: With the `beta_binomilal` family
-or with a custom family called `beta_binomial2()` as explained by [burkner](https://paul-buerkner.github.io/brms/articles/brms_customfamilies.html).
-The family `beta_binomial` and `beta_binomila2` give the same results! So we
-use `brms::beta_binomilal`
-
+We can fit the model in 2 ways with `brms`: With the `beta_binomilal` family or with a custom family called `beta_binomial2()` as explained by [burkner](https://paul-buerkner.github.io/brms/articles/brms_customfamilies.html). The family `beta_binomial` and `beta_binomila2` give the same results! So we use `brms::beta_binomilal`
 
 ```{r}
 brms::brmsfamily("beta_binomial")
@@ -174,16 +154,16 @@ fit12_01 <- xfun::cache_rds({
   file = "ch12_fit12_01")
 tictoc::toc()
 ```
+
 ```{r}
 fit12_01
 ```
-::: {.callout-note}
-Did you notice `lb = 2` in `prior(exponential(1), ...)`? Since McElreath 
-wanted the lower bound to 2, we will use lb = 2.
+
+::: callout-note
+Did you notice `lb = 2` in `prior(exponential(1), ...)`? Since McElreath wanted the lower bound to 2, we will use lb = 2.
 :::
 
-See also McElreath explanation of 2 in section 12.1.1 just before R code 12.1 
-on p. 371.
+See also McElreath explanation of 2 in section 12.1.1 just before R code 12.1 on p. 371.
 
 and the posterior data which *represents the distribution rather than the data*
 
@@ -192,7 +172,6 @@ and the posterior data which *represents the distribution rather than the data*
 #| output: false
 get_variables(fit12_01)
 ```
-
 
 ```{r }
 gather_rvars(fit12_01, b_gid1, b_gid2, phi) |>
@@ -203,11 +182,7 @@ gather_rvars(fit12_01, b_gid1, b_gid2, phi) |>
        x = NULL, y = NULL)
 ```
 
-
-To do figure 12.1 a) which represents the posterior distribution of the rate of
-admission of female applicant, that is the **posterior beta distribution**
-
-
+To do figure 12.1 a) which represents the posterior distribution of the rate of admission of female applicant, that is the **posterior beta distribution**
 
 ```{r ch12_plot12_01_post}
 plot12_01_post <- list()
@@ -257,7 +232,6 @@ plot12_01_post$p
 
 and for the posterior validity check
 
-
 ```{r ch12_plot12_01_epred}
 plot12_01_epred <- list()
 plot12_01_epred <- within(plot12_01_epred, {
@@ -284,13 +258,11 @@ plot12_01_epred <- within(plot12_01_epred, {
 plot12_01_epred$p
 ```
 
-
 ### Negative-binomial or gamma-Poisson
 
-::: {.callout-important}
+::: callout-important
 You absolutely need to look at the Poisson-lognormal mixture in Kurtz's blog [Kurtz lognormal](https://solomonkurz.netlify.app/post/2021-07-12-got-overdispersion-try-observation-level-random-effects-with-the-poisson-lognormal-mixture/).
 :::
-
 
 #### Gamma-Poisson distribution shape
 
@@ -300,16 +272,13 @@ $$
 \mathcal{Gamma}(y \mid\alpha, \beta) = \frac{\beta^\alpha y^{\alpha-1} e^{-\beta y}}{\Gamma(\alpha)}
 $$
 
-but the rate $\beta$ and scale $\theta$ are the reciprocal of each other.
-Therefore the gamma distribution can be expressed in terms of shape $\alpha$ 
-and scale $\theta$ as
+but the rate $\beta$ and scale $\theta$ are the reciprocal of each other. Therefore the gamma distribution can be expressed in terms of shape $\alpha$ and scale $\theta$ as
 
 $$
 \mathcal{Gamma}(y \mid\alpha, \theta) = \frac{y^{\alpha-1} e^{-\frac{y}{\theta}}}{\theta^\alpha\Gamma(\alpha)}
 $$
 
-and, also, the gamma distribution can be expressed in terms of mean $\mu$ 
-and shape $\alpha$
+and, also, the gamma distribution can be expressed in terms of mean $\mu$ and shape $\alpha$
 
 $$
 \mathcal{Gamma}(y \mid \mu, \alpha) = 
@@ -319,9 +288,8 @@ $$
 
 To convert from the $\mu = mean$ and $\theta = dispersion= \frac{mean^2}{variance}$ 
 to the shape and rate parameters we use the function `simstudy::gammaGetShapeRate()`.
-To help us find the mean and dispersion to use with `simstudy::gammaGetShapeRate()`,
-the custom function `gammaGetMeanDispersion` is also defined. It is the inverse 
-of `simstudy::gammaGetShapeRate()`.
+To help us find the mean and dispersion to use with `simstudy::gammaGetShapeRate()`, 
+the custom function `gammaGetMeanDispersion` is also defined. It is the inverse of `simstudy::gammaGetShapeRate()`.
 
 ```{r}
 # custom function which is the inverse function of gammaGetShapeRate()
@@ -337,7 +305,7 @@ prm <- list()
 prm <- within(prm, {
   values <- list(mean = 1, dispersion = 10)
   # get the shape and rate from the mean and dispersion
-  sr <- gammaGetShapeRate(mean = values$mean, dispersion = values$dispersion)
+  sr <- simstudy::gammaGetShapeRate(mean = values$mean, dispersion = values$dispersion)
   # using the inverse should take you back to the mean and dispersion
   md <- gammaGetMeanDispersion(shape = sr$shape, rate = sr$shape)
 })
@@ -345,8 +313,7 @@ prm <- within(prm, {
 stopifnot(identical(prm$md, prm$values))
 ```
 
-In the `dgamma` the shape parameter influence the rate which is equivalent to 
-Poisson $\lambda$.
+In the `dgamma` the shape parameter influence the rate which is equivalent to Poisson $\lambda$.
 
 ```{r ch12_plotGamma}
 plotGamma <- list()
@@ -371,8 +338,6 @@ plotGamma <- within(plotGamma, {
 plotGamma$p
 ```
 
-
-
 #### Data
 
 ```{r}
@@ -389,10 +354,8 @@ dataKline |> skim() |>
 
 #### Null model {.unnumbered}
 
-::: {.callout-note}
-This section is important as it serves to evaluate the prior to use for the 
-full model. See how @kurtz2020b does it. My work below does not show 
-everything (yet).
+::: callout-note
+This section is important as it serves to evaluate the prior to use for the full model. See how @kurtz2020b does it. My work below does not show everything (yet).
 :::
 
 Start with the null model, or as Kurtz calls it, the intercept-only model.
@@ -405,7 +368,6 @@ log(\mu) &= \beta_0 \\
 \alpha &\sim \mathcal{Gamma}(0.01,0.01)
 \end{align*}
 $$
-
 
 ```{r ch12_fit12_02a}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
@@ -427,8 +389,7 @@ tictoc::toc()
 fit12_02a
 ```
 
-and the estimated parameters of the $mean$ and $dispersion$ can be converted to the
-$shape$ and $rate$ parameters using $simstudy::gammaGetShapeRate()$
+and the estimated parameters of the $mean$ and $dispersion$ can be converted to the $shape$ and $rate$ parameters using $simstudy::gammaGetShapeRate()$
 
 ```{r}
 m <- posterior_summary(fit12_02a)["b_Intercept", "Estimate"]
@@ -436,15 +397,11 @@ d <- posterior_summary(fit12_02a)["shape", "Estimate"]
 simstudy::gammaGetShapeRate(mean = m, dispersion = d)
 ```
 
-Because the model has only the intercept and no predictor, there is only one 
-value for the Intercept which is the mean of the 10 Poisson rates 
-$\lambda_i, i =1,...10$.
+Because the model has only the intercept and no predictor, there is only one value for the Intercept which is the mean of the 10 Poisson rates $\lambda_i, i =1,...10$.
 
-The $alpha$ is simply the $shape$ parameter of gamma ... and does not really 
-describe anything. It is really used to define the shape of the distribution.
+The $alpha$ is simply the $shape$ parameter of gamma ... and does not really describe anything. It is really used to define the shape of the distribution.
 
-And the prediction plots show that the distributions using the same rate 
-and shape for the gamma hyperparameters.
+And the prediction plots show that the distributions using the same rate and shape for the gamma hyperparameters.
 
 ```{r ch12_plot12_02a_pred}
 plot12_02a_pred <- list()
@@ -469,7 +426,6 @@ plot12_02a_pred <- within(plot12_02a_pred, {
 })
 plot12_02a_pred$p
 ```
-
 
 and we can also visualize the distributions of our $rate$ and $shape$ parameters
 
@@ -506,8 +462,6 @@ log(\mu) &= \frac{\exp{(\beta_{0,cid[i]})} \cdot population_i^{\beta_{1,cid[i]}}
 \alpha &\sim \mathcal{Exponential}(1)
 \end{align*}
 $$
-
-
 
 ```{r ch12_fit12_02b}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "30 secs."))
@@ -586,10 +540,7 @@ epred12_02b <- within(epred12_02b, {
 epred12_02b$p
 ```
 
-the main difference now is that since we use predictor $cid$ then the parameter 
-$rate = b_0$ of the gamma distribution used to determined the $\lambda_i$ is 
-allowed to vary by $cid$. Therefore we have different possible distribution by 
-$cid$ and can change the distribution by culture as follows.
+the main difference now is that since we use predictor $cid$ then the parameter $rate = b_0$ of the gamma distribution used to determined the $\lambda_i$ is allowed to vary by $cid$. Therefore we have different possible distribution by $cid$ and can change the distribution by culture as follows.
 
 ```{r ch12_pred12_02b}
 pred12_02b <- list()
@@ -619,21 +570,19 @@ pred12_02b$p
 
 ### Poisson-lognormal {.unnumbered}
 
-::: {.callout-tip}
+::: callout-tip
 This is an extra section. The result is so useful it is worth adding here. See [Kurtz lognormal](https://solomonkurz.netlify.app/post/2021-07-12-got-overdispersion-try-observation-level-random-effects-with-the-poisson-lognormal-mixture/).
 :::
 
 ## Zero-inflated outcomes
 
-::: {.callout-tip}
-Make sure you read this section in @kurtz2020b. It is loaded with very useful 
-informations. Especially when using `brms`.
+::: callout-tip
+Make sure you read this section in @kurtz2020b. It is loaded with very useful informations. Especially when using `brms`.
 :::
 
 ### Zero-inflated Poisson
 
-This type of model is called a *hurdle model* in the literature. This type of 
-model has served me very well in the context of business.
+This type of model is called a *hurdle model* in the literature. This type of model has served me very well in the context of business.
 
 With zero-inflated Poisson both parameters $p$ and $\lambda$ can have their own equation.
 
@@ -650,15 +599,20 @@ We use `simstudy` to simulate this.
 ```{r ch12_simMonastery}
 simMonastery <- list()
 simMonastery <- within(simMonastery, {
-  defs <- defData(varname = "drink", dist = "categorical", formula = "0.8;0.2")
-  defs <- defData(defs, varname = "work", dist = "poisson", formula = 1)
-  defs <- defData(defs, varname = "output", dist = "nonrandom", 
-                  formula ="(2 - drink) * work")
-  data <- genData(n = 365, dtDefs = defs)
-  data <- genFactor(data, varname = "drink", labels = c("drinkNot", "drink")) |>
-    as.data.frame()
+  data <- simpr::specify(
+    drink = ~ rbinom(n = 1, size = 1, prob = 0.2),
+    work = ~ rpois(n = 1, lambda = 1),
+    output = ~ (1 - drink) * work) |>
+    generate(365) |>
+    unnest(sim) |>
+    mutate(fdrink = if_else(drink != 0, "drink", "drinkNot"),
+           fdrink = as.factor(fdrink))
 })
+# simMonastery$data |>
+#   glimpse()
 ```
+
+
 
 plot the data
 
@@ -690,8 +644,7 @@ log(\lambda) &= \alpha_\lambda \\
 \end{align*}
 $$
 
-In `brms`, $p_i$ is denoted `zi`. To use a non-default prior for `zi`, make 
-sure to indicate `class = zi`. **Important to read @kurtz2020b**.
+In `brms`, $p_i$ is denoted `zi`. To use a non-default prior for `zi`, make sure to indicate `class = zi`. **Important to read @kurtz2020b**.
 
 ```{r ch12_fit12_03}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "65 secs."))
@@ -724,19 +677,13 @@ summ_fit12_03 <- within(summ_fit12_03, {
 summ_fit12_03$stats
 ```
 
-The $b_Intercept$ represents $\lambda$ on the log scale, because the link 
-function for $\lambda$. This can be confirmed by looking at the summary 
-which shows **Links: mu = log; zi = identity**.
+The $b_Intercept$ represents $\lambda$ on the log scale, because the link function for $\lambda$. This can be confirmed by looking at the summary which shows **Links: mu = log; zi = identity**.
 
-We observe that $lambda$ matches the actual rate of our simulation with 
-`defData(defs, varname = "work", dist = "poisson", formula = 1)`.
+We observe that $lambda$ matches the actual rate of our simulation with `defData(defs, varname = "work", dist = "poisson", formula = 1)`.
 
-When using `brms` the parameter $zi$ has link function *identity* as evidenced 
-in the summary by **Links: mu = log; zi = identity**. In this case we have 
-obtained $zi = 0.20$ which is close enough to McEleath's estimate of 0.23.
+When using `brms` the parameter $zi$ has link function *identity* as evidenced in the summary by **Links: mu = log; zi = identity**. In this case we have obtained $zi = 0.20$ which is close enough to McEleath's estimate of 0.23.
 
-We observe that $zi$ is the actual rate of our simulation with 
-`defData(varname = "drink", dist = "categorical", formula = "0.8;0.2")`.
+We observe that $zi$ is the actual rate of our simulation with `defData(varname = "drink", dist = "categorical", formula = "0.8;0.2")`.
 
 ## Ordered categorical outcomes
 
@@ -752,7 +699,6 @@ dataTrolley |>
   select(-n_missing, -complete_rate) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
-
 
 ### Describing and ordered distribution with intercepts
 
@@ -876,11 +822,9 @@ fit12_04 |>
   round(digits = 3)
 ```
 
-::: {.callout-warning}
-The SD i.e. `Est.Error` are not valid using the `inv_logit_scaled`, 
-that is using a direct inverse exp function.
+::: callout-warning
+The SD i.e. `Est.Error` are not valid using the `inv_logit_scaled`, that is using a direct inverse exp function.
 :::
-
 
 They must be computed using a posterior sample.
 
@@ -904,8 +848,7 @@ summ12_04 <- within(summ12_04, {
 summ12_04$summ
 ```
 
-and to validate our fit, we see that the $value$ in the summary is the same as 
-the $cum_pct$ previously computed.
+and to validate our fit, we see that the $value$ in the summary is the same as the $cum_pct$ previously computed.
 
 ```{r}
 plotTrolley$df3$cum_pct |>
@@ -914,15 +857,9 @@ plotTrolley$df3$cum_pct |>
 
 ### Adding predictor variables
 
-::: {.callout-note}
-This form automatically ensure the correct ordering of the outcome values, 
-while still morphing the likelihood of each individual value as the predictor 
-$x_i$ changes value. Why is the linear model $\phi$ substracted from each 
-intercept? Because if we decrease the log-cumulative-odds of every outcome 
-value $k$ below the maximum, this necessarily shifts probability mass upwards 
-towards higher outcome values.
+::: callout-note
+This form automatically ensure the correct ordering of the outcome values, while still morphing the likelihood of each individual value as the predictor $x_i$ changes value. Why is the linear model $\phi$ substracted from each intercept? Because if we decrease the log-cumulative-odds of every outcome value $k$ below the maximum, this necessarily shifts probability mass upwards towards higher outcome values.
 :::
-
 
 $$
 \begin{align*}
@@ -939,11 +876,9 @@ fixef(fit12_04)
 
 #### Logistic / Logit functions
 
-See the appendix A of this book for a detailed treatment of all these functions. 
-They will be added the suffix *.new* to identify them.
+See the appendix A of this book for a detailed treatment of all these functions. They will be added the suffix *.new* to identify them.
 
-The `logistic()` and `inv_logit()` functions are actually the same as 
-`stats::plogis()`.
+The `logistic()` and `inv_logit()` functions are actually the same as `stats::plogis()`.
 
 Also, the function `logit()` already exists as `stats::qlogis()`.
 
@@ -959,8 +894,7 @@ dordlogit.new <- function(x, phi = 0L, log = FALSE) {
 }
 ```
 
-which gives about the same result as R code 11.9 in McElreath on p. 386 with 
-R code 12.20, and Kurtz.
+which gives about the same result as R code 11.9 in McElreath on p. 386 with R code 12.20, and Kurtz.
 
 ```{r}
 probk <- dordlogit.new(fixef(fit12_04)[, 1])
@@ -975,8 +909,7 @@ sum(1:7 * probk)
 
 #### Subtracting from the log-cumulative odds
 
-If we subtract from the *log-cumulative odds* then we shift the probability 
-mass to higher outcome values.
+If we subtract from the *log-cumulative odds* then we shift the probability mass to higher outcome values.
 
 For example with model b12.4
 
@@ -1040,7 +973,6 @@ tictoc::toc()
 fit12_05
 ```
 
-
 and plot the coefficients
 
 ```{r}
@@ -1091,8 +1023,7 @@ ggplot(dp, aes(x = index, y = prob, group = row)) +
        y = "probability")
 ```
 
-NOTE: The `brms` package also has a `rdirchlet()` function which is very useful 
-when investigating priors. See @kurtz2020b for details.
+NOTE: The `brms` package also has a `rdirchlet()` function which is very useful when investigating priors. See @kurtz2020b for details.
 
 ### Data
 
@@ -1157,8 +1088,6 @@ tictoc::toc()
 ```{r}
 fit12_06
 ```
-
-
 
 ```{r}
 delta_labels <- c("Elem", "MidSch", "SHS", "HSG", "SCol", "Bach", "Mast", "Grad")

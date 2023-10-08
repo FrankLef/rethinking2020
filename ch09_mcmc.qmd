@@ -18,7 +18,6 @@ library(patchwork)
 library(paletteer)
 ```
 
-
 Some options to facilitate the computations
 
 ```{r}
@@ -35,8 +34,6 @@ The default theme used by `ggplot2`
 ggplot2::theme_set(ggthemes::theme_igray())
 ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
-
-
 
 ## Good King Markov
 
@@ -90,32 +87,25 @@ wrap_plots(plotKingMarkov[c("p1", "p2")]) +
   plot_annotation(title = "Figure 9.2", subtitle = "Metropolis algorithm")
 ```
 
-
 ## Metropolis algorithms
 
 ### Gibbs sampling
 
-It is a variant of the Metropolis-Hasting algorithm that is more efficient and 
-uses pairs of conjugate prior and likelihood distributions.
+It is a variant of the Metropolis-Hasting algorithm that is more efficient and uses pairs of conjugate prior and likelihood distributions.
 
-It is the basis for the sofware `BUGS` (Bayesian inference using Gibbs Sampling)
-and `JAGS` (Just Another Gibbs Sampler)
+It is the basis for the sofware `BUGS` (Bayesian inference using Gibbs Sampling) and `JAGS` (Just Another Gibbs Sampler)
 
 ### High-dimensional problems
 
-The code for this section comes straight from the same section in @kurtz2020b. 
-Many thanks to Solomon Kurtz for this wonderful gift.
+The code for this section comes straight from the same section in @kurtz2020b. Many thanks to Solomon Kurtz for this wonderful gift.
 
-The core issue with high-demensional problems is that parameters will end up
-having high-correlations which causes the algorithm to get stuck.
+The core issue with high-demensional problems is that parameters will end up having high-correlations which causes the algorithm to get stuck.
 
-McElreath explains it by fire explaining the problem of high correlations itself
-then how high-dimensionality leads unavoidably to high corrrelations.
+McElreath explains it by fire explaining the problem of high correlations itself then how high-dimensionality leads unavoidably to high corrrelations.
 
 #### The problem of high correlations
 
-To illustrate a bivariate distribution with strong negative autocorrelation of 
--0.9 is used
+To illustrate a bivariate distribution with strong negative autocorrelation of -0.9 is used
 
 $$
 \begin{align*}
@@ -143,7 +133,7 @@ a_2
 -0.9 & 1
 \end{bmatrix}
 \end{align*}
-$$ 
+$$
 
 we create the contour of $x$ and $y$ values and their bivariate density. See https://stackoverflow.com/questions/36221596/plot-multivariate-gaussian-contours-with-ggplot2 for reference.
 
@@ -180,8 +170,7 @@ plotMetropolis <- within(plotMetropolis, {
 # plotMetropolis$contour
 ```
 
-Define a function to implement the Metropolis algorithm. This is a copy 
-from the same section in kurtz2020b.
+Define a function to implement the Metropolis algorithm. This is a copy from the same section in kurtz2020b.
 
 ```{r ch09_funMetropolis}
 funMetropolis <- function(mu, Sigma, num_proposals,
@@ -365,16 +354,13 @@ log\_gdp\_s_i &\sim \mathcal{N}(\mu_i, \sigma) \\
 \beta_{cid[i]} &\sim \mathcal{N}(1, 0.3) \\
 \sigma &\sim \mathcal{Exp}(1)
 \end{align*}
-$$
-As usual, we look at the default priors to have a starting point on how to write
-our prior with `brms`.
+$$ As usual, we look at the default priors to have a starting point on how to write our prior with `brms`.
 
 ```{r}
 get_prior(data = dataRugged_nona, 
           formula = log_gdp_s ~ 0 + (1 + rugged_sc|is_africa), 
           family = gaussian)
 ```
-
 
 ```{r ch09_fit09_01a}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "67 secs."))
@@ -396,9 +382,7 @@ tictoc::toc()
 print(fit09_01a)
 ```
 
-
-Note that we use `mean_hdi()` but there are many more of these functions in 
-`ggdist()` (which are actually carried forward in `tidybayes`).
+Note that we use `mean_hdi()` but there are many more of these functions in `ggdist()` (which are actually carried forward in `tidybayes`).
 
 ```{r ch09_post09_01a}
 post09_01a <- gather_draws(fit09_01a, r_is_africa[is_africa, term]) |>
@@ -416,6 +400,7 @@ fit09_01b <- xfun::cache_rds({
   file = "ch09_fit09_01b")
 tictoc::toc()
 ```
+
 and we can see that the result are pretty close to mcElreath"s
 
 ```{r}
@@ -444,15 +429,11 @@ prior_summary(fit09_01b)
 
 ### Visualization
 
-We use `GGally`. It can also be done using the `ggmcmc` package with `ggs_pairs`. 
-The `bayesplot` package also has many different plots. It is more sophisticated 
-than `ggmcmc` with some vignettes explaining how to diagnose the chains.
+We use `GGally`. It can also be done using the `ggmcmc` package with `ggs_pairs`. The `bayesplot` package also has many different plots. It is more sophisticated than `ggmcmc` with some vignettes explaining how to diagnose the chains.
 
 For this we choose to used `ggmcmc` which has trank plot and provides the warmup.
 
-Also note that Solomon Kurtz @kurtz2020b has a lot more options and recipes 
-about all of these plots. It is worthwhile reading before losing time finding 
-solutions on the web.
+Also note that Solomon Kurtz @kurtz2020b has a lot more options and recipes about all of these plots. It is worthwhile reading before losing time finding solutions on the web.
 
 ```{r ch09_post09_01b}
 post09_01b <- fit09_01b |>
@@ -462,6 +443,7 @@ post09_01b <- fit09_01b |>
   identity()
 # glimpse(post09_01b)
 ```
+
 ```{r ch09_plot09_01b}
 plot09_01b <- list()
 plot09_01b <- within(plot09_01b, {
@@ -475,10 +457,7 @@ plot09_01b <- within(plot09_01b, {
 plot09_01b$pairs
 ```
 
-
-
-and the crosscorrelations which could also be done with `ggmcmc` but are a 
-little mode flexible to use with `GGally`, in particular we can get in lower trianle format
+and the crosscorrelations which could also be done with `ggmcmc` but are a little mode flexible to use with `GGally`, in particular we can get in lower trianle format
 
 ```{r}
 plot09_01b <- within(plot09_01b, {
@@ -498,10 +477,7 @@ plot09_01b$corr
 
 ### Checking the chain
 
-The `ggmcmc` package always starts with the `ggs()` function which extract 
-the posterior draws and organize them in a tibble. The `ggmcmc` is very useful 
-with family of parameters. i.e.e parameter which are indexed. 
-See the `family` argument in the `ggs` functions.
+The `ggmcmc` package always starts with the `ggs()` function which extract the posterior draws and organize them in a tibble. The `ggmcmc` is very useful with family of parameters. i.e.e parameter which are indexed. See the `family` argument in the `ggs` functions.
 
 See more info on `ggmcmc` at [ggmcmc](https://cran.r-project.org/web/packages/ggmcmc/vignettes/using_ggmcmc.html)
 
@@ -585,24 +561,17 @@ The `brms` defaults are `iter = 2000` and `warmup = 1000`.
 
 ### How many samples do you need
 
-In `brms` the `n_eff` mentioned by McElreath is `bulk_ESS`. The *tail ESS* 
-discussed by McElreath is the `tail_ESS` value in `brms`.
+In `brms` the `n_eff` mentioned by McElreath is `bulk_ESS`. The *tail ESS* discussed by McElreath is the `tail_ESS` value in `brms`.
 
 ### How many chains do you need
 
-For more information on convergence statistics $\mathcal{\widehat{R}}$ 
-see section 9.5.2.1 in @kurtz2020b.
+For more information on convergence statistics $\mathcal{\widehat{R}}$ see section 9.5.2.1 in @kurtz2020b.
 
 ### Taming a wild chain
 
-The `start` argument in `rethinking` is replaced by `inits` in `brms`.
-The simple example of a wild chain is as follows. Note that `brms` can take 
-data in the form of a list.
+The `start` argument in `rethinking` is replaced by `inits` in `brms`. The simple example of a wild chain is as follows. Note that `brms` can take data in the form of a list.
 
-I find much easier to understand the issues by looking at the 
-autocorrelation and the mean plots created with `ggmcmc::ggs_running()` and 
-`ggmcmc::ggs_autocorrelation()`. They will be used often in this work to 
-visualize the Markov chain.
+I find much easier to understand the issues by looking at the autocorrelation and the mean plots created with `ggmcmc::ggs_running()` and `ggmcmc::ggs_autocorrelation()`. They will be used often in this work to visualize the Markov chain.
 
 #### Divergent transitions
 
@@ -634,16 +603,14 @@ tictoc::toc()
 posterior_summary(fit09_02)
 ```
 
-The results are pretty bad, just like McElreath wanted them. 
-The `brms::nuts_params()` provide much diagnostic informations. The type of information is in the `Parameter` column.
+The results are pretty bad, just like McElreath wanted them. The `brms::nuts_params()` provide much diagnostic informations. The type of information is in the `Parameter` column.
 
 ```{r}
 nuts_params(fit09_02) %>% 
   distinct(Parameter)
 ```
 
-In the current case, the divergent transitions are the issue. For this we look 
-at `Parameter == "divergent__"`.
+In the current case, the divergent transitions are the issue. For this we look at `Parameter == "divergent__"`.
 
 ```{r}
 nuts_params(fit09_02) %>%
@@ -674,9 +641,7 @@ wrap_plots(plot09_02, nrow = 2) +
   theme(legend.position = "none")
 ```
 
-we can also see that the parameter's mean has a very hard time reaching a 
-solution with different behaviors between the chains, i.e. the chains 
-behave erratically.
+we can also see that the parameter's mean has a very hard time reaching a solution with different behaviors between the chains, i.e. the chains behave erratically.
 
 ```{r}
 ggs_running(ggs09_02) +
@@ -767,8 +732,7 @@ ggs_autocorrelation(ggs09_03) +
 
 ### Non-identifiable parameters
 
-The data and model is not exactly what McElreath did but it illustrate the
-same thing. See @kurtz2020b for more details.
+The data and model is not exactly what McElreath did but it illustrate the same thing. See @kurtz2020b for more details.
 
 ```{r}
 set.seed(929)
@@ -805,7 +769,6 @@ get_variables(fit09_04)
 ```{r}
 ggs09_04 <- ggmcmc::ggs(fit09_04, family = c("b_|sigma"))
 ```
-
 
 ```{r ch09_plot09_04}
 plot09_04 <- list()
@@ -872,7 +835,6 @@ now the plots make more sense
 ggs09_05 <- ggmcmc::ggs(fit09_05, family = c("b_|sigma"))
 ```
 
-
 ```{r ch09_plot09_05}
 plot09_05 <- list()
 plot09_05 <- within(plot09_05, {
@@ -912,8 +874,6 @@ ggs09_05 |>
 
 #### `ggs_running` and `ggs_autocorrelation`
 
-I find much easier to understand the issues by looking at the autocorrelation 
-and the mean plots. They are a very nice complement to the trace and 
-trank plots.
+I find much easier to understand the issues by looking at the autocorrelation and the mean plots. They are a very nice complement to the trace and trank plots.
 
 ## Summary

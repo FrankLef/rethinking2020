@@ -1,6 +1,6 @@
 # Structural Causal Models {#SCM}
 
-```{r include=FALSE}
+```{r }
 #| include: false
 library(dplyr)
 library(tidyr)
@@ -32,8 +32,6 @@ The default theme used by `ggplot2`
 ggplot2::theme_set(ggthemes::theme_fivethirtyeight())
 ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
-
-
 
 This is a ver y important point, in the intro to chapter 6.
 
@@ -152,7 +150,6 @@ fit06_03 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r ch06_fit06_04}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
 fit06_04 <- xfun::cache_rds({
@@ -168,6 +165,7 @@ fit06_04 <- xfun::cache_rds({
   file = "ch06_fit06_04")
 tictoc::toc()
 ```
+
 and the coefficients are
 
 ```{r}
@@ -179,7 +177,6 @@ posterior_summary(fit06_04) |> round(digits = 2)
 ```
 
 and the multivariate which shows that each variable has now a much larger variance caused by the colinearity.
-
 
 ```{r ch06_fit06_05}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
@@ -260,7 +257,6 @@ p &\sim \alpha + \beta_1 treatment_i + \beta_2 fungus_i \\
 \sigma &\sim \mathcal{Exp}(1)
 \end{align*}
 $$
-
 
 ```{r ch06_fit06_07}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
@@ -351,7 +347,6 @@ dataHappy_gt17 <- dataHappy |>
          mid = factor(married + 1, labels = c("single", "married")))
 # glimpse(dataHappy_gt17)
 ```
-
 
 ```{r ch06_fit06_09}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))

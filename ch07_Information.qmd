@@ -428,15 +428,11 @@ ggplot(dp, aes(x = pareto_k, y = p_waic, color = Loc == "ID")) +
          caption = "Different than McElreath but ok with Kurtz (same conclusions for both)")
 ```
 
-Therefore we have **ID** which has too much influence. The solution is to use 
-**robust regression**, a wonderful solution described by McElreath at the end 
-of section 7.5.2.
+Therefore we have **ID** which has too much influence. The solution is to use **robust regression**, a wonderful solution described by McElreath at the end of section 7.5.2.
 
 See Kurtz on how to do it with `brms` as follows. We use $\nu = 2$, same as McElreath.
 
-Make sure you read McElreath and Kurtz on the t-distribution. A few things are 
-important to remember. e.g. the parameter $\sigma$ is not the standard deviation 
-in t-distribution.
+Make sure you read McElreath and Kurtz on the t-distribution. A few things are important to remember. e.g. the parameter $\sigma$ is not the standard deviation in t-distribution.
 
 ```{r ch07_b05_03t}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))

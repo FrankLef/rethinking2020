@@ -35,8 +35,6 @@ ggplot2::theme_set(ggthemes::theme_pander())
 ggplot2::theme_update(title = element_text(color = "midnightblue"))
 ```
 
-
-
 ## Building an interaction
 
 Load the data, log transform the gdp measure, remove incomplete cases and create a character column for Africa or Not Africa.
@@ -140,7 +138,6 @@ $$
 
 Now fit the model. Get the **prior samples** by using `sample_prior = TRUE`.
 
-
 ```{r ch08_fit08_01a}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit08_01a <- xfun::cache_rds({
@@ -159,7 +156,6 @@ fit08_01a <- xfun::cache_rds({
   file = "ch08_fit08_01a")
 tictoc::toc()
 ```
-
 
 ```{r ch08_b08_01a}
 # tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
@@ -213,11 +209,7 @@ prior08_01a <- within(prior08_01a, {
 # prior08_01a$p
 ```
 
-Now using the prior where we want the intercept to be around 1 with extremes 
-from 0.8 to 1.2 (i.e. a mean of 1 and sd of 0.1) and the slope to have extremes 
-about $\pm 0.6$, that is a mean of 0 with sd of 0.3 
-(i.e. 2 sd with sd = 3 from a mean of 0).
-
+Now using the prior where we want the intercept to be around 1 with extremes from 0.8 to 1.2 (i.e. a mean of 1 and sd of 0.1) and the slope to have extremes about $\pm 0.6$, that is a mean of 0 with sd of 0.3 (i.e. 2 sd with sd = 3 from a mean of 0).
 
 ```{r ch08_fit08_01b}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
@@ -236,12 +228,10 @@ fit08_01b <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r}
 posterior_summary(fit08_01b) |>
   round(digits = 3)
 ```
-
 
 ```{r}
 prior08_01b <- list()
@@ -297,7 +287,6 @@ $$
 \end{align*}
 $$
 
-
 ```{r ch08_fit08_02}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit08_02 <- xfun::cache_rds({
@@ -318,14 +307,10 @@ fit08_02 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
-
 ```{r}
 posterior_summary(fit08_02) |>
   round(digits = 3)
 ```
-
-
 
 and measuring the models' performance
 
@@ -346,6 +331,7 @@ and create the fitted data used for the plot
 ```{r}
 tidybayes::get_variables(fit08_02)
 ```
+
 ```{r ch08_lpred08_02}
 # get the fitted values
 lpred08_02 <- crossing(
@@ -358,7 +344,6 @@ lpred08_02 <- crossing(
   mutate(is_africa = as.factor(is_africa))
 # glimpse(lpred08_02)
 ```
-
 
 ```{r ch08_plot08_02}
 ggplot(dataRugged_nona, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, color = is_africa)) +
@@ -389,8 +374,6 @@ $$
 \end{align*}
 $$
 
-
-
 ```{r ch08_fit08_03}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit08_03 <- xfun::cache_rds({
@@ -411,8 +394,6 @@ fit08_03 <- xfun::cache_rds({
   file = "ch08_fit08_03")
 tictoc::toc()
 ```
-
-
 
 ```{r}
 posterior_summary(fit08_03) |>
@@ -445,8 +426,6 @@ lpred08_03 <- crossing(
 # glimpse(lpred08_03)
 ```
 
-
-
 ```{r ch08_plot08_03}
 ggplot(dataRugged_nona, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, color = is_africa)) +
   geom_smooth(data = lpred08_03, aes(x = rugged_sc, y = .linpred, ymin = .lower, ymax = .upper),
@@ -463,7 +442,6 @@ ggplot(dataRugged_nona, aes(x = rugged_sc, y = log_gdp_s, fill = is_africa, colo
        y = "log GDP (as proportion of mean)") +
   facet_wrap(~ is_africa)
 ```
-
 
 ## Symmetry of interactions
 
@@ -506,8 +484,7 @@ skim(dataTulips) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
-We see that `blooms_r` must be between 0 and 1. The prior used assign most 
-probability outside of that range
+We see that `blooms_r` must be between 0 and 1. The prior used assign most probability outside of that range
 
 ```{r}
 param <- c("mean" = 0.5, "sd" = 1)
@@ -515,8 +492,7 @@ pnorm(q = -1, mean = param["mean"], sd = param["sd"]) +
   pnorm(q = 1, mean = param["mean"], sd = param["sd"], lower.tail = FALSE)
 ```
 
-lets say that we we want only 5% of the values outside the range 
-(2.5% on each side) then, going with trial an error, the boundaries would be about
+lets say that we we want only 5% of the values outside the range (2.5% on each side) then, going with trial an error, the boundaries would be about
 
 ```{r}
 param <- c("mean" = 0.5, "sd" = 0.25)
@@ -528,9 +504,7 @@ Therefore we will use
 
 $$
 \alpha \sim \mathcal{N}(0.5, 0.25)
-$$ 
-and since the range for `water_c` and `shade_c` is -1 to 1 then we can use the 
-same logic for both as follows
+$$ and since the range for `water_c` and `shade_c` is -1 to 1 then we can use the same logic for both as follows
 
 ```{r}
 param <- c("mean" = 0, "sd" = 0.25)
@@ -538,9 +512,7 @@ pnorm(q = -1, mean = param["mean"], sd = param["sd"]) +
   pnorm(q = 1, mean = param["mean"], sd = param["sd"], lower.tail = FALSE)
 ```
 
-which means virtually almost all values will be between -1 and 1. When looking 
-at the `skim()` summary we see that there are many extreme values so 
-this prior covers this situation well.
+which means virtually almost all values will be between -1 and 1. When looking at the `skim()` summary we see that there are many extreme values so this prior covers this situation well.
 
 Therefore, our model with a little more informative priors is
 
@@ -616,8 +588,6 @@ fit08_05 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
-
 ```{r}
 posterior_summary(fit08_05) |>
   round(digits = 3)
@@ -657,7 +627,6 @@ plot08_04post <- within(plot08_04post, {
 plot08_04post$p
 ```
 
-
 ```{r ch08_plot08_05post}
 plot08_05post <- list()
 plot08_05post <- within(plot08_05post, {
@@ -691,23 +660,16 @@ plot08_05post <- within(plot08_05post, {
 plot08_05post$p
 ```
 
-
 ```{r}
 plot08_04post$p / plot08_05post$p +
   plot_annotation(title = "Tryptich plot of predicted bloom by level of shade (-1, 0, 1)")
 ```
 
-
-
 ### Plotting prior predictions
 
-::: {.callout-warning}
-The plot in this section are different than what McElreath and Kurz have.
-Yet, McElreath"s are different than Kurz's, so there doesn't seem to be a
-consensus between the 2.
-I keep the plots below as I don't see anything wrong with them.
+::: callout-warning
+The plot in this section are different than what McElreath and Kurz have. Yet, McElreath"s are different than Kurz's, so there doesn't seem to be a consensus between the 2. I keep the plots below as I don't see anything wrong with them.
 :::
-
 
 ```{r ch08_fit08_04prior}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "20 secs."))
@@ -718,12 +680,11 @@ fit08_04prior <- xfun::cache_rds({
   file = "ch08_fit08_04prior")
 tictoc::toc()
 ```
+
 ```{r}
 posterior_summary(fit08_04prior)|>
   round(digits = 3)
 ```
-
-
 
 ```{r ch08_plot08_04prior}
 plot08_04prior <- list()
@@ -757,7 +718,6 @@ plot08_04prior <- within(plot08_04prior, {
 plot08_04prior$p
 ```
 
-
 ```{r ch08_fit08_05prior}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "20 secs."))
 fit08_05prior <- xfun::cache_rds({
@@ -768,12 +728,10 @@ fit08_05prior <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
 ```{r}
 posterior_summary(fit08_05prior)|>
   round(digits = 3)
 ```
-
 
 ```{r ch08_plot08_05prior}
 plot08_05prior <- list()
@@ -807,12 +765,9 @@ plot08_05prior <- within(plot08_05prior, {
 plot08_05prior$p
 ```
 
-
 ```{r}
 plot08_04prior$p / plot08_05prior$p +
   plot_annotation(title = "Tryptich plot of prior predicted bloom by level of shade (-1, 0, 1)")
 ```
-
-
 
 ## Summary

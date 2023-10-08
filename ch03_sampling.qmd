@@ -59,9 +59,6 @@ Generate and visualize `n_samples` samples from the grid with the $p$ values wit
 
 > Note: We use `dplyr::slice_sample` because `dplyr::sample_n` is deprecated.
 
-
-
-
 ```{r}
 set.seed(1223)
 the_samples <- the_grid |>
@@ -113,14 +110,9 @@ the_samples |>
   identity()
 ```
 
-
-
 ### Intervals of defined mass
 
-Beside the base R `quantile` function, the `mean_qi` function from the
-package `ggdist` will be used extensively in this project. The benefits of
-using this package in conjonction with `posterior`, `tidybayes` etc. will
-become obvious in later chapters.
+Beside the base R `quantile` function, the `mean_qi` function from the package `ggdist` will be used extensively in this project. The benefits of using this package in conjonction with `posterior`, `tidybayes` etc. will become obvious in later chapters.
 
 ```{r}
 the_samples |>
@@ -152,12 +144,10 @@ the_samples <- the_grid |>
 the_samples$id <- seq_len(nrow(the_samples))
 ```
 
-
 ```{r}
 the_samples |>
   ggdist::mean_qi(prob, .width = 0.5)
 ```
-
 
 ```{r}
 the_samples |>
