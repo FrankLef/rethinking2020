@@ -192,18 +192,15 @@ ggplot(prior11_01$all, aes(x = p, color = model)) +
        x = "prior prob. of pulled_left", y = NULL)
 ```
 
-We could also use the package `simpr` to simulate the prior. This will be the 
-favored approach in this project. The advantage of doing this are that it
+We could also use the package `simpr` to simulate the prior. This will be the favored approach in this project. The advantage of doing this are that it
 
 1.  is much faster and easier to modify than running `brm` repeatedly
 2.  avoids possible problems of convergence when using a fit
-3.  allows us to use a single variable such as $treatment$ instead of creating separate prior for each when using `brms`. See what @kurtz2020b has to do in its version of chapter 8. 
-The way Kurtz did it renders the `tidybayes` package less useful.
+3.  allows us to use a single variable such as $treatment$ instead of creating separate prior for each when using `brms`. See what @kurtz2020b has to do in its version of chapter 8. The way Kurtz did it renders the `tidybayes` package less useful.
 
 ##### Prior for $\alpha$ with `simpr`
 
-Using `simpr` is actually pretty simple avoid having to run the fit which 
-could have convergence issues and is certainly more time-consuming.
+Using `simpr` is actually pretty simple avoid having to run the fit which could have convergence issues and is certainly more time-consuming.
 
 ```{r ch11_sim11_01}
 set.seed(1103)
@@ -224,8 +221,6 @@ sim11_01 <- sim11_01$sim |>
 # sim11_01 |>
 #   glimpse()
 ```
-
-
 
 ```{r}
 #| fig-cap: "Figure 11.3"
@@ -344,15 +339,12 @@ sim11_02 <- sim11_02$sim |>
 #   glimpse()
 ```
 
-
-
 ```{r}
 #| fig-cap: "Figure 11.3"
 ggplot(sim11_02, aes(x = diff, color = model)) +
   geom_density(size = 1, alpha = 3/4, adjust = 0.1) +
   scale_color_paletteer_d("khroma::vibrant") +
-  theme(legend.position = "none",
-        ) +
+  theme(legend.position = "none") +
   labs(title = "Prior diff between treatments",
        subtitle = "Simulation with simstudy",
        x = "prior diff between treatments", y = NULL)
@@ -756,9 +748,6 @@ epred11_07 <- dataAdmit |>
 
 and the posterior validation check for model `fit11_07` is
 
-```{r}
-glimpse(dataAdmit)
-```
 
 ```{r ch11_plot11_07}
 #| fig-cap: "Figure 11.5"
@@ -908,14 +897,15 @@ set.seed(1153)
 simKline1 <- simpr::specify(
   a = ~ rnorm(n = 100, mean = the_mean, the_sd),
   lambda = ~ exp(a),
-  m = ~ the_mean,
-  s = ~ the_sd) |>
+  m = ~ paste("mu ==", the_mean),
+  s = ~ paste("sigma ==", the_sd)) |>
   define(the_mean = c(0, 2, 3), the_sd = c(0.5, 1, 2)) |>
   generate(1)
 simKline1 <- simKline1$sim |>
   bind_rows(.id = "id")
+# simKline1 |>
+#   glimpse()
 ```
-
 
 ```{r}
 ggplot(simKline1, aes(x = lambda, fill = as.factor(m), color = as.factor(m))) +
@@ -928,10 +918,8 @@ ggplot(simKline1, aes(x = lambda, fill = as.factor(m), color = as.factor(m))) +
         axis.ticks.y = element_blank()) +
   labs(title = "Prior predictive distribution of the mean (lambda)",
        x = NULL, y = NULL) +
-  facet_grid(sprintf("sd of a=%.1f", s) ~ sprintf("mean of a=%.1f", m))
+  facet_grid(s ~ m, labeller = label_parsed)
 ```
-
-
 
 ##### as per textbook
 
@@ -959,14 +947,11 @@ plotKline1 <- within(plotKline1, {
 plotKline1$p
 ```
 
-Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as our 
-prior for $\alpha_{cid[i]}$.
+Therefore we choose $\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}$ as our prior for $\alpha_{cid[i]}$.
 
-Using our prior for $\alpha_{cid[i]}$ we simulate $\beta_{cid[i]}$. We show the 
-simulation on the natural scale as it is much easier to understand
+Using our prior for $\alpha_{cid[i]}$ we simulate $\beta_{cid[i]}$. We show the simulation on the natural scale as it is much easier to understand
 
 ##### slope with `simpr`
-
 
 ```{r ch11_simKline2}
 simKline2 <- list()
@@ -987,8 +972,6 @@ simKline2 <- within(simKline2, {
 })
 ```
 
-
-
 ```{r}
 plotKline2 <- list()
 plotKline2 <- within(plotKline2, {
@@ -999,12 +982,12 @@ plotKline2 <- within(plotKline2, {
     coord_cartesian(ylim = c(0, 100)) +
     theme(legend.position = "none") +
     labs(title = "Prior predictive distribution of the mean tools (lambda)",
-         subtitle = expression(paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 0.2))),
+         subtitle = expression(
+           paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 0.2))),
        x = "Standard log population", y = "mean total tools(lambda)")
 })
-plotKline2$p1
+# plotKline2$p1
 ```
-
 
 ```{r}
 simKline2 <- within(simKline2, {
@@ -1022,8 +1005,6 @@ simKline2 <- within(simKline2, {
 })
 ```
 
-
-
 ```{r}
 plotKline2 <- within(plotKline2, {
   p2 <- ggplot(simKline2$pdf2, 
@@ -1036,9 +1017,8 @@ plotKline2 <- within(plotKline2, {
          subtitle = expression(paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 10))),
        x = "Standard log population", y = "mean total tools(lambda)")
 })
-plotKline2$p2
+# plotKline2$p2
 ```
-
 
 ```{r}
 simKline2 <- within(simKline2, {
@@ -1056,8 +1036,6 @@ simKline2 <- within(simKline2, {
 })
 ```
 
-
-
 ```{r}
 plotKline2 <- within(plotKline2, {
   p3 <- ggplot(simKline2$pdf3, 
@@ -1070,10 +1048,8 @@ plotKline2 <- within(plotKline2, {
          subtitle = expression(paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 0.2))),
        x = "log population", y = "mean total tools (lambda)")
 })
-plotKline2$p3
+# plotKline2$p3
 ```
-
-
 
 ```{r}
 simKline2 <- within(simKline2, {
@@ -1092,8 +1068,6 @@ simKline2 <- within(simKline2, {
 })
 ```
 
-
-
 ```{r}
 plotKline2 <- within(plotKline2, {
   p4 <- ggplot(simKline2$pdf4, 
@@ -1106,17 +1080,12 @@ plotKline2 <- within(plotKline2, {
          subtitle = expression(paste(a %~% N(mu == 3, sigma == 0.5), ", ", b %~% N(mu == 0, sigma == 0.2))),
        x = "population", y = "mean total tools (lambda)")
 })
-plotKline2$p4
+# plotKline2$p4
 ```
-
 
 ```{r}
-names(plotKline2)
-plotKline2[c("p3")]
 patchwork::wrap_plots(plotKline2[c("p1", "p2", "p3", "p4")])
 ```
-
-
 
 #### Model and fit
 
@@ -1472,9 +1441,7 @@ $$
 
 ### Predictors matched to outcomes
 
-The career are the outcomes. We now predict the career using a trait of the 
-career (outcome itself) which is the income in this case.
-
+The career are the outcomes. We now predict the career using a trait of the career (outcome itself) which is the income in this case.
 
 ```{r ch11_simCareer}
 simCareer <- list()
@@ -1850,7 +1817,6 @@ model_weights(fit11_13null, fit11_13a, fit11_13b, fit11_13c, fit11_13d,
 
 ### Predictors matched to observations
 
-
 ```{r}
 # generate probabilities from family income
 genProbs <- function(x, coef = c(-2, 0, 2), career = 1:3, income_coef = 0.5) {
@@ -1877,7 +1843,6 @@ sim <- within(sim, {
 })
 dataCareer <- sim$data
 ```
-
 
 and we plot the distribution of the family income which is used as a predictor for each category
 
@@ -1937,7 +1902,6 @@ post11_14 <- data.frame(
   identity()
 # post11_14
 ```
-
 
 ```{r ch11_plot11_14}
 plot11_14 <- list()

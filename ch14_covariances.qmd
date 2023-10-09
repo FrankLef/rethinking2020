@@ -10,7 +10,7 @@ library(brms)
 library(loo)
 # library(modelr)
 library(skimr)
-# library(simpr)
+library(simpr)
 library(posterior)
 library(scales)
 library(dagitty)
@@ -60,6 +60,7 @@ simCafes <- within(simCafes, {
   # correlation between intercepts and slopes
   rho <- -0.7
   
+  # covariance of a and b
   cov_ab <- prod(sigmas) * rho
 })
 ```
@@ -75,27 +76,43 @@ we get the covariance matrix `sigma` as follows
 
 ```{r}
 simCafes <- within(simCafes, {
+  n_cafes <- 20L
   # matrix of correlation
   Rho <- matrix(c(1, rho, rho, 1), nrow = 2)
   
   # covariance matrix
   Sigma <- diag(sigmas) %*% Rho %*% diag(sigmas)
 })
+
 ```
 
 and we simulate the bivariate normal distribution
 
+
 ```{r}
 simCafes <- within(simCafes, {
-  n_cafes <- 20
-
   set.seed(1409)
-  vary_effects <- MASS::mvrnorm(n = n_cafes, mu = Mu, Sigma = Sigma) |>
+  vary_effects <- simpr::specify(
+    a = ~ MASS::mvrnorm(n = simCafes$n_cafes, mu = simCafes$Mu, Sigma = simCafes$Sigma)) |>
+    generate(1) |>
+    pull(sim) |>
     as.data.frame() |>
-    mutate(cafe = seq_len(n_cafes)) |>
-    relocate(cafe)
+    mutate(cafe = 1:n()) |>
+    identity()
+  
+  # n_cafes <- 20
+  # 
+  # set.seed(1409)
+  # vary_effects <- MASS::mvrnorm(n = n_cafes, mu = Mu, Sigma = Sigma) |>
+  #   as.data.frame() |>
+  #   mutate(cafe = seq_len(n_cafes)) |>
+  #   relocate(cafe)
 })
-# glimpse(simCafes$vary_effects)
+simCafes$vary_effects |>
+  # pull(sim) |>
+  # as.data.frame() |>
+  glimpse() |>
+  identity()
 ```
 
 and we plot the simulated data which represents the intercept and slope
@@ -136,6 +153,7 @@ simCafes <- within(simCafes, {
 and plot the simulated observations.
 
 ```{r}
+tmp <- length(unique(simCafes$data$cafe))
 simCafes$data |>
   mutate(afternoon = if_else(afternoon == 0, "M", "A"),
          day = rep(rep(1:5, each = 2), times = simCafes$n_cafes),
@@ -148,6 +166,7 @@ simCafes$data |>
   theme(legend.position = "none") +
   labs(title = "Varying slopes simulation") +
   facet_wrap(~ label, ncol = 1)
+rm(tmp)
 ```
 
 ### The varying slopes model
@@ -579,19 +598,37 @@ We now use a simulation to illustrate.
 ```{r chap14_simInstrument}
 simInstrument <- list()
 simInstrument <- within(simInstrument, {
-  n = 500L
-  U <- rnorm(n = n)
-  Q <- sample(x = 1:4, size = n, replace = TRUE)
-  E <- rnorm(n = n, mean = U + Q)
-  # we assume that the true influence of E (education)
-  #  on W (wage) is zero. Just for the sake of the example.
-  W <- rnorm(n = n, mean = U + 0 * E)
-  df <- data.frame(
-    "W" = scale(W),
-    "E" = scale(E),
-    "Q" = scale(Q)
-  )
+  set.seed(1429)
+  df <- simpr::specify(
+    U = ~ rnorm(n = 500),
+    Q = ~ as.vector(scale(sample(x = 1:4, size = 500, replace = TRUE))),
+    E = ~ as.vector(scale(rnorm(n = 500, mean = U + Q, sd = 1))),
+    W = ~ as.vector(scale(rnorm(n = 500, mean = U + 0 * E, sd = 1)))) |>
+    simpr::generate(1) |>
+    pull(sim) |>
+    as.data.frame()
+  # df <- simpr::specify(
+  #   U = ~ rnorm(n = 500),
+  #   Q = ~ scale(sample(x = 1:4, size = 500, replace = TRUE)),
+  #   E = ~ scale(rnorm(n = 500, mean = U + Q, sd = 1)),
+  #   W = ~ scale(rnorm(n = 500, mean = U + 0 * E, sd = 1))) |>
+  #   simpr::generate(1) |>
+  #   unnest(sim)
+  
+  # n = 500L
+  # U <- rnorm(n = n)
+  # Q <- sample(x = 1:4, size = n, replace = TRUE)
+  # E <- rnorm(n = n, mean = U + Q)
+  # # we assume that the true influence of E (education)
+  # #  on W (wage) is zero. Just for the sake of the example.
+  # W <- rnorm(n = n, mean = U + 0 * E)
+  # df <- data.frame(
+  #   "W" = scale(W),
+  #   "E" = scale(E),
+  #   "Q" = scale(Q)
+  # )
 })
+# simInstrument$df$.sim_error
 simInstrument$df |>
   glimpse()
 ```
@@ -607,7 +644,7 @@ get_prior(
 ```
 
 ```{r ch14_fit14_04}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 fit14_04 <- xfun::cache_rds({
   out <- brm(
     data = simInstrument$df,
@@ -722,7 +759,7 @@ get_prior(
 and the final fit is
 
 ```{r ch14_fit14_06}
-tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "120 secs."))
 fit14_06 <- xfun::cache_rds({
   out <- brm(
     data = simInstrument$df,
@@ -1102,7 +1139,10 @@ k_{10}
 \eta^2 &\sim \mathcal{Exponential}(2) \\
 \rho^2 &\sim \mathcal{Exponential}(0.5)
 \end{align*}
-$$ \##### `brms` model
+$$ 
+
+
+\##### `brms` model
 
 $$
 \begin{align*}
