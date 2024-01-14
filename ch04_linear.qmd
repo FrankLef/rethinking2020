@@ -434,7 +434,7 @@ $$
 
 > See the overthinking box about half Cauchy distribution in chapter 8 on p. 260.
 
-This process takes less than a second. It has been save to the rsd file `b04_01.rds`
+This process takes less than a second.
 
 ```{r ch04_fit04_01brm}
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))

@@ -2,6 +2,7 @@
 
 ```{r}
 #| include: false
+library(conflicted)
 library(dplyr)
 library(tidyr)
 library(tidybayes)
@@ -32,7 +33,10 @@ Some options to facilitate the computations
 #  For execution on a local, multicore CPU with excess RAM
 options(mc.cores = parallel::detectCores())
 #  To avoid recompilation of unchanged Stan programs
-rstan_options(auto_write = TRUE)
+rstan::rstan_options(auto_write = TRUE)
+# Found more than one class "stanfit" in cache; using the first, from namespace 'rethinking'
+conflicted::conflicts_prefer(rstan::stanfit)
+conflicted::conflicts_prefer(dplyr::filter)
 ```
 
 The default theme used by `ggplot2`
@@ -97,22 +101,12 @@ simCafes <- within(simCafes, {
     generate(1) |>
     pull(sim) |>
     as.data.frame() |>
-    mutate(cafe = 1:n()) |>
-    identity()
-  
-  # n_cafes <- 20
-  # 
-  # set.seed(1409)
-  # vary_effects <- MASS::mvrnorm(n = n_cafes, mu = Mu, Sigma = Sigma) |>
-  #   as.data.frame() |>
-  #   mutate(cafe = seq_len(n_cafes)) |>
-  #   relocate(cafe)
+    mutate(cafe = 1:n())
 })
 simCafes$vary_effects |>
-  # pull(sim) |>
-  # as.data.frame() |>
-  glimpse() |>
-  identity()
+  skim() |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 and we plot the simulated data which represents the intercept and slope
@@ -123,7 +117,7 @@ simCafes$vary_effects |>
   ggplot(aes(x = a, y = b)) +
   geom_point(shape = 1, size = 3, color = "purple") +
   lapply(X = 1:5 / 5, FUN = function(x) {
-      stat_ellipse(type = "norm", level = x, linetype = "dotted", size = 0.25)}) +
+      stat_ellipse(type = "norm", level = x, linetype = "dotted", linewidth = 0.25)}) +
   theme(legend.position = "none") +
   labs(title = sprintf("Distribution of intercept and slopes for %d cafes", 
                        simCafes$n_cafes),
@@ -153,7 +147,6 @@ simCafes <- within(simCafes, {
 and plot the simulated observations.
 
 ```{r}
-tmp <- length(unique(simCafes$data$cafe))
 simCafes$data |>
   mutate(afternoon = if_else(afternoon == 0, "M", "A"),
          day = rep(rep(1:5, each = 2), times = simCafes$n_cafes),
@@ -166,7 +159,6 @@ simCafes$data |>
   theme(legend.position = "none") +
   labs(title = "Varying slopes simulation") +
   facet_wrap(~ label, ncol = 1)
-rm(tmp)
 ```
 
 ### The varying slopes model
@@ -219,7 +211,6 @@ We use the `ggdist` package to illustrate the LKJ distribution.
 
 ```{r}
 #| fig-cap: "Figure 14.3"
-#| 
 lkj_dist <- list()
 lkj_dist <- within(lkj_dist, {
   df <- crossing(K = 2:4, eta = c(1, 2, 4), x = seq(from = -1, to = 1, by = 0.05)) %>%
@@ -607,26 +598,6 @@ simInstrument <- within(simInstrument, {
     simpr::generate(1) |>
     pull(sim) |>
     as.data.frame()
-  # df <- simpr::specify(
-  #   U = ~ rnorm(n = 500),
-  #   Q = ~ scale(sample(x = 1:4, size = 500, replace = TRUE)),
-  #   E = ~ scale(rnorm(n = 500, mean = U + Q, sd = 1)),
-  #   W = ~ scale(rnorm(n = 500, mean = U + 0 * E, sd = 1))) |>
-  #   simpr::generate(1) |>
-  #   unnest(sim)
-  
-  # n = 500L
-  # U <- rnorm(n = n)
-  # Q <- sample(x = 1:4, size = n, replace = TRUE)
-  # E <- rnorm(n = n, mean = U + Q)
-  # # we assume that the true influence of E (education)
-  # #  on W (wage) is zero. Just for the sake of the example.
-  # W <- rnorm(n = n, mean = U + 0 * E)
-  # df <- data.frame(
-  #   "W" = scale(W),
-  #   "E" = scale(E),
-  #   "Q" = scale(Q)
-  # )
 })
 # simInstrument$df$.sim_error
 simInstrument$df |>
@@ -764,7 +735,7 @@ fit14_06 <- xfun::cache_rds({
   out <- brm(
     data = simInstrument$df,
     family = gaussian,
-    formula = bf(W ~ 1 + E) + bf(E ~ 1 + Q),
+    formula = bf(W ~ 1 + E) + bf(E ~ 1 + Q) + set_rescor(TRUE),
     prior = c(
       prior(normal(0, 0.2), class = Intercept, resp = E),
       prior(normal(0, 0.5), class = b, resp = E),
@@ -794,7 +765,10 @@ summarize_draws(fit14_06, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
 
 ### Data
 
-The research can be find in this [paper](https://research-information.bris.ac.uk/ws/portalfiles/portal/41942591/koster2014sn.pdf). However I could not find what the variable $dlndist$ is. I suppose it it the log of some distance . . but why is it negative? It doesn't matter, it is only used to color the edges of the network and not in the analysis per se.
+The research can be find in this [paper](https://research-information.bris.ac.uk/ws/portalfiles/portal/41942591/koster2014sn.pdf).
+However I could not find what the variable $dlndist$ is. I suppose it it
+the log of some distance . . but why is it negative? It doesn't matter, it is 
+only used to color the edges of the network and not in the analysis per se.
 
 ```{r ch14_dataKL}
 data(KosterLeckie, package = "rethinking")
@@ -830,7 +804,8 @@ dataKL$dyads |> ggplot(aes(x = giftsAB, y = giftsBA)) +
   labs(title = "Distribution of dyadic gifts")
 ```
 
-and since this a social network then we can visualize the network with the `ggnetwork` package.For details see [ggnetwork](https://cran.r-project.org/web/packages/ggnetwork/vignettes/ggnetwork.html).
+and since this a social network then we can visualize the network with the 
+`ggnetwork` package.For details see [ggnetwork](https://cran.r-project.org/web/packages/ggnetwork/vignettes/ggnetwork.html).
 
 We use the `tidygraph` to use dplyr verbs on relational data and `ggraph` to
 plot it.
@@ -974,7 +949,10 @@ dataKline$nodes_df |>
 # glimpse(dataKline$df)
 ```
 
-and we will also use a matrix of the longitudinal and latitudinal relative positions of the societies. This is an approximation only as it used the km per degree at the equator which is 111.32 km per degree at the equator. This gives the following relative position matrix.
+and we will also use a matrix of the longitudinal and latitudinal relative 
+positions of the societies. This is an approximation only as it used the km per 
+degree at the equator which is 111.32 km per degree at the equator. This gives 
+the following relative position matrix.
 
 ```{r}
 data(islandsDistMatrix)
@@ -1006,7 +984,8 @@ heatmaply::heatmaply(
   main = "Distances between Oceanic Societies in Thousands of km")
 ```
 
-And the basic map, shown as a graph, with latitude and longitude of the culture can be visualize with the `ggraph` package.
+And the basic map, shown as a graph, with latitude and longitude of the culture
+can be visualize with the `ggraph` package.
 
 ```{r ch14_graph14_08}
 #| fig-align: "center"
@@ -1035,8 +1014,6 @@ graph14_08 <- within(graph14_08, {
 graph14_08$p
 ```
 
-```{r}
-```
 
 #### Model
 
@@ -1056,7 +1033,10 @@ $$
 T_i &\sim \mathcal{Poisson}(\lambda_i) \\
 \lambda_i &= \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}
 \end{align*}
-$$ Here $k_{society}$ is the varying intercept. These intercept are part of a multivariate distribution. The multivariate intercept prior is defined as
+$$
+
+Here $k_{society}$ is the varying intercept. These intercept are part of a 
+multivariate distribution. The multivariate intercept prior is defined as
 
 $$
 \begin{align*}
@@ -1142,7 +1122,7 @@ k_{10}
 $$ 
 
 
-\##### `brms` model
+##### `brms` model
 
 $$
 \begin{align*}
@@ -1239,9 +1219,12 @@ posterior_summary(fit14_08) |>
 
 #### Analysis
 
-The differences with `rethinking` are because `brms` uses non-centering. The coefficient that is really different is the $\alpha$ in $\lambda_i = \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}$.
+The differences with `rethinking` are because `brms` uses non-centering. 
+The coefficient that is really different is the $\alpha$ in 
+$\lambda_i = \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}$.
 
-To evaluate the differences between `brms` and `rethinking` we can look at what the posterior would be like, without taking into account the covariances.
+To evaluate the differences between `brms` and `rethinking` we can look at what 
+the posterior would be like, without taking into account the covariances.
 
 For `brms` we have
 
@@ -1261,7 +1244,7 @@ prob_brms <- round(dpois(x = tools, lambda = l), 4)
 prob_brms
 ```
 
-as opposed to \`rehinking\`\` which would give
+as opposed to `rehinking` which would give
 
 ```{r}
 a <- 1.41
@@ -1284,7 +1267,9 @@ $$
 \bf{K_{ij}} = \eta^2 \exp \left(-\rho^2D_{ij}^2 \right) + \delta_{ij}\sigma^2
 $$
 
-where the term $\delta_{ij}\sigma^2$ is used when $i=j$, see p. 470 of @elreath2020. In the oceanic case it is not applicable since we have only one observation per society. Therefore the equation is this case is
+where the term $\delta_{ij}\sigma^2$ is used when $i=j$, see p. 470 of 
+@elreath2020. In the oceanic case it is not applicable since we have only one 
+observation per society. Therefore the equation is this case is
 
 $$
 \bf{K_{ij}} = \eta^2 \exp \left(-\rho^2D_{ij}^2 \right)
@@ -1315,7 +1300,8 @@ D_{ij}^2 &= 2 \cdot lscale^2 \cdot \left[ \log \left(sdgp^2 \right) - \log \left
 \end{align*}
 $$
 
-and therefore we can figure out the covariance and convert the coefficients between `brms` and \`rethinking\`\`,
+and therefore we can figure out the covariance and convert the coefficients 
+between `brms` and `rethinking`,
 
 ```{r}
 post14_08 <- list()
@@ -1335,7 +1321,8 @@ post14_08 <- within(post14_08, {
 })
 ```
 
-and we transform the posterior data to be able to plot as shown in figure 14.11 on p. 473
+and we transform the posterior data to be able to plot as shown in figure 
+14.11 on p. 473
 
 ```{r ch14_post14_08}
 post14_08 <- within(post14_08, {
@@ -1373,6 +1360,7 @@ post14_08 <- within(post14_08, {
 # glimpse(post14_08$stats)
 # glimpse(post14_08$sampl)
 ```
+
 
 ```{r ch14_plot14_08}
 #| fig-cap: "Figure 14.11"
@@ -1419,7 +1407,8 @@ wrap_plots(plot14_08[c("prior", "post")]) +
   theme(title = element_text(color = "darkblue"))
 ```
 
-and to get the matrix of median covariance we simply map the calculation of covariance using the median values of the parameters
+and to get the matrix of median covariance we simply map the calculation of 
+covariance using the median values of the parameters
 
 ```{r}
 post14_08 <- within(post14_08, {

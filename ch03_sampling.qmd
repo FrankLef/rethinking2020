@@ -10,6 +10,7 @@ library(tidyr)
 library(ggplot2)
 library(ggdist)
 library(paletteer)
+library(simpr)
 ```
 
 ## Sampling from grid-approximation posterior
@@ -36,7 +37,8 @@ $$
   {\text{Average Likelihood}}
 $$
 
-Note the code `stopifnot(sum(d$posterior) == 1)`, it is always a good idea to verify this . . . you could be surprised how often you miss the mark.
+Note the code `stopifnot(sum(d$posterior) == 1)`, it is always a good idea to 
+verify this.
 
 ```{r}
 # the data, see page 28
@@ -53,9 +55,11 @@ assert_that(sum(the_grid$posterior) == 1,
             msg = "The total posterior prob. must equal 1.")
 ```
 
-which gives the estimated posterior probability $p$ conditional on the data for each point of a grid.
+which gives the estimated posterior probability $p$ conditional on the data for 
+each point of a grid.
 
-Generate and visualize `n_samples` samples from the grid with the $p$ values with their respective posterior probability $p$ computed above.
+Generate and visualize `n_samples` samples from the grid with the $p$ values 
+with their respective posterior probability $p$ computed above.
 
 > Note: We use `dplyr::slice_sample` because `dplyr::sample_n` is deprecated.
 
@@ -183,7 +187,8 @@ ggplot(the_samples, aes(x=prob)) +
 
 ### Point estimates (loss function)
 
-The **linex loss function** can be very useful in business analysis. This is to be investigated later.
+The **linex loss function** can be very useful in business analysis.
+This is to be investigated later.
 
 ## Sampling to simulate prediction
 

@@ -748,7 +748,6 @@ epred11_07 <- dataAdmit |>
 
 and the posterior validation check for model `fit11_07` is
 
-
 ```{r ch11_plot11_07}
 #| fig-cap: "Figure 11.5"
 plot11_07 <- list()
