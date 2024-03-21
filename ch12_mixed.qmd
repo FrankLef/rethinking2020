@@ -29,7 +29,7 @@ Some options to facilitate the computations
 #  For execution on a local, multicore CPU with excess RAM
 options(mc.cores = parallel::detectCores())
 #  To avoid recompilation of unchanged Stan programs
-rstan_options(auto_write = TRUE)
+rstan::rstan_options(auto_write = TRUE)
 ```
 
 The default theme used by `ggplot2`
@@ -76,9 +76,7 @@ $$
 \end{align*}
 $$
 
-the `simstudy` package provide the function to perform that conversion from 
-$mean = \mu$ and $precision = \kappa$ to the shape (mathematical) 
-parameters $\alpha$ and $\beta$
+the `simstudy` package provide the function to perform that conversion from $mean = \mu$ and $precision = \kappa$ to the shape (mathematical) parameters $\alpha$ and $\beta$
 
 ```{r}
 paramsMeanKappa <- list(mean = 0.5, kappa = 5)
@@ -286,10 +284,7 @@ $$
 y^{\alpha-1} \exp{(-\frac{\alpha y}{\mu})}
 $$
 
-To convert from the $\mu = mean$ and $\theta = dispersion= \frac{mean^2}{variance}$ 
-to the shape and rate parameters we use the function `simstudy::gammaGetShapeRate()`.
-To help us find the mean and dispersion to use with `simstudy::gammaGetShapeRate()`, 
-the custom function `gammaGetMeanDispersion` is also defined. It is the inverse of `simstudy::gammaGetShapeRate()`.
+To convert from the $\mu = mean$ and $\theta = dispersion= \frac{mean^2}{variance}$ to the shape and rate parameters we use the function `simstudy::gammaGetShapeRate()`. To help us find the mean and dispersion to use with `simstudy::gammaGetShapeRate()`, the custom function `gammaGetMeanDispersion` is also defined. It is the inverse of `simstudy::gammaGetShapeRate()`.
 
 ```{r}
 # custom function which is the inverse function of gammaGetShapeRate()
@@ -611,8 +606,6 @@ simMonastery <- within(simMonastery, {
 # simMonastery$data |>
 #   glimpse()
 ```
-
-
 
 plot the data
 

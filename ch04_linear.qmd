@@ -25,7 +25,7 @@ Some options to facilitate the computations
 #  For execution on a local, multicore CPU with excess RAM
 options(mc.cores = parallel::detectCores())
 #  To avoid recompilation of unchanged Stan programs
-rstan_options(auto_write = TRUE)
+rstan::rstan_options(auto_write = TRUE)
 ```
 
 The default theme used by `ggplot2`

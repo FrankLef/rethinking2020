@@ -35,8 +35,31 @@ options(mc.cores = parallel::detectCores())
 #  To avoid recompilation of unchanged Stan programs
 rstan::rstan_options(auto_write = TRUE)
 # Found more than one class "stanfit" in cache; using the first, from namespace 'rethinking'
-conflicted::conflicts_prefer(rstan::stanfit)
-conflicted::conflicts_prefer(dplyr::filter)
+conflicted::conflicts_prefer(
+  rstan::stanfit,
+  dplyr::filter,
+  brms::ar,
+  rethinking::circle,
+  loo::compare,
+  brms::dstudent_t,
+  dagitty::edges,
+  simpr::expand,
+  dplyr::lag,
+  brms::LOO,
+  posterior::mad,
+  posterior::match,
+  brms::pstudent_t,
+  brms::qstudent_t,
+  brms::rhat,
+  ape::rotate,
+  rethinking::rstudent,
+  brms::rstudent_t,
+  posterior::sd,
+  brms::stancode,
+  posterior::var,
+  brms::WAIC,
+  dplyr::where,
+  .quiet = TRUE)
 ```
 
 The default theme used by `ggplot2`
@@ -237,7 +260,8 @@ lkj_dist <- within(lkj_dist, {
 lkj_dist$p
 ```
 
-```{r ch14_fit14_01}
+```{r}
+#| label: "ch14_fit14_01"
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit14_01 <- xfun::cache_rds({
   out <- brm(
@@ -258,7 +282,8 @@ fit14_01 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-```{r ch14_post14_01}
+```{r}
+#| label: "ch14_post14_01"
 post14_01 <- list()
 post14_01 <- within(post14_01, {
   prior <- prior_draws(x = fit14_01)
@@ -290,7 +315,8 @@ post14_01 <- within(post14_01, {
 # glimpse(post14_01$all)
 ```
 
-```{r ch14_plot14_01}
+```{r}
+#| label: "ch14_plot14_01"
 #| fig-cap: "Figure 14.4"
 plot14_01 <- list()
 plot14_01 <- within(plot14_01, {
@@ -306,7 +332,8 @@ plot14_01 <- within(plot14_01, {
 plot14_01$cor
 ```
 
-```{r ch14_pred14_01}
+```{r}
+#| label: "ch14_pred14_01"
 pred14_01 <- list()
 pred14_01 <- within(pred14_01, {
   pred_df <- simCafes$data |>
@@ -372,7 +399,8 @@ wrap_plots(plot14_01[c("coefs", "wait")]) +
 
 ## Advanced varying slopes
 
-```{r ch14_dataChimp}
+```{r}
+#| label: "ch14_dataChimp"
 data(chimpanzees)
 dataChimp <- chimpanzees |>
   mutate(block = factor(block),
@@ -387,7 +415,10 @@ dataChimp |>
 
 #### The model
 
-\$\$ \begin{align*}
+
+
+$$
+\begin{align*}
 L_i &\sim \mathcal{Binomial}(1, p_i) \\
 logit(p_i) &\sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_{block[i], treatment[i]} \\
 \gamma_{treatment[i]} &\sim \mathcal{N}(0, 1), \, \text{for } i = 1 \ldots 4 \\
@@ -474,11 +505,17 @@ logit(p_i) &\sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta
 
 \rho_{actor}, \rho_{block} &\sim \mathcal{LKJcorr}(2)
 
-\end{align*} \$\$
+\end{align*}
+$$
+
+
 
 We don't do model m14.2 since it is only done to illustrate centralized vs non-centralized parametrization and that `brms` uses only non-centralized parametrization.
 
-```{r ch14_fit14_03}
+
+```{r}
+#| label: "ch14_fit14_03"
+
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "80 secs."))
 fit14_03 <- xfun::cache_rds({
   out <- brm(
@@ -498,9 +535,12 @@ fit14_03 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
+
+
 The plot is slightly different than what McElreath has. The open circle represent the actual results and the solid circles are the predicted mean.
 
-```{r ch14_plot14_03}
+```{r}
+#| label: "ch14_plot14_03"
 #| fig-cap: "Figure 14.7"
 plot14_03 <- list()
 plot14_03 <- within(plot14_03, {
@@ -554,6 +594,8 @@ plot14_03 <- within(plot14_03, {
 plot14_03$p
 ```
 
+
+
 ## Instruments and Causal designs
 
 ```{r}
@@ -562,6 +604,8 @@ ggdag::dagify(E ~ U, W ~ U, W ~ E) |>
     ggdag::theme_dag_blank(
       panel.background = element_rect(fill = "snow", color = "snow"))
 ```
+
+
 
 > In causal terms, an instrument variable is a variable that acts like a natural experiment on the exposure $E$.
 
@@ -586,7 +630,8 @@ We now use a simulation to illustrate.
 
 > With real data, you never know what the right anser is. This is h=why studying simulated examples is so important.
 
-```{r chap14_simInstrument}
+```{r}
+#| label: "chap14_simInstrument"
 simInstrument <- list()
 simInstrument <- within(simInstrument, {
   set.seed(1429)
@@ -614,7 +659,8 @@ get_prior(
 )
 ```
 
-```{r ch14_fit14_04}
+```{r}
+#| label: "ch14_fit14_04"
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "70 secs."))
 fit14_04 <- xfun::cache_rds({
   out <- brm(
@@ -646,7 +692,8 @@ The value $b_E$ should have been close to zero. The oncorrect value is caused by
 
 Now, lets see what happens when we include the instrumental variable $Q$.
 
-```{r ch14_fit14_05}
+```{r}
+#| label: "ch14_fit14_05"
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit14_05 <- xfun::cache_rds({
   out <- brm(
@@ -729,7 +776,8 @@ get_prior(
 
 and the final fit is
 
-```{r ch14_fit14_06}
+```{r}
+#| label: "ch14_fit14_06"
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "120 secs."))
 fit14_06 <- xfun::cache_rds({
   out <- brm(
@@ -770,6 +818,7 @@ However I could not find what the variable $dlndist$ is. I suppose it it
 the log of some distance . . but why is it negative? It doesn't matter, it is 
 only used to color the edges of the network and not in the analysis per se.
 
+
 ```{r ch14_dataKL}
 data(KosterLeckie, package = "rethinking")
 dataKL <- list(
@@ -784,7 +833,12 @@ dataKL$dyads <- dataKL$dyads |>
          did = factor(did))
 ```
 
+
+
+
 The data set can be summarized with the `skimr` package
+
+
 
 ```{r}
 names(dataKL$dyads)
@@ -835,7 +889,8 @@ netKL$p
 
 ### Model
 
-\$\$ \begin{align*}
+$$
+\begin{align*}
 \begin{bmatrix}
 y_{a \rightarrow b} \\
 y_{b \rightarrow a} \\
@@ -908,7 +963,8 @@ d_{ji} \\
 
 
 \rho_{gr}, \rho_d &\sim \mathcal{LKJ}(4)
-\end{align*} \$\$
+\end{align*}
+$$
 
 Kurtz says that there is no known way to use `brms`. The package `bisonR` that specializes in social networks and uses `brms`. It can be found at [bison](https://github.com/JHart96/bisonR) with a useful vignette at [vignette](https://jordanhart.co.uk/bisonR/articles/getting_started.html).
 

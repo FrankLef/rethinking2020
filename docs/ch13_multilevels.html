@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.450">
+<meta name="generator" content="quarto-1.4.550">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -22,7 +22,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -58,6 +58,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
+  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -100,7 +101,13 @@ div.csl-indent {
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -109,6 +116,7 @@ div.csl-indent {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
@@ -118,6 +126,33 @@ div.csl-indent {
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
 </head>
 
 <body class="nav-sidebar floating">
@@ -126,12 +161,12 @@ div.csl-indent {
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch13_multilevels.html"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Multilevel Models</span></a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch13_multilevels.html"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Multilevel Models</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -141,7 +176,7 @@ div.csl-indent {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">rethinking2020</a> 
@@ -253,7 +288,7 @@ div.csl-indent {
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -309,14 +344,16 @@ div.csl-indent {
   </div>
   
 
+
 </header>
+
 
 <p>Some options to facilitate the computations</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  For execution on a local, multicore CPU with excess RAM</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">mc.cores =</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>())</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#  To avoid recompilation of unchanged Stan programs</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rstan_options</span>(<span class="at">auto_write =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>rstan<span class="sc">::</span><span class="fu">rstan_options</span>(<span class="at">auto_write =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The default theme used by <code>ggplot2</code></p>
 <div class="cell">
@@ -500,7 +537,11 @@ Supply arguments directly to `.fns` through an anonymous function instead.
 </div>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>plotFrogs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch13_multilevels_files/figure-html/ch13_plotFrogs-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch13_multilevels_files/figure-html/ch13_plotFrogs-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <section id="simple" class="level3" data-number="13.1.1">
@@ -529,7 +570,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_01"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.14 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.21 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -542,7 +583,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 48 × 8
    variable  mean    sd `5.5%` `94.5%`  rhat ess_bulk ess_tail
-   &lt;chr&gt;    &lt;num&gt; &lt;num&gt;  &lt;num&gt;   &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+   &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;
  1 b_tank1   1.73  0.77   0.53    3.09  1        1512      824
  2 b_tank2   2.38  0.93   1       4.01  1        1403      657
  3 b_tank3   0.74  0.63  -0.24    1.78  1.01      991      716
@@ -584,7 +625,11 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 `binwidth`.</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="ch13_multilevels_files/figure-html/ch13_plot13_01-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch13_multilevels_files/figure-html/ch13_plot13_01-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -619,7 +664,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_02"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.16 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.21 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -632,7 +677,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 50 × 8
    variable             mean    sd `5.5%` `94.5%`  rhat ess_bulk ess_tail
-   &lt;chr&gt;               &lt;num&gt; &lt;num&gt;  &lt;num&gt;   &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+   &lt;chr&gt;               &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;
  1 b_Intercept          1.38  0.27   0.96    1.82  1         179      371
  2 sd_tank__Intercept   1.64  0.21   1.35    2.03  1         374      540
  3 r_tank[1,Intercept]  0.76  0.9   -0.59    2.32  1        1211      461
@@ -711,16 +756,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 # Groups:   density, pred, size, surv, propsurv, tank [48]
    density pred  size   surv propsurv tank   .row .epred .epred.lower
      &lt;int&gt; &lt;fct&gt; &lt;fct&gt; &lt;int&gt;    &lt;dbl&gt; &lt;fct&gt; &lt;int&gt;  &lt;dbl&gt;        &lt;dbl&gt;
- 1      10 no    big       7      0.7 3         3   7.22         4.92
- 2      10 no    big       9      0.9 1         1   8.89         6.99
- 3      10 no    big      10      1   2         2   9.53         8.09
- 4      10 no    big      10      1   4         4   9.51         8.01
- 5      10 no    small     9      0.9 5         5   8.88         7.15
- 6      10 no    small     9      0.9 6         6   8.91         6.93
- 7      10 no    small     9      0.9 8         8   8.97         7.24
- 8      10 no    small    10      1   7         7   9.52         8.29
- 9      10 pred  big       4      0.4 9         9   4.69         2.37
-10      10 pred  big       6      0.6 12       12   6.30         3.92
+ 1      10 no    big       7      0.7 3         3   7.14         4.87
+ 2      10 no    big       9      0.9 1         1   8.87         6.86
+ 3      10 no    big      10      1   2         2   9.51         7.96
+ 4      10 no    big      10      1   4         4   9.52         8.17
+ 5      10 no    small     9      0.9 5         5   8.89         6.91
+ 6      10 no    small     9      0.9 6         6   8.85         6.71
+ 7      10 no    small     9      0.9 8         8   8.98         7.00
+ 8      10 no    small    10      1   7         7   9.52         8.24
+ 9      10 pred  big       4      0.4 9         9   4.59         2.49
+10      10 pred  big       6      0.6 12       12   6.36         3.83
 # ℹ 38 more rows
 # ℹ 7 more variables: .epred.upper &lt;dbl&gt;, propsurv.epred &lt;dbl&gt;,
 #   propsurv.epred.lower &lt;dbl&gt;, propsurv.epred.upper &lt;dbl&gt;, .width &lt;dbl&gt;,
@@ -735,7 +780,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 13.1</figcaption>
+<figcaption>Figure 13.1</figcaption>
 </figure>
 </div>
 </div>
@@ -775,7 +820,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 13.2</figcaption>
+<figcaption>Figure 13.2</figcaption>
 </figure>
 </div>
 </div>
@@ -838,7 +883,11 @@ logit(p_i) &amp;= \alpha_{pond[i]} \\
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of log odd of survival by pond"</span>,</span>
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -890,7 +939,7 @@ logit(p_i) &amp;= \alpha_{pond[i]} \\
 <span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_03"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.17 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.22 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we have our point summaries and interval as follows</p>
@@ -904,7 +953,7 @@ logit(p_i) &amp;= \alpha_{pond[i]} \\
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 62 × 8
    variable             mean    sd `5.5%` `94.5%`  rhat ess_bulk ess_tail
-   &lt;chr&gt;               &lt;num&gt; &lt;num&gt;  &lt;num&gt;   &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+   &lt;chr&gt;               &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;
  1 b_Intercept          1.47  0.22   1.12    1.83  1.01      264      395
  2 sd_pond__Intercept   1.49  0.2    1.19    1.84  1.01      440      652
  3 r_pond[1,Intercept]  0.09  0.96  -1.33    1.71  1        1181      660
@@ -1030,7 +1079,7 @@ Note
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 13.3</figcaption>
+<figcaption>Figure 13.3</figcaption>
 </figure>
 </div>
 </div>
@@ -1310,7 +1359,7 @@ Note
 <span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_04"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.13 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.22 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1322,7 +1371,7 @@ Note
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 20 × 8
    variable                 mean    sd `5.5%` `94.5%`  rhat ess_bulk ess_tail
-   &lt;chr&gt;                   &lt;num&gt; &lt;num&gt;  &lt;num&gt;   &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+   &lt;chr&gt;                   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;
  1 b_a_Intercept            0.53  0.75  -0.65    1.71  1.01      175      319
  2 b_g_block1              -0.15  0.2   -0.52    0.07  1.02      328      504
  3 b_g_block2               0.04  0.17  -0.2     0.3   1.02      726      345
@@ -1393,7 +1442,7 @@ Note
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch13_multilevels_files/figure-html/ch13_plot13_04-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 13.4</figcaption>
+<figcaption>Figure 13.4</figcaption>
 </figure>
 </div>
 </div>
@@ -1430,7 +1479,7 @@ Note
 <span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_05"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.16 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.22 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we obtain the same results as on p.&nbsp;418 of section 13.3.1.</p>
@@ -1463,7 +1512,7 @@ fit13_04   19.4 </code></pre>
 <span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_06"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.18 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.2 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1499,7 +1548,7 @@ fit13_06   19.3 </code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">within</span>(fitd, {</span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  chimp <span class="ot">&lt;-</span> 2L</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  chimp <span class="ot">&lt;-</span> <span class="dv">2</span>L</span>
 <span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  labels<span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"R/N"</span>, <span class="st">"L/N"</span>, <span class="st">"R/P"</span>, <span class="st">"L/P"</span>)</span>
 <span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">actor =</span> <span class="fu">factor</span>(chimp),</span>
@@ -1526,14 +1575,18 @@ fit13_06   19.3 </code></pre>
 <span id="cb62-27"><a href="#cb62-27" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(fitd$data)</span></span>
 <span id="cb62-28"><a href="#cb62-28" aria-hidden="true" tabindex="-1"></a>fitd<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>and for chimp # 5</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">within</span>(fitd, {</span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>  chimp <span class="ot">&lt;-</span> 5L</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>  chimp <span class="ot">&lt;-</span> <span class="dv">5</span>L</span>
 <span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>  labels<span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"R/N"</span>, <span class="st">"L/N"</span>, <span class="st">"R/P"</span>, <span class="st">"L/P"</span>)</span>
 <span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>  newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">actor =</span> <span class="fu">factor</span>(chimp),</span>
@@ -1560,7 +1613,11 @@ fit13_06   19.3 </code></pre>
 <span id="cb63-27"><a href="#cb63-27" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(fitd$data)</span></span>
 <span id="cb63-28"><a href="#cb63-28" aria-hidden="true" tabindex="-1"></a>fitd<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch13_multilevels_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -1575,7 +1632,7 @@ fit13_06   19.3 </code></pre>
 <h2 data-number="13.6" class="anchored" data-anchor-id="summary"><span class="header-section-number">13.6</span> Summary</h2>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
 <div id="ref-kurtz2020b" class="csl-entry" role="listitem">
 Kurz, Solomon. 2020. <em>Statistical Rethinking with Brms</em>. 2nd ed. <a href="https://bookdown.org/content/4857/">https://bookdown.org/content/4857/</a>.
 </div>
@@ -1662,10 +1719,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -1675,8 +1731,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -1689,6 +1754,125 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -1732,6 +1916,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -1757,6 +1942,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -1818,17 +2029,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./ch12_mixed.html" class="pagination-link">
+      <a href="./ch12_mixed.html" class="pagination-link" aria-label="Monsters and Mixtures">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./ch14_covariances.html" class="pagination-link">
+      <a href="./ch14_covariances.html" class="pagination-link" aria-label="Adventures in Covariance">
         <span class="nav-page-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Adventures in Covariance</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 

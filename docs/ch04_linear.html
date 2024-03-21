@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.450">
+<meta name="generator" content="quarto-1.4.550">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -22,7 +22,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -58,6 +58,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
+  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -100,7 +101,13 @@ div.csl-indent {
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -109,6 +116,7 @@ div.csl-indent {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
@@ -118,6 +126,33 @@ div.csl-indent {
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
 </head>
 
 <body class="nav-sidebar floating">
@@ -126,12 +161,12 @@ div.csl-indent {
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch04_linear.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch04_linear.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Linear Models</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -141,7 +176,7 @@ div.csl-indent {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">rethinking2020</a> 
@@ -253,7 +288,7 @@ div.csl-indent {
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -306,14 +341,16 @@ div.csl-indent {
   </div>
   
 
+
 </header>
+
 
 <p>Some options to facilitate the computations</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  For execution on a local, multicore CPU with excess RAM</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">mc.cores =</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>())</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#  To avoid recompilation of unchanged Stan programs</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rstan_options</span>(<span class="at">auto_write =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>rstan<span class="sc">::</span><span class="fu">rstan_options</span>(<span class="at">auto_write =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The default theme used by <code>ggplot2</code></p>
 <div class="cell">
@@ -622,7 +659,11 @@ h_i &amp;\sim \mathcal{N}(\mu, \sigma)\\
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Prior Predictive Simulation for the Height Model."</span></span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -633,7 +674,7 @@ h_i &amp;\sim \mathcal{N}(\mu, \sigma)\\
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create grid of mu and sigma</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>postHowel_gte18 <span class="ot">&lt;-</span> <span class="fu">within</span>(postHowel_gte18, {</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  ngrid <span class="ot">&lt;-</span> 200L</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  ngrid <span class="ot">&lt;-</span> <span class="dv">200</span>L</span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  grid <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mu =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">140</span>, <span class="at">to =</span> <span class="dv">160</span>, <span class="at">length.out =</span> ngrid),</span>
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">4</span>, <span class="at">to =</span> <span class="dv">9</span>, <span class="at">length.out =</span> ngrid)) <span class="sc">|&gt;</span></span>
@@ -737,7 +778,11 @@ $ LL    &lt;dbl&gt; -3812.776, -3777.627, -3743.158, -3709.350, -3676.189, -3643
 <pre><code>Warning: Removed 37129 rows containing missing values (`geom_raster()`).</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -762,7 +807,11 @@ $ LL    &lt;dbl&gt; -3812.776, -3777.627, -3743.158, -3709.350, -3676.189, -3643
 <span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">linewidth =</span> <span class="dv">1</span>))</span>
 <span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>plotPost<span class="sc">$</span>marg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -841,7 +890,7 @@ h_i &amp;\sim \mathcal{N}(\mu, \sigma)\\
 <blockquote class="blockquote">
 <p>See the overthinking box about half Cauchy distribution in chapter 8 on p.&nbsp;260.</p>
 </blockquote>
-<p>This process takes less than a second. It has been save to the rsd file <code>b04_01.rds</code></p>
+<p>This process takes less than a second.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"60 secs."</span>))</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>fit04_01brm <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
@@ -855,13 +904,17 @@ h_i &amp;\sim \mathcal{N}(\mu, \sigma)\\
 <span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_01brm"</span>)</span>
 <span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.1 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.27 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit04_01brm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>with the summary</p>
@@ -898,7 +951,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 7
   variable        mean   median    sd   mad     q5.5    q94.5
-  &lt;chr&gt;          &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+  &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
 1 b_Intercept   155.     155.    0.42  0.42   154.     155.  
 2 sigma           7.74     7.73  0.28  0.28     7.31     8.22
 3 lprior         -9.16    -9.16  0.08  0.08    -9.29    -9.04
@@ -940,7 +993,11 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 ℹ Please use `after_stat(level)` instead.</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -977,9 +1034,9 @@ sigma 0.001 1.000</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">precis</span>(post04_01m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            mean        sd       5.5%      94.5%    histogram
-mu    154.598061 0.4142194 153.936966 155.263193      ▁▁▅▇▂▁▁
-sigma   7.728602 0.2911282   7.264748   8.194668 ▁▁▁▂▅▇▇▃▁▁▁▁</code></pre>
+<pre><code>            mean        sd      5.5%      94.5%    histogram
+mu    154.604641 0.4143937 153.93818 155.258455     ▁▁▁▅▇▂▁▁
+sigma   7.727704 0.2917038   7.25969   8.195568 ▁▁▁▁▂▅▇▇▃▁▁▁</code></pre>
 </div>
 </div>
 </section>
@@ -1050,7 +1107,7 @@ h_i \sim \mathcal{N}(\mu_i, \sigma)
 <div class="cell">
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>priorHeights <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>priorHeights <span class="ot">&lt;-</span> <span class="fu">within</span>(priorHeights, {</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> 100L</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="dv">100</span>L</span>
 <span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">4</span>)</span>
 <span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>  sim <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">seq_len</span>(n),</span>
@@ -1069,7 +1126,11 @@ h_i \sim \mathcal{N}(\mu_i, \sigma)
 <span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">100</span>, <span class="dv">400</span>)) <span class="sc">+</span></span>
 <span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"b ~ dnorm(0, 10)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <section id="adjusting-the-priors" class="level5" data-number="4.4.1.3.1">
@@ -1095,7 +1156,11 @@ h_i \sim \mathcal{N}(\mu_i, \sigma)
 <span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb57-17"><a href="#cb57-17" aria-hidden="true" tabindex="-1"></a>priorHeights<span class="sc">$</span>lnorm <span class="sc">+</span> priorHeights<span class="sc">$</span>exp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p><span class="math display">\[
@@ -1196,7 +1261,7 @@ h_i &amp;\sim \mathcal{N}(\mu_i, \sigma)\\
 <span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_03brm"</span>)</span>
 <span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.18 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.23 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1205,7 +1270,7 @@ h_i &amp;\sim \mathcal{N}(\mu_i, \sigma)\\
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 10
   variable      mean  median    sd   mad      q5     q95  rhat ess_bulk ess_tail
-  &lt;chr&gt;        &lt;num&gt;   &lt;num&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;   &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+  &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
 1 b_Interce…   155.    155.    0.3   0.3   154.    155       1    7975.    6010 
 2 b_weight_c     0.9     0.9   0     0       0.8     1       1    8445.    6252.
 3 sigma          5.1     5.1   0.2   0.2     4.8     5.4     1    8724.    6149.
@@ -1254,7 +1319,7 @@ $ weight_c &lt;dbl&gt; 2.835121, -8.504679, -13.125648, 8.051429, -3.713614, 18.
 <span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_03brm_b"</span>)</span>
 <span id="cb69-14"><a href="#cb69-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.13 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.23 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1263,13 +1328,13 @@ $ weight_c &lt;dbl&gt; 2.835121, -8.504679, -13.125648, 8.051429, -3.713614, 18.
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 10
   variable           mean   median    sd   mad       q5      q95  rhat ess_bulk
-  &lt;chr&gt;             &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt; &lt;num&gt;    &lt;num&gt;
+  &lt;chr&gt;             &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;
 1 b_a_Intercept    155.     155.    0.27  0.27   154.     155.       1    4611.
 2 b_lb_Intercept    -0.1     -0.1   0.05  0.05    -0.18    -0.03     1    4525.
 3 sigma              5.07     5.07  0.19  0.19     4.77     5.39     1    5388.
 4 lprior           -10.6    -10.6   0.19  0.19   -10.9    -10.3      1    5224.
 5 lp__           -1081.   -1081.    1.24  0.95 -1084.   -1080.       1    2134.
-# ℹ 1 more variable: ess_tail &lt;num&gt;</code></pre>
+# ℹ 1 more variable: ess_tail &lt;dbl&gt;</code></pre>
 </div>
 </div>
 </section>
@@ -1309,14 +1374,14 @@ b     0.000 0.000 0.002</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 15
   variable        mean   median    sd   mad     q5.5    q94.5  rhat ess_bulk
-  &lt;chr&gt;          &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt; &lt;num&gt;    &lt;num&gt;
+  &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;
 1 b_Intercept   155.     155.    0.27  0.27   154.     155.       1    7975.
 2 b_weight_c      0.9      0.9   0.04  0.04     0.84     0.97     1    8445.
 3 sigma           5.07     5.06  0.19  0.19     4.77     5.38     1    8724.
 4 lprior        -10.3    -10.3   0.19  0.19   -10.7    -10.0      1    8915.
 5 lp__        -1082.   -1081.    1.22  0.98 -1084.   -1080.       1    4250.
-# ℹ 6 more variables: ess_tail &lt;num&gt;, mcse_mean &lt;num&gt;, mcse_median &lt;num&gt;,
-#   mcse_sd &lt;num&gt;, mcse_q5 &lt;num&gt;, mcse_q95 &lt;num&gt;</code></pre>
+# ℹ 6 more variables: ess_tail &lt;dbl&gt;, mcse_mean &lt;dbl&gt;, mcse_median &lt;dbl&gt;,
+#   mcse_sd &lt;dbl&gt;, mcse_q5 &lt;dbl&gt;, mcse_q95 &lt;dbl&gt;</code></pre>
 </div>
 </div>
 <p>we get the varcov matrix as follows</p>
@@ -1379,7 +1444,11 @@ lprior            0.058     -0.192 -0.973  1.000</code></pre>
 <pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-49-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-49-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>and density plots by chains</p>
@@ -1392,7 +1461,11 @@ lprior            0.058     -0.192 -0.973  1.000</code></pre>
 <span id="cb88-6"><a href="#cb88-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(. <span class="sc">~</span> .variable, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free"</span>)</span>
 <span id="cb88-7"><a href="#cb88-7" aria-hidden="true" tabindex="-1"></a>plot04_03brm<span class="sc">$</span>dens</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-50-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-50-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>and the paired plots with <code>ggally</code></p>
@@ -1429,7 +1502,11 @@ lprior            0.058     -0.192 -0.973  1.000</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb92"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a>plot04_03brm<span class="sc">$</span>pairs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-52-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-52-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>and the correlation matrix</p>
@@ -1448,7 +1525,11 @@ Adding another scale for fill, which will replace the existing scale.</code></pr
 </div>
 <div class="sourceCode cell-code" id="cb95"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>plot04_03brm<span class="sc">$</span>corr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-53-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-53-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>and for added extra, the trace plot</p>
@@ -1462,7 +1543,11 @@ Adding another scale for fill, which will replace the existing scale.</code></pr
 <span id="cb96-7"><a href="#cb96-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(. <span class="sc">~</span> .variable, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free"</span>)</span>
 <span id="cb96-8"><a href="#cb96-8" aria-hidden="true" tabindex="-1"></a>plot04_03brm<span class="sc">$</span>trace</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -1501,7 +1586,11 @@ Adding another scale for fill, which will replace the existing scale.</code></pr
 <span id="cb98-18"><a href="#cb98-18" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb98-19"><a href="#cb98-19" aria-hidden="true" tabindex="-1"></a>plotHowel<span class="sc">$</span>basic</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-56-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-56-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>and the model used is</p>
@@ -1544,7 +1633,7 @@ Warning
 <span id="cb99-12"><a href="#cb99-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_05brm"</span>)</span>
 <span id="cb99-13"><a href="#cb99-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.17 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.43 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1554,7 +1643,7 @@ Warning
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 10
   variable      mean median    sd   mad     q5    q95  rhat ess_bulk ess_tail
-  &lt;chr&gt;        &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt;  &lt;num&gt;  &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+  &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
 1 b_Intercept 146.   146.    0.37  0.37 145.   147.       1    6914.    5892.
 2 b_weight_s   21.7   21.7   0.29  0.29  21.2   22.2      1    6999.    5915.
 3 b_weight_s2  -7.8   -7.8   0.27  0.28  -8.25  -7.35     1    6755.    6110.
@@ -1612,7 +1701,11 @@ weight_s2    -7.80      0.27  -8.33  -7.26</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb110"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a>plot04_05brm<span class="sc">$</span>dens <span class="sc">+</span> plot04_05brm<span class="sc">$</span>trace</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-62-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-62-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>And we look at the fitted and predicted values to understand and interpret the result.</p>
@@ -1625,13 +1718,13 @@ weight_s2    -7.80      0.27  -8.33  -7.26</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb111"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb111-1"><a href="#cb111-1" aria-hidden="true" tabindex="-1"></a>pred04_05brm <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb111-2"><a href="#cb111-2" aria-hidden="true" tabindex="-1"></a>pred04_05brm <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb111-3"><a href="#cb111-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">weight_s =</span> <span class="fu">seq_range</span>(dataHowel<span class="sc">$</span>weight_s, <span class="at">n =</span> 30L)) <span class="sc">|&gt;</span></span>
+<span id="cb111-3"><a href="#cb111-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">weight_s =</span> <span class="fu">seq_range</span>(dataHowel<span class="sc">$</span>weight_s, <span class="at">n =</span> <span class="dv">30</span>L)) <span class="sc">|&gt;</span></span>
 <span id="cb111-4"><a href="#cb111-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">weight_s2 =</span> weight_s<span class="sc">^</span><span class="dv">2</span>) <span class="sc">|&gt;</span></span>
 <span id="cb111-5"><a href="#cb111-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_predicted_draws</span>(fit04_05brm, <span class="at">ndraws =</span> <span class="dv">500</span>) <span class="sc">|&gt;</span></span>
 <span id="cb111-6"><a href="#cb111-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">median_qi</span>()</span>
 <span id="cb111-7"><a href="#cb111-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb111-8"><a href="#cb111-8" aria-hidden="true" tabindex="-1"></a>lpred04_05brm <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb111-9"><a href="#cb111-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">weight_s =</span> <span class="fu">seq_range</span>(dataHowel<span class="sc">$</span>weight_s, <span class="at">n =</span> 30L)) <span class="sc">|&gt;</span></span>
+<span id="cb111-9"><a href="#cb111-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">weight_s =</span> <span class="fu">seq_range</span>(dataHowel<span class="sc">$</span>weight_s, <span class="at">n =</span> <span class="dv">30</span>L)) <span class="sc">|&gt;</span></span>
 <span id="cb111-10"><a href="#cb111-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">weight_s2 =</span> weight_s<span class="sc">^</span><span class="dv">2</span>) <span class="sc">|&gt;</span></span>
 <span id="cb111-11"><a href="#cb111-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_linpred_draws</span>(fit04_05brm, <span class="at">ndraws =</span> <span class="dv">500</span>) <span class="sc">|&gt;</span></span>
 <span id="cb111-12"><a href="#cb111-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">median_qi</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1649,7 +1742,11 @@ weight_s2    -7.80      0.27  -8.33  -7.26</code></pre>
 <span id="cb112-9"><a href="#cb112-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">20</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>)</span>
 <span id="cb112-10"><a href="#cb112-10" aria-hidden="true" tabindex="-1"></a>plot04_05brm<span class="sc">$</span>model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-64-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-64-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -1826,7 +1923,11 @@ weight_s2    -7.80      0.27  -8.33  -7.26</code></pre>
 <span id="cb117-9"><a href="#cb117-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Cherry Blossom in Japan"</span>,</span>
 <span id="cb117-10"><a href="#cb117-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="fu">sprintf</span>(<span class="st">"%d observations with %d knots"</span>, <span class="fu">nrow</span>(dataCherry_nona), <span class="fu">length</span>(knots)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-67-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-67-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>the code <code>knots[-c(1, nknots)]</code> is required because <code>bs</code> places knots at the boundaries by default, so we have to remove them.</p>
@@ -1855,7 +1956,11 @@ weight_s2    -7.80      0.27  -8.33  -7.26</code></pre>
 <span id="cb119-15"><a href="#cb119-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
 <span id="cb119-16"><a href="#cb119-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="st">"The bias functions"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-69-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-69-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -1891,7 +1996,7 @@ w_j &amp;\sim \mathcal{N}(0, 10) \\
 <span id="cb121-10"><a href="#cb121-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch04_fit04_08brm"</span>)</span>
 <span id="cb121-11"><a href="#cb121-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.2 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.36 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1901,7 +2006,7 @@ w_j &amp;\sim \mathcal{N}(0, 10) \\
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 20 × 10
    variable     mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail
-   &lt;chr&gt;       &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+   &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
  1 b_Intercept 104.   104.    2.4   2.4  99.3 108.      1     657.    1083.
  2 b_B1         -3.1   -3.1   3.9   3.9  -9.5   3.2     1    1472     2103.
  3 b_B2         -1     -1.1   3.9   4    -7.6   5.4     1    1512.    2289.
@@ -1963,7 +2068,11 @@ w_j &amp;\sim \mathcal{N}(0, 10) \\
 <span id="cb127-21"><a href="#cb127-21" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb127-22"><a href="#cb127-22" aria-hidden="true" tabindex="-1"></a>plot04_08brm<span class="sc">$</span>bias</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-73-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-73-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>the fitted values</p>
@@ -1992,7 +2101,11 @@ w_j &amp;\sim \mathcal{N}(0, 10) \\
 <span id="cb129-13"><a href="#cb129-13" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb129-14"><a href="#cb129-14" aria-hidden="true" tabindex="-1"></a>plot04_08brm<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch04_linear_files/figure-html/unnamed-chunk-75-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch04_linear_files/figure-html/unnamed-chunk-75-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -2007,7 +2120,7 @@ w_j &amp;\sim \mathcal{N}(0, 10) \\
 <p>This was an important chapter. Most of the plots and basic coding tools are exemplified here. It is an important reference chapter. The <code>brms</code> package will be exclusively used from now on.</p>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
 <div id="ref-kurtz2020b" class="csl-entry" role="listitem">
 Kurz, Solomon. 2020. <em>Statistical Rethinking with Brms</em>. 2nd ed. <a href="https://bookdown.org/content/4857/">https://bookdown.org/content/4857/</a>.
 </div>
@@ -2094,10 +2207,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -2107,8 +2219,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -2121,6 +2242,125 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -2164,6 +2404,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -2189,6 +2430,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -2250,17 +2517,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./ch03_sampling.html" class="pagination-link">
+      <a href="./ch03_sampling.html" class="pagination-link" aria-label="Sampling the Imaginary">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./ch05_multivariate.html" class="pagination-link">
+      <a href="./ch05_multivariate.html" class="pagination-link" aria-label="Multivariate Linear Models">
         <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Multivariate Linear Models</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 

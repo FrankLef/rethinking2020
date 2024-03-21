@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.450">
+<meta name="generator" content="quarto-1.4.550">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -22,7 +22,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -58,6 +58,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
+  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -100,7 +101,13 @@ div.csl-indent {
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -109,6 +116,7 @@ div.csl-indent {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
@@ -118,6 +126,33 @@ div.csl-indent {
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
 </head>
 
 <body class="nav-sidebar floating">
@@ -126,12 +161,12 @@ div.csl-indent {
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch11_counting.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Counting and Classification</span></a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch11_counting.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Counting and Classification</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -141,7 +176,7 @@ div.csl-indent {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">rethinking2020</a> 
@@ -253,7 +288,7 @@ div.csl-indent {
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -301,14 +336,16 @@ div.csl-indent {
   </div>
   
 
+
 </header>
+
 
 <p>Some options to facilitate the computations</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  For execution on a local, multicore CPU with excess RAM</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">mc.cores =</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>())</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#  To avoid recompilation of unchanged Stan programs</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rstan_options</span>(<span class="at">auto_write =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>rstan<span class="sc">::</span><span class="fu">rstan_options</span>(<span class="at">auto_write =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The default theme used by <code>ggplot2</code></p>
 <div class="cell">
@@ -623,7 +660,7 @@ logit(p_i) &amp;= \alpha \\
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_01"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.11 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.3 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -664,7 +701,7 @@ logit(p_i) &amp;= \alpha \\
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_01b"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.12 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.54 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -706,7 +743,11 @@ Intercept    0.579     0.521 0.541 0.623</code></pre>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Model 11.1 and 11.1b"</span>,</span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"prior prob. of pulled_left"</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>We could also use the package <code>simpr</code> to simulate the prior. This will be the favored approach in this project. The advantage of doing this are that it</p>
@@ -766,7 +807,7 @@ Attaching package: 'purrr'</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch11_counting_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 11.3</figcaption>
+<figcaption>Figure 11.3</figcaption>
 </figure>
 </div>
 </div>
@@ -823,7 +864,7 @@ logit(p_i) &amp;= \alpha + \beta_{treatment[i]} \\
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch11_fit11_02"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.16 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.21 sec elapsed</code></pre>
 </div>
 </div>
 <p>and the coefficients, converted back to natural scale are</p>
@@ -866,7 +907,7 @@ lp__                             0.000     0.916 0.000 0.000</code></pre>
 <span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_03"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 35 secs., use the cache.: 0.38 sec elapsed</code></pre>
+<pre><code>run time of 35 secs., use the cache.: 0.2 sec elapsed</code></pre>
 </div>
 </div>
 <p>the coefficients, converted back to natural scale are</p>
@@ -926,7 +967,7 @@ lp__                             0.000     0.912 0.000 0.000</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch11_counting_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 11.3</figcaption>
+<figcaption>Figure 11.3</figcaption>
 </figure>
 </div>
 </div>
@@ -982,7 +1023,7 @@ logit(p_i) &amp;= \alpha_{actor[i]} + \beta_{treatment[i]} \\
 <span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_04"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.21 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.3 sec elapsed</code></pre>
 </div>
 </div>
 <p>and the coefficients on natural scale</p>
@@ -1104,14 +1145,22 @@ lp__                        0.0000    0.9530 0.0000 0.0000</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>plot11_04<span class="sc">$</span>actor</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>and for the treatments. This is different because McElreath gives the plot on the logit <em>scale</em></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(plot11_04[<span class="fu">c</span>(<span class="st">"treatment_logit"</span>, <span class="st">"treatment"</span>)], <span class="at">ncol =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -1131,7 +1180,11 @@ Note
 <div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(plot11_04[<span class="fu">c</span>(<span class="st">"diff"</span>, <span class="st">"diff_logit"</span>)], <span class="at">ncol =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>Next we look at the observed and predicted effect by actor</p>
@@ -1173,7 +1226,7 @@ using the `.groups` argument.</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch11_counting_files/figure-html/ch11_plot11_04all-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 11.4</figcaption>
+<figcaption>Figure 11.4</figcaption>
 </figure>
 </div>
 </div>
@@ -1217,7 +1270,7 @@ using the `.groups` argument.</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch11_counting_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 11.4</figcaption>
+<figcaption>Figure 11.4</figcaption>
 </figure>
 </div>
 </div>
@@ -1293,7 +1346,7 @@ can override using the `.groups` argument.</code></pre>
 <span id="cb66-13"><a href="#cb66-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_06"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb66-14"><a href="#cb66-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.17 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.25 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1515,7 +1568,7 @@ logit(p_i) &amp;= \alpha_{gid[i]} \\
 <span id="cb73-10"><a href="#cb73-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_07"</span>)</span>
 <span id="cb73-11"><a href="#cb73-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.22 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.28 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1598,7 +1651,7 @@ lp__                       -431.008     1.523 -434.748 -429.117</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="ch11_counting_files/figure-html/ch11_plot11_07-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure 11.5</figcaption>
+<figcaption>Figure 11.5</figcaption>
 </figure>
 </div>
 </div>
@@ -1626,7 +1679,7 @@ logit(p_i) &amp;= \alpha_{gid[i]} + \delta_{dept[i]} \\
 <span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_08"</span>)</span>
 <span id="cb83-11"><a href="#cb83-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.22 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.45 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1691,7 +1744,7 @@ lp__                         -62.23      3.04 -68.91 -57.32</code></pre>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-35-1.png" class="img-fluid figure-img" width="72"></p>
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-35-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="72"></p>
 </figure>
 </div>
 </div>
@@ -1920,7 +1973,11 @@ total\_tools_i \sim \mathcal{Poisson}(\lambda_i) \\
 <span id="cb94-10"><a href="#cb94-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
 <span id="cb94-11"><a href="#cb94-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(s <span class="sc">~</span> m, <span class="at">labeller =</span> label_parsed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -1949,7 +2006,11 @@ total\_tools_i \sim \mathcal{Poisson}(\lambda_i) \\
 <span id="cb95-20"><a href="#cb95-20" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb95-21"><a href="#cb95-21" aria-hidden="true" tabindex="-1"></a>plotKline1<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-38-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-38-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>Therefore we choose <span class="math inline">\(\alpha_{cid[i]} \sim \mathcal{LogNormal(3, 0.5)}\)</span> as our prior for <span class="math inline">\(\alpha_{cid[i]}\)</span>.</p>
@@ -2082,7 +2143,11 @@ total\_tools_i \sim \mathcal{Poisson}(\lambda_i) \\
 <div class="cell">
 <div class="sourceCode cell-code" id="cb104"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1" aria-hidden="true" tabindex="-1"></a>patchwork<span class="sc">::</span><span class="fu">wrap_plots</span>(plotKline2[<span class="fu">c</span>(<span class="st">"p1"</span>, <span class="st">"p2"</span>, <span class="st">"p3"</span>, <span class="st">"p4"</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-46-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-46-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -2110,7 +2175,7 @@ total\_tools_i \sim \mathcal{Poisson}(\lambda_i) \\
 <span id="cb105-10"><a href="#cb105-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_09"</span>)</span>
 <span id="cb105-11"><a href="#cb105-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.22 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.3 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2150,7 +2215,7 @@ lp__        -67.0173429 0.66772263 -68.967360 -66.5318055</code></pre>
 <span id="cb111-11"><a href="#cb111-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_10"</span>)</span>
 <span id="cb111-12"><a href="#cb111-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.26 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.31 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2265,7 +2330,11 @@ fit11_09 -29.3      17.0   -70.4     16.8         7.8   3.3    140.8  33.5   </c
 <span id="cb122-30"><a href="#cb122-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Posterior fitted values for Oceanic Tools model"</span>,</span>
 <span id="cb122-31"><a href="#cb122-31" aria-hidden="true" tabindex="-1"></a>                  <span class="at">subtitle =</span> <span class="st">"Model b11.10 - Size of points is the paretor_k factor"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/ch11_plot11_10-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/ch11_plot11_10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -2316,7 +2385,7 @@ total\_tools_i &amp;\sim \mathcal{Poisson}(\lambda_i) \\
 <span id="cb123-16"><a href="#cb123-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_11"</span>)</span>
 <span id="cb123-17"><a href="#cb123-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.25 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.47 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2359,7 +2428,11 @@ lp__            -44.00      1.58 -47.77 -41.78</code></pre>
 <span id="cb128-15"><a href="#cb128-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"model b11.11"</span>,</span>
 <span id="cb128-16"><a href="#cb128-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"population in thousands"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -2439,7 +2512,7 @@ nb_i &amp;\sim \mathcal{Poisson}(\mu_i) \\
 <span id="cb132-11"><a href="#cb132-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_12"</span>)</span>
 <span id="cb132-12"><a href="#cb132-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 100 secs., use the cache.: 0.26 sec elapsed</code></pre>
+<pre><code>run time of 100 secs., use the cache.: 0.59 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2565,7 +2638,11 @@ Pr(k \mid s_1, s_2 \ldots, s_K) = \frac{\exp{(s_k)}}{\sum_{i=1}^{K}\exp{(s_i)}}
 <span id="cb144-17"><a href="#cb144-17" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb144-18"><a href="#cb144-18" aria-hidden="true" tabindex="-1"></a>plotCareer<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/ch11_plotCareer-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/ch11_plotCareer-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <section id="scores" class="level4" data-number="11.3.1.1">
@@ -2652,7 +2729,7 @@ score_3 &amp;= \alpha_3 + \beta \cdot income_3 \\
 <span id="cb149-38"><a href="#cb149-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_13"</span>)</span>
 <span id="cb149-39"><a href="#cb149-39" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.31 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.52 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we look at the summary</p>
@@ -2663,7 +2740,7 @@ score_3 &amp;= \alpha_3 + \beta \cdot income_3 \\
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 10
   variable    mean  median    sd   mad      q5     q95  rhat ess_bulk ess_tail
-  &lt;chr&gt;      &lt;num&gt;   &lt;num&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;   &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+  &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
 1 a[1]       -2.23   -2.22  0.19  0.19   -2.55   -1.94  1.01     629.     547.
 2 a[2]       -1.67   -1.63  0.25  0.24   -2.13   -1.33  1        568.     437.
 3 b           0.13    0.1   0.11  0.1     0.01    0.35  1        539      548.
@@ -2695,7 +2772,7 @@ In the case of multinomial, since every category is a model in itself, we use an
 <span id="cb153-11"><a href="#cb153-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_13null"</span>)</span>
 <span id="cb153-12"><a href="#cb153-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 100 secs., use the cache.: 0.29 sec elapsed</code></pre>
+<pre><code>run time of 100 secs., use the cache.: 0.63 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2812,7 +2889,7 @@ lp__             -375.18      1.01 -377.91 -374.19</code></pre>
 <span id="cb165-16"><a href="#cb165-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_13a"</span>)</span>
 <span id="cb165-17"><a href="#cb165-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 100 secs., use the cache.: 0.33 sec elapsed</code></pre>
+<pre><code>run time of 100 secs., use the cache.: 0.6 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2835,7 +2912,7 @@ lp__             -375.18      1.01 -377.91 -374.19</code></pre>
 <span id="cb167-17"><a href="#cb167-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_13b"</span>)</span>
 <span id="cb167-18"><a href="#cb167-18" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 130 secs., use the cache.: 0.31 sec elapsed</code></pre>
+<pre><code>run time of 130 secs., use the cache.: 0.61 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2857,7 +2934,7 @@ lp__             -375.18      1.01 -377.91 -374.19</code></pre>
 <span id="cb169-16"><a href="#cb169-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_13c"</span>)</span>
 <span id="cb169-17"><a href="#cb169-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 120 secs., use the cache.: 1.19 sec elapsed</code></pre>
+<pre><code>run time of 120 secs., use the cache.: 0.75 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2879,7 +2956,7 @@ lp__             -375.18      1.01 -377.91 -374.19</code></pre>
 <span id="cb171-16"><a href="#cb171-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_13d"</span>)</span>
 <span id="cb171-17"><a href="#cb171-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 120 secs., use the cache.: 0.36 sec elapsed</code></pre>
+<pre><code>run time of 120 secs., use the cache.: 0.84 sec elapsed</code></pre>
 </div>
 </div>
 <p>and plot the results</p>
@@ -2915,7 +2992,11 @@ lp__             -375.18      1.01 -377.91 -374.19</code></pre>
 <span id="cb174-10"><a href="#cb174-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The parameters' value by model"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
 <span id="cb174-11"><a href="#cb174-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(.<span class="sc">~</span> term, <span class="at">nrow =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/ch11_plot11_13-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/ch11_plot11_13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>and comparing the performance of the models</p>
@@ -2994,7 +3075,11 @@ fit11_13null   33.3  </code></pre>
 <span id="cb181-12"><a href="#cb181-12" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb181-13"><a href="#cb181-13" aria-hidden="true" tabindex="-1"></a>p<span class="sc">$</span>dens</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-71-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-71-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>Now lets fit the model with <code>brms</code></p>
@@ -3017,7 +3102,7 @@ fit11_13null   33.3  </code></pre>
 <span id="cb182-16"><a href="#cb182-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_14"</span>)</span>
 <span id="cb182-17"><a href="#cb182-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 90 secs., use the cache.: 0.37 sec elapsed</code></pre>
+<pre><code>run time of 90 secs., use the cache.: 0.89 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -3095,7 +3180,11 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <span id="cb189-18"><a href="#cb189-18" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb189-19"><a href="#cb189-19" aria-hidden="true" tabindex="-1"></a>plot11_14<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/ch11_plot11_14-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/ch11_plot11_14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -3243,7 +3332,7 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <span id="cb191-10"><a href="#cb191-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_15binom"</span>)</span>
 <span id="cb191-11"><a href="#cb191-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.14 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.36 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -3259,7 +3348,7 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <span id="cb193-10"><a href="#cb193-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch11_fit11_15pois"</span>)</span>
 <span id="cb193-11"><a href="#cb193-11" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.14 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.47 sec elapsed</code></pre>
 </div>
 </div>
 <p>and the posterior distribution for the Poisson fit</p>
@@ -3284,7 +3373,11 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <span id="cb197-8"><a href="#cb197-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of rate of admission and reject across departments"</span>,</span>
 <span id="cb197-9"><a href="#cb197-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"nb of applicaitons"</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ch11_counting_files/figure-html/unnamed-chunk-77-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="ch11_counting_files/figure-html/unnamed-chunk-77-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -3293,7 +3386,7 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <h2 data-number="11.4" class="anchored" data-anchor-id="summary"><span class="header-section-number">11.4</span> Summary</h2>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
 <div id="ref-kurtz2020b" class="csl-entry" role="listitem">
 Kurz, Solomon. 2020. <em>Statistical Rethinking with Brms</em>. 2nd ed. <a href="https://bookdown.org/content/4857/">https://bookdown.org/content/4857/</a>.
 </div>
@@ -3383,10 +3476,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -3396,8 +3488,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -3410,6 +3511,125 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -3453,6 +3673,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -3478,6 +3699,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -3539,17 +3786,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./ch10_glm.html" class="pagination-link">
+      <a href="./ch10_glm.html" class="pagination-link" aria-label="Big Entropy and the Generalized Linear Model">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Big Entropy and the Generalized Linear Model</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./ch12_mixed.html" class="pagination-link">
+      <a href="./ch12_mixed.html" class="pagination-link" aria-label="Monsters and Mixtures">
         <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Monsters and Mixtures</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 
