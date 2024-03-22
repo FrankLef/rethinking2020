@@ -1264,4 +1264,6 @@ See @kurtz2020b for much more details on this topic.
 
 ## Summary
 
-This was an important chapter. Most of the plots and basic coding tools are exemplified here. It is an important reference chapter. The `brms` package will be exclusively used from now on.
+This was an important chapter. Most of the plots and basic coding tools are 
+exemplified here. It is an important reference chapter. The `brms` package will
+be exclusively used from now on.

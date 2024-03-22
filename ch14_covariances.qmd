@@ -644,9 +644,10 @@ simInstrument <- within(simInstrument, {
     pull(sim) |>
     as.data.frame()
 })
-# simInstrument$df$.sim_error
 simInstrument$df |>
-  glimpse()
+  skim() |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
 ```
 
 ```{r}
@@ -890,6 +891,7 @@ netKL$p
 ### Model
 
 $$
+
 \begin{align*}
 \begin{bmatrix}
 y_{a \rightarrow b} \\
@@ -966,7 +968,9 @@ d_{ji} \\
 \end{align*}
 $$
 
-Kurtz says that there is no known way to use `brms`. The package `bisonR` that specializes in social networks and uses `brms`. It can be found at [bison](https://github.com/JHart96/bisonR) with a useful vignette at [vignette](https://jordanhart.co.uk/bisonR/articles/getting_started.html).
+Kurtz says that there is no known way to use `brms`. The package `bisonR` 
+specializes in social networks and uses `brms`. It can be found at 
+[bison](https://github.com/JHart96/bisonR) with a useful vignette at [vignette](https://jordanhart.co.uk/bisonR/articles/getting_started.html).
 
 ::: callout-note
 This section is skipped. But one day, it might be interesting to do it with the `bisonR` package.
@@ -1608,6 +1612,7 @@ dagPhylo <- within(dagPhylo, {
   
   p1 <-  dag1 |>
     ggdag::ggdag_status(layout = "sugiyama", node = TRUE) +
+    # ggdag::ggdag_status(layout = "kk", node = TRUE) +
     geom_dag_point(aes(color = status)) +
     geom_dag_text(color = "white") +
     scale_color_paletteer_d("ggsci::nrc_npg", na.value = "grey") +
@@ -1647,7 +1652,6 @@ The data is as follows
 ```{r}
 data(Primates301, package = "rethinking") 
 data(Primates301_nex)
-str(Primates301_nex)
 ```
 
 We standardize the data
@@ -1659,10 +1663,14 @@ dataPrimates <- Primates301 |>
   mutate(M = as.vector(scale(log(body))),
          B = as.vector(scale(log(brain))),
          G = as.vector(scale(log(group_size))))
-# glimpse(dataPrimates)
+dataPrimates |> skim() |>
+  select(-n_missing, -complete_rate) |>
+  mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
 ```
 
-and to plot is we use the `ggtree` package. Details on `ggtree` can be found at [ggtree](https://yulab-smu.top/treedata-book/index.html). It is not available on CRAN at the time of writing this. You can find it in github and install it with `devtools::install_github("GuangchuangYu/ggtree")`.
+and to plot is we use the `ggtree` package. Details on `ggtree` can be found at [ggtree](https://yulab-smu.top/treedata-book/index.html). It is not available
+on CRAN at the time of writing this. You can find it in github and install it
+with `devtools::install_github("GuangchuangYu/ggtree")`.
 
 ```{r}
 # devtools::install_github("GuangchuangYu/ggtree")
@@ -1692,7 +1700,8 @@ get_prior(
 )
 ```
 
-```{r ch14_fit14_09}
+```{r}
+#| label: "ch14_fit14_09"
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "60 secs."))
 fit14_09 <- xfun::cache_rds({
   brm(
