@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.550">
+<meta name="generator" content="quarto-1.5.47">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>rethinking2020 - 5&nbsp; Multivariate Linear Models</title>
+<title>5&nbsp; Multivariate Linear Models – rethinking2020</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -33,7 +33,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -123,7 +123,7 @@ div.csl-indent {
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <script type="text/javascript">
@@ -161,13 +161,13 @@ window.Quarto = {
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch05_multivariate.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Multivariate Linear Models</span></a></li></ol></nav>
-        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
-      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
     </div>
@@ -396,7 +396,7 @@ Supply arguments directly to `.fns` through an anonymous function instead.
   across(a:b, \(x) mean(x, na.rm = TRUE))</code></pre>
 </div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped small">
+<table class="caption-top table table-sm table-striped small">
 <caption>Data summary</caption>
 <tbody>
 <tr class="odd">
@@ -434,7 +434,7 @@ Supply arguments directly to `.fns` through an anonymous function instead.
 </tbody>
 </table>
 <p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped small">
+<table class="caption-top table table-sm table-striped small">
 <colgroup>
 <col style="width: 21%">
 <col style="width: 12%">
@@ -647,7 +647,7 @@ D_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_fit05_01"</span>)</span>
 <span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.13 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.14 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we can investigate the priors as follows</p>
@@ -725,7 +725,7 @@ D_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_fit05_02"</span>)</span>
 <span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.13 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.15 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -902,7 +902,7 @@ D_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_fit05_03"</span>)</span>
 <span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.14 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.19 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -984,7 +984,7 @@ M_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_fit05_04m"</span>)</span>
 <span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.15 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.21 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1059,7 +1059,7 @@ A_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_fit05_04a"</span>)</span>
 <span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.2 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1120,7 +1120,7 @@ A_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_fit05_04dm"</span>)</span>
 <span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.18 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.21 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1165,7 +1165,7 @@ A_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch05_fit05_04da"</span>)</span>
 <span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.53 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.25 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1281,7 +1281,7 @@ A_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_fit05_03_A"</span>)</span>
 <span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.27 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.29 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1332,9 +1332,9 @@ $ A           &lt;dbl&gt; -2.4, -2.4, -2.2, -2.2, -2.0, -2.0, -1.8, -1.8, -1.6, 
 $ M           &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
 $ .row        &lt;int&gt; 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, …
 $ .category   &lt;fct&gt; D, M, D, M, D, M, D, M, D, M, D, M, D, M, D, M, D, M, D, M…
-$ .prediction &lt;dbl&gt; 1.40834272, 1.64956069, 1.34523756, 1.46458806, 1.25524994…
-$ .lower      &lt;dbl&gt; -0.32892187, 0.13956908, -0.55168375, -0.01156353, -0.6430…
-$ .upper      &lt;dbl&gt; 3.097841, 3.278099, 3.135748, 3.117851, 3.214898, 2.842471…
+$ .prediction &lt;dbl&gt; 1.43556118, 1.70932069, 1.41897080, 1.50453167, 1.19850612…
+$ .lower      &lt;dbl&gt; -0.385430150, 0.116677292, -0.382751490, 0.002889431, -0.5…
+$ .upper      &lt;dbl&gt; 3.313126, 3.187797, 3.165839, 2.959101, 2.882357, 2.922580…
 $ .width      &lt;dbl&gt; 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95…
 $ .point      &lt;chr&gt; "mean", "mean", "mean", "mean", "mean", "mean", "mean", "m…
 $ .interval   &lt;chr&gt; "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi"…</code></pre>
@@ -1416,7 +1416,7 @@ $ .interval   &lt;chr&gt; "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", 
 <span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">M =</span> <span class="fu">as.vector</span>(<span class="fu">scale</span>(<span class="fu">log</span>(mass))))</span>
 <span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(dataMilk)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped small">
+<table class="caption-top table table-sm table-striped small">
 <caption>Data summary</caption>
 <tbody>
 <tr class="odd">
@@ -1458,7 +1458,7 @@ $ .interval   &lt;chr&gt; "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", 
 </tbody>
 </table>
 <p><strong>Variable type: factor</strong></p>
-<table class="table table-sm table-striped small">
+<table class="caption-top table table-sm table-striped small">
 <colgroup>
 <col style="width: 16%">
 <col style="width: 11%">
@@ -1497,7 +1497,7 @@ $ .interval   &lt;chr&gt; "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", 
 </tbody>
 </table>
 <p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped small">
+<table class="caption-top table table-sm table-striped small">
 <colgroup>
 <col style="width: 17%">
 <col style="width: 11%">
@@ -1690,7 +1690,7 @@ K &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb77-13"><a href="#cb77-13" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_fit05_05"</span>)</span>
 <span id="cb77-14"><a href="#cb77-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.25 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.28 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1794,7 +1794,7 @@ K &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb87-12"><a href="#cb87-12" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_fit05_06"</span>)</span>
 <span id="cb87-13"><a href="#cb87-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.23 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.3 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1842,9 +1842,9 @@ Columns: 9
 $ K         &lt;dbl&gt; -1.1431349, -1.0852977, -1.0274605, -0.9696234, -0.9696234, …
 $ M         &lt;dbl&gt; -1.16624144, 0.08221084, 1.14221538, -0.43015430, 1.48762036…
 $ .row      &lt;int&gt; 7, 2, 15, 1, 14, 13, 16, 3, 12, 9, 8, 17, 6, 11, 4, 5, 10
-$ .linpred  &lt;dbl&gt; 0.32993329, -0.02806557, -0.33202626, 0.11885725, -0.4310725…
-$ .lower    &lt;dbl&gt; -0.1742264, -0.2755102, -0.8113546, -0.1892057, -0.9906961, …
-$ .upper    &lt;dbl&gt; 0.8239698, 0.2350937, 0.1697501, 0.4220368, 0.1593074, 0.165…
+$ .linpred  &lt;dbl&gt; 0.32051158, -0.02828215, -0.32442718, 0.11486289, -0.4209267…
+$ .lower    &lt;dbl&gt; -0.1867684, -0.2726787, -0.7947159, -0.1679785, -0.9906895, …
+$ .upper    &lt;dbl&gt; 0.7820004, 0.2124952, 0.1227650, 0.4010539, 0.1144668, 0.124…
 $ .width    &lt;dbl&gt; 0.89, 0.89, 0.89, 0.89, 0.89, 0.89, 0.89, 0.89, 0.89, 0.89, …
 $ .point    &lt;chr&gt; "mean", "mean", "mean", "mean", "mean", "mean", "mean", "mea…
 $ .interval &lt;chr&gt; "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", "qi", …</code></pre>
@@ -1893,7 +1893,7 @@ K_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb96-13"><a href="#cb96-13" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_fit05_07"</span>)</span>
 <span id="cb96-14"><a href="#cb96-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.27 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.79 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1945,9 +1945,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
   ..$ M        : num [1:17] -1.1662 0.0822 1.1422 -0.4302 1.4876 ...
   ..$ N        : num [1:17] 0 0 0 0 0 0 0 0 0 0 ...
   ..$ .row     : int [1:17] 7 2 15 1 14 13 16 3 12 9 ...
-  ..$ .linpred : num [1:17] 0.788 -0.0601 -0.7801 0.288 -1.0148 ...
-  ..$ .lower   : num [1:17] 0.23403 -0.29124 -1.27485 -0.00256 -1.63563 ...
-  ..$ .upper   : num [1:17] 1.299 0.176 -0.262 0.557 -0.324 ...
+  ..$ .linpred : num [1:17] 0.813 -0.0528 -0.788 0.3025 -1.0276 ...
+  ..$ .lower   : num [1:17] 0.2569 -0.2633 -1.3173 0.0345 -1.6865 ...
+  ..$ .upper   : num [1:17] 1.315 0.175 -0.203 0.565 -0.301 ...
   ..$ .width   : num [1:17] 0.89 0.89 0.89 0.89 0.89 0.89 0.89 0.89 0.89 0.89 ...
   ..$ .point   : chr [1:17] "mean" "mean" "mean" "mean" ...
   ..$ .interval: chr [1:17] "qi" "qi" "qi" "qi" ...
@@ -1956,9 +1956,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
   ..$ M        : num [1:17] 0 0 0 0 0 0 0 0 0 0 ...
   ..$ N        : num [1:17] -0.986 -0.509 0.446 -2.08 0.842 ...
   ..$ .row     : int [1:17] 7 2 15 1 14 13 16 3 12 9 ...
-  ..$ .linpred : num [1:17] -0.585 -0.303 0.261 -1.231 0.495 ...
-  ..$ .lower   : num [1:17] -1.0691 -0.63437 -0.00577 -2.17307 0.12543 ...
-  ..$ .upper   : num [1:17] -0.08543 0.00685 0.51687 -0.29816 0.87593 ...
+  ..$ .linpred : num [1:17] -0.559 -0.286 0.26 -1.185 0.486 ...
+  ..$ .lower   : num [1:17] -1.0124 -0.5926 -0.0406 -2.0755 0.0441 ...
+  ..$ .upper   : num [1:17] -0.0473 0.0319 0.5334 -0.2512 0.8874 ...
   ..$ .width   : num [1:17] 0.89 0.89 0.89 0.89 0.89 0.89 0.89 0.89 0.89 0.89 ...
   ..$ .point   : chr [1:17] "mean" "mean" "mean" "mean" ...
   ..$ .interval: chr [1:17] "qi" "qi" "qi" "qi" ...</code></pre>
@@ -2039,7 +2039,7 @@ h_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb105-11"><a href="#cb105-11" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_fit05_08"</span>)</span>
 <span id="cb105-12"><a href="#cb105-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.27 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.34 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2109,7 +2109,7 @@ K_i &amp;\sim \mathcal{N}(\mu_i, \sigma) \\
 <span id="cb110-11"><a href="#cb110-11" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">file =</span> <span class="st">"ch05_fit05_09"</span>)</span>
 <span id="cb110-12"><a href="#cb110-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.29 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.41 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -2219,18 +2219,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -2262,7 +2251,47 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
@@ -2297,7 +2326,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
   const xrefs = window.document.querySelectorAll('a.quarto-xref');

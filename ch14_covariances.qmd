@@ -65,14 +65,6 @@ conflicted::conflicts_prefer(
 ```
 
 
-```{r}
-getOption("mc.cores", default = 2)
-```
-```{r}
-options
-```
-
-
 
 The default theme used by `ggplot2`
 
@@ -104,7 +96,8 @@ simCafes <- within(simCafes, {
 })
 ```
 
-McElreath mentions a difficulty using the `matrix` function. He misses the argument `byrow` which resolve this.
+McElreath mentions a difficulty using the `matrix` function. He misses the
+argument `byrow` which resolve this.
 
 ```{r}
 # use byrow = TRUE to solve McElrath's issue
@@ -828,6 +821,12 @@ summarize_draws(fit14_06, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
 
 ## Social relations as correlated varying effects
 
+
+::: callout-important
+I couldn't find the way to replicate this section with `bisonR`. This section
+is to be completed later.
+:::
+
 ### Using `bisonR`
 
 ::: callout-tip
@@ -837,7 +836,8 @@ specializes in social networks and uses `brms`. It can be found at
 the `bisonR` package.
 :::
 
-::: callout-important
+
+::: callout-warning
 Make sure that you have `cmdstanr` version 0.8 or greater. Otherwise,
 `bisonR::bison_model()` returns an error caused by `cmdstanr`.
 :::
@@ -905,6 +905,7 @@ rm(list = c("kl_dyads", "kl_households"))
 dataKL$dyads <- dataKL$dyads |>
   # we only use these variable
   select(hidA, hidB, did, giftsAB, giftsBA, offset, dlndist) |>
+  # the node must be factors with bisonR package
   mutate(hidA = factor(hidA),
          hidB = factor(hidB),
          did = factor(did)) |>
@@ -1048,31 +1049,26 @@ $$
 
 ### Fit
 
-```{r}
-# tmp$fit_edge <- bisonR::bison_model(
-#   formula = (event | duration) ~ dyad(node_1_id, node_2_id),
-#   data = tmp$df,
-#   model_type = "binary",
-#   priors = tmp$priors,
-#   mc_cores = getOption("mc_cores", default = 2))
-```
-
 
 ```{r}
-glimpse(dataKL$dyads)
+# glimpse(dataKL$dyads)
 ```
 ```{r}
-stop("TODO")
+message("The duration is required to use bisonR" )
 dataKL$dyads <- dataKL$dyads |>
   mutate(duration = 1)
-glimpse(dataKL$dyads)
+# glimpse(dataKL$dyads)
+```
+
+```{r}
+fit14_07_priors <- bisonR::get_default_priors(model_type = "count")
+fit14_07_priors
 ```
 
 
 ```{r}
 #| label: "ch14_fit14_07"
-fit14_07_model_type <- "aggregate"
-fit14_07_priors <- bisonR::get_default_priors(model_type = "count")
+#| eval: false
 # fit14_07_priors
 fit14_07 <- bisonR::bison_model(
   data = dataKL$dyads,
@@ -1082,9 +1078,31 @@ fit14_07 <- bisonR::bison_model(
 )
 ```
 ```{r}
+#| eval: false
 summary(fit14_07)
 ```
 
+```{r}
+#| eval: false
+plot_predictions(fit14_07, num_draws=20, type="density")
+```
+
+
+
+```{r}
+#| eval: false
+fitdyadic14_07 <- bisonR::bison_brm(
+  data_list = dataKL$dyads,
+  formula = giftsAB ~ bison(edge_weight(hidA, hidB)),
+  edgemodel_list = fit14_07) |>
+  suppressWarnings()
+
+```
+
+```{r}
+#| eval: false
+fitdyadic14_07
+```
 
 
 
