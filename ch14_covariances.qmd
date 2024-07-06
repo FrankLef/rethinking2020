@@ -9,6 +9,8 @@ library(tidybayes)
 library(rethinking)
 library(brms)
 library(loo)
+library(cmdstanr)
+library(bisonR)
 # library(modelr)
 library(skimr)
 library(simpr)
@@ -31,7 +33,7 @@ Some options to facilitate the computations
 
 ```{r}
 #  For execution on a local, multicore CPU with excess RAM
-options(mc.cores = parallel::detectCores())
+options(mc.cores = parallel::detectCores(logical = FALSE))
 #  To avoid recompilation of unchanged Stan programs
 rstan::rstan_options(auto_write = TRUE)
 # Found more than one class "stanfit" in cache; using the first, from namespace 'rethinking'
@@ -61,6 +63,16 @@ conflicted::conflicts_prefer(
   dplyr::where,
   .quiet = TRUE)
 ```
+
+
+```{r}
+getOption("mc.cores", default = 2)
+```
+```{r}
+options
+```
+
+
 
 The default theme used by `ggplot2`
 
@@ -509,8 +521,11 @@ logit(p_i) &\sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta
 $$
 
 
-
-We don't do model m14.2 since it is only done to illustrate centralized vs non-centralized parametrization and that `brms` uses only non-centralized parametrization.
+:::{.callout-note}
+We don't do model m14.2 since it is only done to illustrate centralized vs 
+non-centralized parametrization and that `brms` uses only non-centralized 
+parametrization.
+:::
 
 
 ```{r}
@@ -536,8 +551,8 @@ tictoc::toc()
 ```
 
 
-
-The plot is slightly different than what McElreath has. The open circle represent the actual results and the solid circles are the predicted mean.
+The plot is slightly different than what McElreath has. The open circle represent
+the actual results and the solid circles are the predicted mean.
 
 ```{r}
 #| label: "ch14_plot14_03"
@@ -628,7 +643,8 @@ ggdag::dagify(E ~ U + Q, W ~ U, W ~ E) |>
 
 We now use a simulation to illustrate.
 
-> With real data, you never know what the right anser is. This is h=why studying simulated examples is so important.
+> With real data, you never know what the right anser is. This is why studying 
+simulated examples is so important.
 
 ```{r}
 #| label: "chap14_simInstrument"
@@ -812,11 +828,71 @@ summarize_draws(fit14_06, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
 
 ## Social relations as correlated varying effects
 
+### Using `bisonR`
+
+::: callout-tip
+Kurtz says that there is no known way to use `brms`. The package `bisonR` 
+specializes in social networks and uses `brms`. It can be found at 
+[bison](https://jhart96.github.io/bisonR/index.html). This section is done with 
+the `bisonR` package.
+:::
+
+::: callout-important
+Make sure that you have `cmdstanr` version 0.8 or greater. Otherwise,
+`bisonR::bison_model()` returns an error caused by `cmdstanr`.
+:::
+
+::: callout-note
+The following is a test to ensure that `bisonR` works properly.
+:::
+
+
+```{r}
+tmp <- list()
+tmp$sim_data <- bisonR::simulate_bison_model("binary", aggregated = FALSE)
+tmp$df <- tmp$sim_data$df_sim
+# glimpse(tmp$df)
+```
+
+The path to `cmdstan` has been set in the `CMDSTAN` environment variable. See
+details of `set_cmdstan_path()` for more info
+
+```{r}
+cmdstanr::cmdstan_path()
+# cmdstanr::set_cmdstan_path(path = r"(C:\Users\Ephel\Documents\.cmdstan\cmdstan-2.35.0)")
+```
+```{r}
+#| label: "ch14_bison_prior"
+tmp$priors <- bisonR::get_default_priors("binary")
+```
+
+
+```{r}
+#| label: "ch14_bison_fit"
+tmp$fit_edge <- bisonR::bison_model(
+  formula = (event | duration) ~ dyad(node_1_id, node_2_id),
+  data = tmp$df,
+  model_type = "binary",
+  priors = tmp$priors,
+  mc_cores = getOption("mc_cores", default = 2))
+```
+
+
+```{r}
+# summary(tmp$fit_edge)
+```
+
+```{r}
+rm(tmp)
+```
+
+
+
 ### Data
 
 The research can be find in this [paper](https://research-information.bris.ac.uk/ws/portalfiles/portal/41942591/koster2014sn.pdf).
 However I could not find what the variable $dlndist$ is. I suppose it it
-the log of some distance . . but why is it negative? It doesn't matter, it is 
+the log of some distance ... but why is it negative? It doesn't matter, it is 
 only used to color the edges of the network and not in the analysis per se.
 
 
@@ -831,18 +907,20 @@ dataKL$dyads <- dataKL$dyads |>
   select(hidA, hidB, did, giftsAB, giftsBA, offset, dlndist) |>
   mutate(hidA = factor(hidA),
          hidB = factor(hidB),
-         did = factor(did))
+         did = factor(did)) |>
+  identity()
 ```
 
+```{r}
+# glimpse(dataKL$dyads)
+```
 
 
 
 The data set can be summarized with the `skimr` package
 
 
-
 ```{r}
-names(dataKL$dyads)
 dataKL$dyads |> skim() |>
   select(-n_missing, -complete_rate) |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 2))
@@ -968,13 +1046,47 @@ d_{ji} \\
 \end{align*}
 $$
 
-Kurtz says that there is no known way to use `brms`. The package `bisonR` 
-specializes in social networks and uses `brms`. It can be found at 
-[bison](https://github.com/JHart96/bisonR) with a useful vignette at [vignette](https://jordanhart.co.uk/bisonR/articles/getting_started.html).
+### Fit
 
-::: callout-note
-This section is skipped. But one day, it might be interesting to do it with the `bisonR` package.
-:::
+```{r}
+# tmp$fit_edge <- bisonR::bison_model(
+#   formula = (event | duration) ~ dyad(node_1_id, node_2_id),
+#   data = tmp$df,
+#   model_type = "binary",
+#   priors = tmp$priors,
+#   mc_cores = getOption("mc_cores", default = 2))
+```
+
+
+```{r}
+glimpse(dataKL$dyads)
+```
+```{r}
+stop("TODO")
+dataKL$dyads <- dataKL$dyads |>
+  mutate(duration = 1)
+glimpse(dataKL$dyads)
+```
+
+
+```{r}
+#| label: "ch14_fit14_07"
+fit14_07_model_type <- "aggregate"
+fit14_07_priors <- bisonR::get_default_priors(model_type = "count")
+# fit14_07_priors
+fit14_07 <- bisonR::bison_model(
+  data = dataKL$dyads,
+  formula = (giftsAB| duration) ~ dyad(hidA, hidB),
+  model_type = "count",
+  priors = fit14_07_priors
+)
+```
+```{r}
+summary(fit14_07)
+```
+
+
+
 
 ## Continuous categories and the Gaussian process
 
@@ -1180,6 +1292,9 @@ k_{10}
 \rho^2 &\sim \mathcal{Exponential}(0.5)
 \end{align*}
 $$ 
+```{r}
+
+```
 
 
 ##### `brms` model
