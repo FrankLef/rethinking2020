@@ -76,7 +76,8 @@ $$
 \end{align*}
 $$
 
-the `simstudy` package provide the function to perform that conversion from $mean = \mu$ and $precision = \kappa$ to the shape (mathematical) parameters $\alpha$ and $\beta$
+the `simstudy` package provide the function to perform that conversion from 
+$mean = \mu$ and $precision = \kappa$ to the shape (mathematical) parameters $\alpha$ and $\beta$
 
 ```{r}
 paramsMeanKappa <- list(mean = 0.5, kappa = 5)

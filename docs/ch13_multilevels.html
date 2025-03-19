@@ -570,7 +570,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_01"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.17 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.13 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -664,7 +664,7 @@ logit(p_i) &amp;= \alpha_{tank[i]} \\
 <span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_02"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 60 secs., use the cache.: 0.19 sec elapsed</code></pre>
+<pre><code>run time of 60 secs., use the cache.: 0.14 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -727,12 +727,12 @@ Formula: surv | trials(density) ~ 1 + (1 | tank)
   Draws: 2 chains, each with iter = 1000; warmup = 500; thin = 1;
          total post-warmup draws = 1000
 
-Group-Level Effects: 
+Multilevel Hyperparameters:
 ~tank (Number of levels: 48) 
               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
 sd(Intercept)     1.64      0.21     1.28     2.13 1.00      375      540
 
-Population-Level Effects: 
+Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
 Intercept     1.38      0.27     0.87     1.94 1.00      179      372
 
@@ -752,24 +752,153 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">median_qi</span>(<span class="at">.width =</span> <span class="fl">0.89</span>)</span>
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>epred13_02</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 48 × 16
-# Groups:   density, pred, size, surv, propsurv, tank [48]
-   density pred  size   surv propsurv tank   .row .epred .epred.lower
-     &lt;int&gt; &lt;fct&gt; &lt;fct&gt; &lt;int&gt;    &lt;dbl&gt; &lt;fct&gt; &lt;int&gt;  &lt;dbl&gt;        &lt;dbl&gt;
- 1      10 no    big       7      0.7 3         3   7.21         4.93
- 2      10 no    big       9      0.9 1         1   8.95         6.98
- 3      10 no    big      10      1   2         2   9.50         8.02
- 4      10 no    big      10      1   4         4   9.52         8.18
- 5      10 no    small     9      0.9 5         5   8.96         7.16
- 6      10 no    small     9      0.9 6         6   8.89         6.92
- 7      10 no    small     9      0.9 8         8   9.04         7.13
- 8      10 no    small    10      1   7         7   9.54         8.30
- 9      10 pred  big       4      0.4 9         9   4.58         2.29
-10      10 pred  big       6      0.6 12       12   6.27         3.71
-# ℹ 38 more rows
-# ℹ 7 more variables: .epred.upper &lt;dbl&gt;, propsurv.epred &lt;dbl&gt;,
-#   propsurv.epred.lower &lt;dbl&gt;, propsurv.epred.upper &lt;dbl&gt;, .width &lt;dbl&gt;,
-#   .point &lt;chr&gt;, .interval &lt;chr&gt;</code></pre>
+<pre><code>   density pred  size surv  propsurv tank .row    .epred .epred.lower
+1       10   no   big    7 0.7000000    3    3  7.217126     4.950015
+2       10   no   big    9 0.9000000    1    1  8.913864     7.131073
+3       10   no   big   10 1.0000000    2    2  9.511168     8.046782
+4       10   no   big   10 1.0000000    4    4  9.512468     8.103234
+5       10   no small    9 0.9000000    5    5  8.884627     7.070400
+6       10   no small    9 0.9000000    6    6  8.849175     6.859089
+7       10   no small    9 0.9000000    8    8  8.997381     7.055098
+8       10   no small   10 1.0000000    7    7  9.523078     8.207157
+9       10 pred   big    4 0.4000000    9    9  4.644746     2.344688
+10      10 pred   big    6 0.6000000   12   12  6.340262     3.790970
+11      10 pred   big    7 0.7000000   11   11  7.188656     4.419874
+12      10 pred   big    9 0.9000000   10   10  8.901499     6.936259
+13      10 pred small    5 0.5000000   14   14  5.429640     3.243021
+14      10 pred small    7 0.7000000   13   13  7.262758     4.968468
+15      10 pred small    9 0.9000000   15   15  8.828846     6.975347
+16      10 pred small    9 0.9000000   16   16  8.822030     7.046059
+17      25   no   big   22 0.8800000   19   19 21.977293    19.208719
+18      25   no   big   23 0.9200000   18   18 22.912544    20.387559
+19      25   no   big   24 0.9600000   17   17 23.668654    21.594849
+20      25   no   big   25 1.0000000   20   20 24.386385    22.819773
+21      25   no small   21 0.8400000   24   24 21.130440    18.022257
+22      25   no small   23 0.9200000   21   21 22.844000    19.954826
+23      25   no small   23 0.9200000   22   22 22.901183    19.963437
+24      25   no small   23 0.9200000   23   23 22.866079    20.408343
+25      25 pred   big    4 0.1600000   27   27  5.058993     2.356245
+26      25 pred   big    6 0.2400000   25   25  6.784076     3.898143
+27      25 pred   big    9 0.3600000   28   28  9.465752     6.065058
+28      25 pred   big   13 0.5200000   26   26 13.581935     9.524086
+29      25 pred small    8 0.3200000   31   31  8.870098     5.642772
+30      25 pred small   10 0.4000000   32   32 10.417837     6.747581
+31      25 pred small   13 0.5200000   29   29 13.427696     9.494967
+32      25 pred small   20 0.8000000   30   30 20.231570    16.658275
+33      35   no   big   31 0.8857143   36   36 30.963703    27.422779
+34      35   no   big   33 0.9428571   34   34 32.653551    29.839162
+35      35   no   big   33 0.9428571   35   35 32.639631    30.370003
+36      35   no   big   34 0.9714286   33   33 33.550291    31.262336
+37      35   no small   31 0.8857143   37   37 30.744868    27.930126
+38      35   no small   32 0.9142857   40   40 31.738224    28.265969
+39      35   no small   33 0.9428571   39   39 32.703202    29.821556
+40      35   no small   35 1.0000000   38   38 34.207313    32.495364
+41      35 pred   big    4 0.1142857   41   41  5.152489     2.285628
+42      35 pred   big   12 0.3428571   42   42 12.546963     8.476029
+43      35 pred   big   13 0.3714286   43   43 13.616093     8.863000
+44      35 pred   big   14 0.4000000   44   44 14.827852    10.552139
+45      35 pred small   12 0.3428571   46   46 12.481075     8.895622
+46      35 pred small   17 0.4857143   48   48 17.673609    12.748933
+47      35 pred small   22 0.6285714   45   45 22.482298    17.591163
+48      35 pred small   31 0.8857143   47   47 31.011744    27.504924
+   .epred.upper propsurv.epred propsurv.epred.lower propsurv.epred.upper .width
+1      8.947623      0.7217126           0.49500147            0.8947623   0.89
+2      9.751595      0.8913864           0.71310731            0.9751595   0.89
+3      9.940609      0.9511168           0.80467820            0.9940609   0.89
+4      9.931182      0.9512468           0.81032341            0.9931182   0.89
+5      9.780953      0.8884627           0.70704004            0.9780953   0.89
+6      9.761907      0.8849175           0.68590886            0.9761907   0.89
+7      9.736184      0.8997381           0.70550976            0.9736184   0.89
+8      9.945844      0.9523078           0.82071566            0.9945844   0.89
+9      6.980060      0.4644746           0.23446875            0.6980060   0.89
+10     8.250797      0.6340262           0.37909700            0.8250797   0.89
+11     8.925748      0.7188656           0.44198741            0.8925748   0.89
+12     9.712983      0.8901499           0.69362592            0.9712983   0.89
+13     7.727175      0.5429640           0.32430208            0.7727175   0.89
+14     8.803889      0.7262758           0.49684680            0.8803889   0.89
+15     9.759208      0.8828846           0.69753468            0.9759208   0.89
+16     9.706242      0.8822030           0.70460589            0.9706242   0.89
+17    23.794567      0.8790917           0.76834875            0.9517827   0.89
+18    24.217517      0.9165018           0.81550238            0.9687007   0.89
+19    24.681621      0.9467462           0.86379395            0.9872648   0.89
+20    24.892374      0.9754554           0.91279092            0.9956950   0.89
+21    23.273168      0.8452176           0.72089029            0.9309267   0.89
+22    24.370546      0.9137600           0.79819304            0.9748218   0.89
+23    24.354281      0.9160473           0.79853749            0.9741712   0.89
+24    24.286202      0.9146431           0.81633370            0.9714481   0.89
+25     8.596872      0.2023597           0.09424979            0.3438749   0.89
+26    10.593125      0.2713631           0.15592571            0.4237250   0.89
+27    13.427656      0.3786301           0.24260233            0.5371062   0.89
+28    17.434752      0.5432774           0.38096342            0.6973901   0.89
+29    12.368883      0.3548039           0.22571087            0.4947553   0.89
+30    14.680543      0.4167135           0.26990325            0.5872217   0.89
+31    16.769819      0.5371078           0.37979869            0.6707928   0.89
+32    22.595785      0.8092628           0.66633099            0.9038314   0.89
+33    33.256813      0.8846772           0.78350797            0.9501947   0.89
+34    34.195233      0.9329586           0.85254748            0.9770067   0.89
+35    34.192659      0.9325609           0.86771438            0.9769331   0.89
+36    34.610767      0.9585798           0.89320960            0.9888791   0.89
+37    33.025734      0.8784248           0.79800360            0.9435924   0.89
+38    33.743943      0.9068064           0.80759911            0.9641127   0.89
+39    34.162491      0.9343772           0.85204446            0.9760712   0.89
+40    34.857326      0.9773518           0.92843897            0.9959236   0.89
+41     9.066060      0.1472140           0.06530365            0.2590303   0.89
+42    17.690927      0.3584847           0.24217225            0.5054551   0.89
+43    18.284653      0.3890312           0.25322858            0.5224186   0.89
+44    19.393753      0.4236529           0.30148968            0.5541072   0.89
+45    17.275588      0.3566022           0.25416063            0.4935882   0.89
+46    22.030350      0.5049603           0.36425523            0.6294386   0.89
+47    26.321436      0.6423514           0.50260465            0.7520410   0.89
+48    33.225233      0.8860498           0.78585498            0.9492924   0.89
+   .point .interval
+1  median        qi
+2  median        qi
+3  median        qi
+4  median        qi
+5  median        qi
+6  median        qi
+7  median        qi
+8  median        qi
+9  median        qi
+10 median        qi
+11 median        qi
+12 median        qi
+13 median        qi
+14 median        qi
+15 median        qi
+16 median        qi
+17 median        qi
+18 median        qi
+19 median        qi
+20 median        qi
+21 median        qi
+22 median        qi
+23 median        qi
+24 median        qi
+25 median        qi
+26 median        qi
+27 median        qi
+28 median        qi
+29 median        qi
+30 median        qi
+31 median        qi
+32 median        qi
+33 median        qi
+34 median        qi
+35 median        qi
+36 median        qi
+37 median        qi
+38 median        qi
+39 median        qi
+40 median        qi
+41 median        qi
+42 median        qi
+43 median        qi
+44 median        qi
+45 median        qi
+46 median        qi
+47 median        qi
+48 median        qi</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -939,7 +1068,7 @@ logit(p_i) &amp;= \alpha_{pond[i]} \\
 <span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_03"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.2 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we have our point summaries and interval as follows</p>
@@ -1359,7 +1488,7 @@ Note
 <span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_04"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 80 secs., use the cache.: 0.17 sec elapsed</code></pre>
+<pre><code>run time of 80 secs., use the cache.: 0.11 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1433,11 +1562,16 @@ Note
 <span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"With mean and 89% CI"</span>,</span>
 <span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span>
 <span id="cb52-25"><a href="#cb52-25" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb52-26"><a href="#cb52-26" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb52-27"><a href="#cb52-27" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(plot13_04) <span class="sc">+</span></span>
-<span id="cb52-28"><a href="#cb52-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
-<span id="cb52-29"><a href="#cb52-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Posterior distributions"</span></span>
-<span id="cb52-30"><a href="#cb52-30" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb52-26"><a href="#cb52-26" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: A numeric `legend.position` argument in `theme()` was deprecated in ggplot2
+3.5.0.
+ℹ Please use the `legend.position.inside` argument of `theme()` instead.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(plot13_04) <span class="sc">+</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Posterior distributions"</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -1461,30 +1595,30 @@ Note
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"70 secs."</span>))</span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>fit13_05 <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> dataChimp,</span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> bernoulli,</span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">formula =</span> <span class="fu">bf</span>(pulled_left <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> a <span class="sc">+</span> b,</span>
-<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>                   a <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> actor),</span>
-<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>                   b <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> treatment,</span>
-<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nl =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> b, <span class="at">coef =</span> Intercept, <span class="at">nlpar =</span> a),</span>
-<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sd, <span class="at">group =</span> actor, <span class="at">nlpar =</span> a),</span>
-<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.5</span>), <span class="at">class =</span> b, <span class="at">nlpar =</span> b)</span>
-<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>                ),</span>
-<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, </span>
-<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">cores =</span> <span class="fu">detectCores</span>(), <span class="at">seed =</span> <span class="dv">1319</span>)</span>
-<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_criterion</span>(out, <span class="fu">c</span>(<span class="st">"loo"</span>, <span class="st">"waic"</span>))},</span>
-<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_05"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"70 secs."</span>))</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>fit13_05 <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> dataChimp,</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> bernoulli,</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">formula =</span> <span class="fu">bf</span>(pulled_left <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> a <span class="sc">+</span> b,</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>                   a <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> actor),</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>                   b <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> treatment,</span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nl =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> b, <span class="at">coef =</span> Intercept, <span class="at">nlpar =</span> a),</span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sd, <span class="at">group =</span> actor, <span class="at">nlpar =</span> a),</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.5</span>), <span class="at">class =</span> b, <span class="at">nlpar =</span> b)</span>
+<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>                ),</span>
+<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, </span>
+<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">cores =</span> <span class="fu">detectCores</span>(), <span class="at">seed =</span> <span class="dv">1319</span>)</span>
+<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_criterion</span>(out, <span class="fu">c</span>(<span class="st">"loo"</span>, <span class="st">"waic"</span>))},</span>
+<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_05"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.2 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.17 sec elapsed</code></pre>
 </div>
 </div>
 <p>and we obtain the same results as on p.&nbsp;418 of section 13.3.1.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">loo_compare</span>(fit13_04, fit13_05, <span class="at">criterion =</span> <span class="st">"waic"</span>), <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">loo_compare</span>(fit13_04, fit13_05, <span class="at">criterion =</span> <span class="st">"waic"</span>), <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         elpd_diff se_diff elpd_waic se_elpd_waic p_waic se_p_waic waic  
 fit13_05    0.0       0.0  -265.9       9.6          8.8    0.5     531.8
@@ -1499,25 +1633,25 @@ fit13_04   19.4 </code></pre>
 <section id="even-more-clusters" class="level3" data-number="13.3.2">
 <h3 data-number="13.3.2" class="anchored" data-anchor-id="even-more-clusters"><span class="header-section-number">13.3.2</span> Even more clusters</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"70 secs."</span>))</span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>fit13_06 <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> dataChimp,</span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> bernoulli,</span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">formula =</span> <span class="fu">bf</span>(pulled_left <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> actor) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> treatment) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> block)),</span>
-<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sd)),</span>
-<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, </span>
-<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">cores =</span> <span class="fu">detectCores</span>(), <span class="at">seed =</span> <span class="dv">1319</span>)</span>
-<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_criterion</span>(out, <span class="fu">c</span>(<span class="st">"loo"</span>, <span class="st">"waic"</span>))},</span>
-<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_06"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">tic</span>(<span class="at">msg =</span> <span class="fu">sprintf</span>(<span class="st">"run time of %s, use the cache."</span>, <span class="st">"70 secs."</span>))</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>fit13_06 <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> dataChimp,</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> bernoulli,</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">formula =</span> <span class="fu">bf</span>(pulled_left <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> actor) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> treatment) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> block)),</span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sd)),</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, </span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">cores =</span> <span class="fu">detectCores</span>(), <span class="at">seed =</span> <span class="dv">1319</span>)</span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_criterion</span>(out, <span class="fu">c</span>(<span class="st">"loo"</span>, <span class="st">"waic"</span>))},</span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"ch13_fit13_06"</span>, <span class="at">rerun =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>tictoc<span class="sc">::</span><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>run time of 70 secs., use the cache.: 0.24 sec elapsed</code></pre>
+<pre><code>run time of 70 secs., use the cache.: 0.2 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">loo_compare</span>(fit13_04, fit13_05, fit13_06, <span class="at">criterion =</span> <span class="st">"waic"</span>), </span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">loo_compare</span>(fit13_04, fit13_05, fit13_06, <span class="at">criterion =</span> <span class="st">"waic"</span>), </span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         elpd_diff se_diff elpd_waic se_elpd_waic p_waic se_p_waic waic  
 fit13_05    0.0       0.0  -265.9       9.6          8.8    0.5     531.8
@@ -1546,34 +1680,34 @@ fit13_06   19.3 </code></pre>
 <h3 data-number="13.5.1" class="anchored" data-anchor-id="posterior-prediction-for-same-clusters"><span class="header-section-number">13.5.1</span> Posterior prediction for same clusters</h3>
 <p>We can do a posterior fit for chimp #2. Remember this chimp was an outlier as it was always pulling the left lever no matter what.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">within</span>(fitd, {</span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  chimp <span class="ot">&lt;-</span> <span class="dv">2</span>L</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  labels<span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"R/N"</span>, <span class="st">"L/N"</span>, <span class="st">"R/P"</span>, <span class="st">"L/P"</span>)</span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">actor =</span> <span class="fu">factor</span>(chimp),</span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">treatment =</span> <span class="fu">unique</span>(dataChimp<span class="sc">$</span>treatment),</span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">block =</span> <span class="dv">1</span></span>
-<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">epred_draws</span>(fit13_04, <span class="at">newdata =</span> newdata) <span class="sc">|&gt;</span></span>
-<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>.chain, <span class="sc">-</span>.iteration, <span class="sc">-</span>.draw) <span class="sc">|&gt;</span></span>
-<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize_draws</span>()</span>
-<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># and the empirical frequencies are</span></span>
-<span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a>  obs <span class="ot">&lt;-</span> dataChimp <span class="sc">|&gt;</span></span>
-<span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(actor <span class="sc">==</span> chimp) <span class="sc">|&gt;</span></span>
-<span id="cb62-16"><a href="#cb62-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(treatment) <span class="sc">|&gt;</span></span>
-<span id="cb62-17"><a href="#cb62-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">prob =</span> <span class="fu">mean</span>(pulled_left))</span>
-<span id="cb62-18"><a href="#cb62-18" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(obs, <span class="fu">aes</span>(<span class="at">x =</span> treatment, <span class="at">y =</span> prob, <span class="at">group =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb62-19"><a href="#cb62-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_lineribbon</span>(data, </span>
-<span id="cb62-20"><a href="#cb62-20" aria-hidden="true" tabindex="-1"></a>                    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> treatment, <span class="at">y =</span> mean, <span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95),</span>
-<span id="cb62-21"><a href="#cb62-21" aria-hidden="true" tabindex="-1"></a>                    <span class="at">fill =</span> <span class="st">"orange"</span>, <span class="at">color =</span> <span class="st">"brown"</span>) <span class="sc">+</span></span>
-<span id="cb62-22"><a href="#cb62-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"navyblue"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb62-23"><a href="#cb62-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="fl">0.75</span>, <span class="dv">1</span>))<span class="sc">+</span></span>
-<span id="cb62-24"><a href="#cb62-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">sprintf</span>(<span class="st">"Fitted prediction for chimp # %d"</span>, chimp), </span>
-<span id="cb62-25"><a href="#cb62-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span>
-<span id="cb62-26"><a href="#cb62-26" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb62-27"><a href="#cb62-27" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(fitd$data)</span></span>
-<span id="cb62-28"><a href="#cb62-28" aria-hidden="true" tabindex="-1"></a>fitd<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">within</span>(fitd, {</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>  chimp <span class="ot">&lt;-</span> <span class="dv">2</span>L</span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>  labels<span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"R/N"</span>, <span class="st">"L/N"</span>, <span class="st">"R/P"</span>, <span class="st">"L/P"</span>)</span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>  newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">actor =</span> <span class="fu">factor</span>(chimp),</span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">treatment =</span> <span class="fu">unique</span>(dataChimp<span class="sc">$</span>treatment),</span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">block =</span> <span class="dv">1</span></span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">epred_draws</span>(fit13_04, <span class="at">newdata =</span> newdata) <span class="sc">|&gt;</span></span>
+<span id="cb64-11"><a href="#cb64-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>.chain, <span class="sc">-</span>.iteration, <span class="sc">-</span>.draw) <span class="sc">|&gt;</span></span>
+<span id="cb64-12"><a href="#cb64-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize_draws</span>()</span>
+<span id="cb64-13"><a href="#cb64-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># and the empirical frequencies are</span></span>
+<span id="cb64-14"><a href="#cb64-14" aria-hidden="true" tabindex="-1"></a>  obs <span class="ot">&lt;-</span> dataChimp <span class="sc">|&gt;</span></span>
+<span id="cb64-15"><a href="#cb64-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(actor <span class="sc">==</span> chimp) <span class="sc">|&gt;</span></span>
+<span id="cb64-16"><a href="#cb64-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(treatment) <span class="sc">|&gt;</span></span>
+<span id="cb64-17"><a href="#cb64-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">prob =</span> <span class="fu">mean</span>(pulled_left))</span>
+<span id="cb64-18"><a href="#cb64-18" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(obs, <span class="fu">aes</span>(<span class="at">x =</span> treatment, <span class="at">y =</span> prob, <span class="at">group =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb64-19"><a href="#cb64-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_lineribbon</span>(data, </span>
+<span id="cb64-20"><a href="#cb64-20" aria-hidden="true" tabindex="-1"></a>                    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> treatment, <span class="at">y =</span> mean, <span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95),</span>
+<span id="cb64-21"><a href="#cb64-21" aria-hidden="true" tabindex="-1"></a>                    <span class="at">fill =</span> <span class="st">"orange"</span>, <span class="at">color =</span> <span class="st">"brown"</span>) <span class="sc">+</span></span>
+<span id="cb64-22"><a href="#cb64-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"navyblue"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb64-23"><a href="#cb64-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="fl">0.75</span>, <span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb64-24"><a href="#cb64-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">sprintf</span>(<span class="st">"Fitted prediction for chimp # %d"</span>, chimp), </span>
+<span id="cb64-25"><a href="#cb64-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span>
+<span id="cb64-26"><a href="#cb64-26" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb64-27"><a href="#cb64-27" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(fitd$data)</span></span>
+<span id="cb64-28"><a href="#cb64-28" aria-hidden="true" tabindex="-1"></a>fitd<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -1584,34 +1718,34 @@ fit13_06   19.3 </code></pre>
 </div>
 <p>and for chimp # 5</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">within</span>(fitd, {</span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>  chimp <span class="ot">&lt;-</span> <span class="dv">5</span>L</span>
-<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>  labels<span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"R/N"</span>, <span class="st">"L/N"</span>, <span class="st">"R/P"</span>, <span class="st">"L/P"</span>)</span>
-<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>  newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">actor =</span> <span class="fu">factor</span>(chimp),</span>
-<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">treatment =</span> <span class="fu">unique</span>(dataChimp<span class="sc">$</span>treatment),</span>
-<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">block =</span> <span class="dv">1</span></span>
-<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">epred_draws</span>(fit13_04, <span class="at">newdata =</span> newdata) <span class="sc">|&gt;</span></span>
-<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>.chain, <span class="sc">-</span>.iteration, <span class="sc">-</span>.draw) <span class="sc">|&gt;</span></span>
-<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize_draws</span>()</span>
-<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># and the empirical frequencies are</span></span>
-<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a>  obs <span class="ot">&lt;-</span> dataChimp <span class="sc">|&gt;</span></span>
-<span id="cb63-15"><a href="#cb63-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(actor <span class="sc">==</span> chimp) <span class="sc">|&gt;</span></span>
-<span id="cb63-16"><a href="#cb63-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(treatment) <span class="sc">|&gt;</span></span>
-<span id="cb63-17"><a href="#cb63-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">prob =</span> <span class="fu">mean</span>(pulled_left))</span>
-<span id="cb63-18"><a href="#cb63-18" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(obs, <span class="fu">aes</span>(<span class="at">x =</span> treatment, <span class="at">y =</span> prob, <span class="at">group =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb63-19"><a href="#cb63-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_lineribbon</span>(data, </span>
-<span id="cb63-20"><a href="#cb63-20" aria-hidden="true" tabindex="-1"></a>                    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> treatment, <span class="at">y =</span> mean, <span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95),</span>
-<span id="cb63-21"><a href="#cb63-21" aria-hidden="true" tabindex="-1"></a>                    <span class="at">fill =</span> <span class="st">"orange"</span>, <span class="at">color =</span> <span class="st">"brown"</span>) <span class="sc">+</span></span>
-<span id="cb63-22"><a href="#cb63-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"navyblue"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb63-23"><a href="#cb63-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))<span class="sc">+</span></span>
-<span id="cb63-24"><a href="#cb63-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">sprintf</span>(<span class="st">"Fitted prediction for chimp # %d"</span>, chimp), </span>
-<span id="cb63-25"><a href="#cb63-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span>
-<span id="cb63-26"><a href="#cb63-26" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb63-27"><a href="#cb63-27" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(fitd$data)</span></span>
-<span id="cb63-28"><a href="#cb63-28" aria-hidden="true" tabindex="-1"></a>fitd<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>fitd <span class="ot">&lt;-</span> <span class="fu">within</span>(fitd, {</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  chimp <span class="ot">&lt;-</span> <span class="dv">5</span>L</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>  labels<span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"R/N"</span>, <span class="st">"L/N"</span>, <span class="st">"R/P"</span>, <span class="st">"L/P"</span>)</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>  newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">actor =</span> <span class="fu">factor</span>(chimp),</span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">treatment =</span> <span class="fu">unique</span>(dataChimp<span class="sc">$</span>treatment),</span>
+<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">block =</span> <span class="dv">1</span></span>
+<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">epred_draws</span>(fit13_04, <span class="at">newdata =</span> newdata) <span class="sc">|&gt;</span></span>
+<span id="cb65-11"><a href="#cb65-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>.chain, <span class="sc">-</span>.iteration, <span class="sc">-</span>.draw) <span class="sc">|&gt;</span></span>
+<span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize_draws</span>()</span>
+<span id="cb65-13"><a href="#cb65-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># and the empirical frequencies are</span></span>
+<span id="cb65-14"><a href="#cb65-14" aria-hidden="true" tabindex="-1"></a>  obs <span class="ot">&lt;-</span> dataChimp <span class="sc">|&gt;</span></span>
+<span id="cb65-15"><a href="#cb65-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(actor <span class="sc">==</span> chimp) <span class="sc">|&gt;</span></span>
+<span id="cb65-16"><a href="#cb65-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(treatment) <span class="sc">|&gt;</span></span>
+<span id="cb65-17"><a href="#cb65-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">prob =</span> <span class="fu">mean</span>(pulled_left))</span>
+<span id="cb65-18"><a href="#cb65-18" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(obs, <span class="fu">aes</span>(<span class="at">x =</span> treatment, <span class="at">y =</span> prob, <span class="at">group =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb65-19"><a href="#cb65-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_lineribbon</span>(data, </span>
+<span id="cb65-20"><a href="#cb65-20" aria-hidden="true" tabindex="-1"></a>                    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> treatment, <span class="at">y =</span> mean, <span class="at">ymin =</span> q5, <span class="at">ymax =</span> q95),</span>
+<span id="cb65-21"><a href="#cb65-21" aria-hidden="true" tabindex="-1"></a>                    <span class="at">fill =</span> <span class="st">"orange"</span>, <span class="at">color =</span> <span class="st">"brown"</span>) <span class="sc">+</span></span>
+<span id="cb65-22"><a href="#cb65-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"navyblue"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb65-23"><a href="#cb65-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb65-24"><a href="#cb65-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">sprintf</span>(<span class="st">"Fitted prediction for chimp # %d"</span>, chimp), </span>
+<span id="cb65-25"><a href="#cb65-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span>
+<span id="cb65-26"><a href="#cb65-26" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb65-27"><a href="#cb65-27" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(fitd$data)</span></span>
+<span id="cb65-28"><a href="#cb65-28" aria-hidden="true" tabindex="-1"></a>fitd<span class="sc">$</span>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">

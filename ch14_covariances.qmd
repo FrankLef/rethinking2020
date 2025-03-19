@@ -64,8 +64,6 @@ conflicted::conflicts_prefer(
   .quiet = TRUE)
 ```
 
-
-
 The default theme used by `ggplot2`
 
 ```{r}
@@ -96,8 +94,7 @@ simCafes <- within(simCafes, {
 })
 ```
 
-McElreath mentions a difficulty using the `matrix` function. He misses the
-argument `byrow` which resolve this.
+McElreath mentions a difficulty using the `matrix` function. He misses the argument `byrow` which resolve this.
 
 ```{r}
 # use byrow = TRUE to solve McElrath's issue
@@ -119,7 +116,6 @@ simCafes <- within(simCafes, {
 ```
 
 and we simulate the bivariate normal distribution
-
 
 ```{r}
 simCafes <- within(simCafes, {
@@ -420,10 +416,7 @@ dataChimp |>
 
 #### The model
 
-
-
-$$
-\begin{align*}
+\$\$ \begin{align*}
 L_i &\sim \mathcal{Binomial}(1, p_i) \\
 logit(p_i) &\sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta_{block[i], treatment[i]} \\
 \gamma_{treatment[i]} &\sim \mathcal{N}(0, 1), \, \text{for } i = 1 \ldots 4 \\
@@ -510,16 +503,11 @@ logit(p_i) &\sim \gamma_{treatment[i]} + \alpha_{actor[i], treatment[i]} + \beta
 
 \rho_{actor}, \rho_{block} &\sim \mathcal{LKJcorr}(2)
 
-\end{align*}
-$$
+\end{align*} \$\$
 
-
-:::{.callout-note}
-We don't do model m14.2 since it is only done to illustrate centralized vs 
-non-centralized parametrization and that `brms` uses only non-centralized 
-parametrization.
+::: callout-note
+We don't do model m14.2 since it is only done to illustrate centralized vs non-centralized parametrization and that `brms` uses only non-centralized parametrization.
 :::
-
 
 ```{r}
 #| label: "ch14_fit14_03"
@@ -543,9 +531,7 @@ fit14_03 <- xfun::cache_rds({
 tictoc::toc()
 ```
 
-
-The plot is slightly different than what McElreath has. The open circle represent
-the actual results and the solid circles are the predicted mean.
+The plot is slightly different than what McElreath has. The open circle represent the actual results and the solid circles are the predicted mean.
 
 ```{r}
 #| label: "ch14_plot14_03"
@@ -602,8 +588,6 @@ plot14_03 <- within(plot14_03, {
 plot14_03$p
 ```
 
-
-
 ## Instruments and Causal designs
 
 ```{r}
@@ -612,8 +596,6 @@ ggdag::dagify(E ~ U, W ~ U, W ~ E) |>
     ggdag::theme_dag_blank(
       panel.background = element_rect(fill = "snow", color = "snow"))
 ```
-
-
 
 > In causal terms, an instrument variable is a variable that acts like a natural experiment on the exposure $E$.
 
@@ -636,8 +618,7 @@ ggdag::dagify(E ~ U + Q, W ~ U, W ~ E) |>
 
 We now use a simulation to illustrate.
 
-> With real data, you never know what the right anser is. This is why studying 
-simulated examples is so important.
+> With real data, you never know what the right anser is. This is why studying simulated examples is so important.
 
 ```{r}
 #| label: "chap14_simInstrument"
@@ -821,82 +802,90 @@ summarize_draws(fit14_06, "mean", "sd", ~quantile(.x, probs = c(0.055, 0.945)),
 
 ## Social relations as correlated varying effects
 
+::: callout-tip
+Kurtz says that there is no known way to use `brms`. The R package `bisonR`
+specializes in social networks and uses `brms`. It can be found at [bison](https://jhart96.github.io/bisonR/index.html). This section is done with the `bisonR` package.
+:::
 
 ::: callout-important
-I couldn't find the way to replicate this section with `bisonR`. This section
-is to be completed later.
+I have tried, ***and failed***, to use `bisonR` to do this section.  This section is
+incomplete and probably erroneous.  You might want to try and do it 
+if the subject of social network interests you. The best source
+I found on how to use `bisonR` with a variety of examples is at [bison examples](https://github.com/JHart96/bison_examples/blob/main/examples/dyadic_regression_stan.md)
 :::
+
 
 ### Using `bisonR`
 
-::: callout-tip
-Kurtz says that there is no known way to use `brms`. The package `bisonR` 
-specializes in social networks and uses `brms`. It can be found at 
-[bison](https://jhart96.github.io/bisonR/index.html). This section is done with 
-the `bisonR` package.
-:::
-
 
 ::: callout-warning
-Make sure that you have `cmdstanr` version 0.8 or greater. Otherwise,
-`bisonR::bison_model()` returns an error caused by `cmdstanr`.
+Make sure that you have `cmdstanr` version 0.8 or greater. Otherwise, `bisonR::bison_model()` returns an error caused by `cmdstanr`.
 :::
 
 ::: callout-note
 The following is a test to ensure that `bisonR` works properly.
 :::
 
-
 ```{r}
 tmp <- list()
 tmp$sim_data <- bisonR::simulate_bison_model("binary", aggregated = FALSE)
 tmp$df <- tmp$sim_data$df_sim
-# glimpse(tmp$df)
+glimpse(head(tmp$df))
 ```
 
-The path to `cmdstan` has been set in the `CMDSTAN` environment variable. See
-details of `set_cmdstan_path()` for more info
+The path to `cmdstan` has been set in the `CMDSTAN` environment variable. See details of `set_cmdstan_path()` for more info
 
 ```{r}
 cmdstanr::cmdstan_path()
 # cmdstanr::set_cmdstan_path(path = r"(C:\Users\Ephel\Documents\.cmdstan\cmdstan-2.35.0)")
 ```
+
 ```{r}
 #| label: "ch14_bison_prior"
 tmp$priors <- bisonR::get_default_priors("binary")
 ```
 
-
 ```{r}
+#| eval: false
 #| label: "ch14_bison_fit"
-tmp$fit_edge <- bisonR::bison_model(
+tictoc::tic(msg = sprintf("run time of %s, use the cache.", "2 min."))
+tmp$fit_edge <- xfun::cache_rds({
+  bisonR::bison_model(
   formula = (event | duration) ~ dyad(node_1_id, node_2_id),
   data = tmp$df,
   model_type = "binary",
   priors = tmp$priors,
-  mc_cores = getOption("mc_cores", default = 2))
-```
+  mc_cores = getOption("mc_cores", default = 2))},
+  file = "ch14_bison_fit", rerun = FALSE)
+tictoc::toc()
 
+
+# tmp$fit_edge <- bisonR::bison_model(
+#   formula = (event | duration) ~ dyad(node_1_id, node_2_id),
+#   data = tmp$df,
+#   model_type = "binary",
+#   priors = tmp$priors,
+#   mc_cores = getOption("mc_cores", default = 2))
+```
 
 ```{r}
-# summary(tmp$fit_edge)
+summary(tmp$fit_edge)
 ```
+::: callout-note
+Now that we have ensured `bisonR` works properly, lets go back to *Rethinking*.
+:::
+
 
 ```{r}
 rm(tmp)
 ```
 
-
-
 ### Data
 
-The research can be find in this [paper](https://research-information.bris.ac.uk/ws/portalfiles/portal/41942591/koster2014sn.pdf).
-However I could not find what the variable $dlndist$ is. I suppose it it
-the log of some distance ... but why is it negative? It doesn't matter, it is 
-only used to color the edges of the network and not in the analysis per se.
+The research can be find in this [paper](https://research-information.bris.ac.uk/ws/portalfiles/portal/41942591/koster2014sn.pdf). However I could not find what the variable $dlndist$ is. I suppose it it the log of some distance ... but why is it negative? It doesn't matter, it is only used to color the edges of the network and is not used in the analysis.
 
-
-```{r ch14_dataKL}
+```{r}
+#| label: "ch14_dataKL"
 data(KosterLeckie, package = "rethinking")
 dataKL <- list(
   "dyads" = kl_dyads,
@@ -913,13 +902,12 @@ dataKL$dyads <- dataKL$dyads |>
 ```
 
 ```{r}
-# glimpse(dataKL$dyads)
+dataKL$dyads |>
+  head() |>
+  glimpse()
 ```
 
-
-
 The data set can be summarized with the `skimr` package
-
 
 ```{r}
 dataKL$dyads |> skim() |>
@@ -938,11 +926,9 @@ dataKL$dyads |> ggplot(aes(x = giftsAB, y = giftsBA)) +
   labs(title = "Distribution of dyadic gifts")
 ```
 
-and since this a social network then we can visualize the network with the 
-`ggnetwork` package.For details see [ggnetwork](https://cran.r-project.org/web/packages/ggnetwork/vignettes/ggnetwork.html).
+and since this a social network then we can visualize the network with the `ggnetwork` package. For details see [ggnetwork](https://cran.r-project.org/web/packages/ggnetwork/vignettes/ggnetwork.html).
 
-We use the `tidygraph` to use dplyr verbs on relational data and `ggraph` to
-plot it.
+We use the `tidygraph` to use dplyr verbs on relational data and `ggraph` to plot it.
 
 ```{r}
 netKL <- list()
@@ -964,12 +950,13 @@ netKL <- within(netKL, {
     theme(title = element_text(color = "midnightblue")) +
     labs(title = "The KosterLeckie Network")
 })
-netKL$p
+netKL$p |>
+  suppressWarnings()
 ```
 
 ### Model
 
-$$
+\$\$
 
 \begin{align*}
 \begin{bmatrix}
@@ -1044,17 +1031,12 @@ d_{ji} \\
 
 
 \rho_{gr}, \rho_d &\sim \mathcal{LKJ}(4)
-\end{align*}
-$$
+\end{align*} \$\$
 
 ### Fit
 
-
 ```{r}
-# glimpse(dataKL$dyads)
-```
-```{r}
-message("The duration is required to use bisonR" )
+message("The duration variable is required to use bisonR" )
 dataKL$dyads <- dataKL$dyads |>
   mutate(duration = 1)
 # glimpse(dataKL$dyads)
@@ -1064,22 +1046,41 @@ dataKL$dyads <- dataKL$dyads |>
 fit14_07_priors <- bisonR::get_default_priors(model_type = "count")
 fit14_07_priors
 ```
+and the prior can be visualized
+
+```{r}
+prior_check(fit14_07_priors, "count")
+```
+
+```{r}
+dataKL$dyads |>
+  drop_na() |>
+  glimpse()
+```
+
+
 
 
 ```{r}
-#| label: "ch14_fit14_07"
 #| eval: false
-# fit14_07_priors
-fit14_07 <- bisonR::bison_model(
+#| label: "ch14_fit14_07_edge"
+fit14_07_edge <- bisonR::bison_model(
   data = dataKL$dyads,
   formula = (giftsAB| duration) ~ dyad(hidA, hidB),
+  directed = FALSE,
   model_type = "count",
-  priors = fit14_07_priors
-)
+  priors = fit14_07_priors,
+  mc_cores = getOption("mc.cores"),
+  iter_sampling = 1000,
+  iter_warmup = 1000,
+  priors_only = TRUE
+) |>
+  suppressWarnings()
 ```
+
 ```{r}
 #| eval: false
-summary(fit14_07)
+summary(fit14_07_edge)
 ```
 
 ```{r}
@@ -1087,14 +1088,14 @@ summary(fit14_07)
 plot_predictions(fit14_07, num_draws=20, type="density")
 ```
 
-
-
 ```{r}
 #| eval: false
 fitdyadic14_07 <- bisonR::bison_brm(
   data_list = dataKL$dyads,
   formula = giftsAB ~ bison(edge_weight(hidA, hidB)),
-  edgemodel_list = fit14_07) |>
+  edgemodel_list = fit14_07,
+  chains = 2,
+  cores = getOption("mc.cores")) |>
   suppressWarnings()
 
 ```
@@ -1103,8 +1104,6 @@ fitdyadic14_07 <- bisonR::bison_brm(
 #| eval: false
 fitdyadic14_07
 ```
-
-
 
 ## Continuous categories and the Gaussian process
 
@@ -1139,10 +1138,7 @@ dataKline$nodes_df |>
 # glimpse(dataKline$df)
 ```
 
-and we will also use a matrix of the longitudinal and latitudinal relative 
-positions of the societies. This is an approximation only as it used the km per 
-degree at the equator which is 111.32 km per degree at the equator. This gives 
-the following relative position matrix.
+and we will also use a matrix of the longitudinal and latitudinal relative positions of the societies. This is an approximation only as it used the km per degree at the equator which is 111.32 km per degree at the equator. This gives the following relative position matrix.
 
 ```{r}
 data(islandsDistMatrix)
@@ -1174,10 +1170,10 @@ heatmaply::heatmaply(
   main = "Distances between Oceanic Societies in Thousands of km")
 ```
 
-And the basic map, shown as a graph, with latitude and longitude of the culture
-can be visualize with the `ggraph` package.
+And the basic map, shown as a graph, with latitude and longitude of the culture can be visualize with the `ggraph` package.
 
-```{r ch14_graph14_08}
+```{r}
+#| label: "ch14_graph14_08" 
 #| fig-align: "center"
 graph14_08 <- list()
 graph14_08 <- within(graph14_08, {
@@ -1204,7 +1200,6 @@ graph14_08 <- within(graph14_08, {
 graph14_08$p
 ```
 
-
 #### Model
 
 We use the scientific model. See section 11.2.1, p. 356, in the Overthinking box.
@@ -1225,8 +1220,7 @@ T_i &\sim \mathcal{Poisson}(\lambda_i) \\
 \end{align*}
 $$
 
-Here $k_{society}$ is the varying intercept. These intercept are part of a 
-multivariate distribution. The multivariate intercept prior is defined as
+Here $k_{society}$ is the varying intercept. These intercept are part of a multivariate distribution. The multivariate intercept prior is defined as
 
 $$
 \begin{align*}
@@ -1309,11 +1303,11 @@ k_{10}
 \eta^2 &\sim \mathcal{Exponential}(2) \\
 \rho^2 &\sim \mathcal{Exponential}(0.5)
 \end{align*}
-$$ 
+$$
+
 ```{r}
 
 ```
-
 
 ##### `brms` model
 
@@ -1363,7 +1357,8 @@ get_prior(data = dataKline$nodes_df,
           family = poisson)
 ```
 
-```{r ch14_fit14_08}
+```{r}
+#| label: "ch14_fit14_08"
 tictoc::tic(msg = sprintf("run time of %s, use the cache.", "90 secs."))
 fit14_08 <- xfun::cache_rds({
   brm(
@@ -1412,12 +1407,9 @@ posterior_summary(fit14_08) |>
 
 #### Analysis
 
-The differences with `rethinking` are because `brms` uses non-centering. 
-The coefficient that is really different is the $\alpha$ in 
-$\lambda_i = \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}$.
+The differences with `rethinking` are because `brms` uses non-centering. The coefficient that is really different is the $\alpha$ in $\lambda_i = \exp(k_{society}) \frac{\alpha P_i^\beta}{\gamma}$.
 
-To evaluate the differences between `brms` and `rethinking` we can look at what 
-the posterior would be like, without taking into account the covariances.
+To evaluate the differences between `brms` and `rethinking` we can look at what the posterior would be like, without taking into account the covariances.
 
 For `brms` we have
 
@@ -1460,9 +1452,7 @@ $$
 \bf{K_{ij}} = \eta^2 \exp \left(-\rho^2D_{ij}^2 \right) + \delta_{ij}\sigma^2
 $$
 
-where the term $\delta_{ij}\sigma^2$ is used when $i=j$, see p. 470 of 
-@elreath2020. In the oceanic case it is not applicable since we have only one 
-observation per society. Therefore the equation is this case is
+where the term $\delta_{ij}\sigma^2$ is used when $i=j$, see p. 470 of @elreath2020. In the oceanic case it is not applicable since we have only one observation per society. Therefore the equation is this case is
 
 $$
 \bf{K_{ij}} = \eta^2 \exp \left(-\rho^2D_{ij}^2 \right)
@@ -1493,8 +1483,7 @@ D_{ij}^2 &= 2 \cdot lscale^2 \cdot \left[ \log \left(sdgp^2 \right) - \log \left
 \end{align*}
 $$
 
-and therefore we can figure out the covariance and convert the coefficients 
-between `brms` and `rethinking`,
+and therefore we can figure out the covariance and convert the coefficients between `brms` and `rethinking`,
 
 ```{r}
 post14_08 <- list()
@@ -1514,10 +1503,10 @@ post14_08 <- within(post14_08, {
 })
 ```
 
-and we transform the posterior data to be able to plot as shown in figure 
-14.11 on p. 473
+and we transform the posterior data to be able to plot as shown in figure 14.11 on p. 473.
 
-```{r ch14_post14_08}
+```{r}
+#| label: "ch14_post14_08"
 post14_08 <- within(post14_08, {
 
   post <- tidy_draws(fit14_08)
@@ -1554,8 +1543,8 @@ post14_08 <- within(post14_08, {
 # glimpse(post14_08$sampl)
 ```
 
-
-```{r ch14_plot14_08}
+```{r}
+#| label: "ch14_plot14_08"
 #| fig-cap: "Figure 14.11"
 #| fig-align: "center"
 plot14_08 <- list()
@@ -1600,8 +1589,7 @@ wrap_plots(plot14_08[c("prior", "post")]) +
   theme(title = element_text(color = "darkblue"))
 ```
 
-and to get the matrix of median covariance we simply map the calculation of 
-covariance using the median values of the parameters
+and to get the matrix of median covariance we simply map the calculation of covariance using the median values of the parameters
 
 ```{r}
 post14_08 <- within(post14_08, {
@@ -1717,7 +1705,8 @@ wrap_plots(graph14_08[c("p1", "p2")]) +
 
 ### Phylogenic distance
 
-```{r chap14_dagPhylo}
+```{r}
+#| label: "chap14_dagPhylo"
 #| fig-align: "center"
 dagPhylo <- list()
 dagPhylo <- within(dagPhylo, {
@@ -1801,9 +1790,7 @@ dataPrimates |> skim() |>
   mutate(across(.cols = where(is.numeric), .fns = round, digits = 1))
 ```
 
-and to plot is we use the `ggtree` package. Details on `ggtree` can be found at [ggtree](https://yulab-smu.top/treedata-book/index.html). It is not available
-on CRAN at the time of writing this. You can find it in github and install it
-with `devtools::install_github("GuangchuangYu/ggtree")`.
+and to plot is we use the `ggtree` package. Details on `ggtree` can be found at [ggtree](https://yulab-smu.top/treedata-book/index.html). It is not available on CRAN at the time of writing this. You can find it in github and install it with `devtools::install_github("GuangchuangYu/ggtree")`.
 
 ```{r}
 # devtools::install_github("GuangchuangYu/ggtree")
